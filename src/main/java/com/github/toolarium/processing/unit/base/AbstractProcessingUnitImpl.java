@@ -127,7 +127,8 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingUnit#resumeProcessing(java.util.List, com.github.toolarium.processing.unit.IProcessingProgress, com.github.toolarium.processing.unit.IProcessingPersistence)
+     * @see com.github.toolarium.processing.unit.IProcessingUnit#resumeProcessing(java.util.List, com.github.toolarium.processing.unit.IProcessingProgress, 
+     * com.github.toolarium.processing.unit.IProcessingPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
     public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) 
