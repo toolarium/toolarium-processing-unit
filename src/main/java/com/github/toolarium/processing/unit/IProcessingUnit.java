@@ -26,18 +26,6 @@ public interface IProcessingUnit {
      */
     List<ParameterDefinition> getParameterDefinition();
 
-
-    /**
-     * Initializes the processing unit. This will called as first to initialize the processing unit.
-     * 
-     * @param parameterList the parameter list to run the processing.
-     * @param processingUnitContext the processing context.
-     * @throws ValidationException This will be throw in case the consistency check failures.
-     * @throws ProcessingException Throws this exception in case of initialization failures.
-     */
-    void initialize(List<Parameter> parameterList, IProcessingUnitContext processingUnitContext)
-        throws ValidationException, ProcessingException;
-
     
     /**
      * Validate the parameter list consistency of this class with the parameters. Typical it will be called during the initialization.
@@ -49,6 +37,18 @@ public interface IProcessingUnit {
     void validateParameterList(List<Parameter> parameterList) 
         throws ValidationException;
     
+    
+    /**
+     * Initializes the processing unit. This will called as first to initialize the processing unit.
+     * 
+     * @param parameterList the parameter list to run the processing.
+     * @param processingUnitContext the processing context.
+     * @throws ValidationException This will be throw in case the consistency check failures.
+     * @throws ProcessingException Throws this exception in case of initialization failures.
+     */
+    void initialize(List<Parameter> parameterList, IProcessingUnitContext processingUnitContext)
+        throws ValidationException, ProcessingException;
+
     
     /**
      * Process unit: This method will be called until the {@link IProcessStatus#hasNext} returns false.

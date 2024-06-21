@@ -85,4 +85,13 @@ public interface MyDataProcessingUnitConstants {
                                     100,
                                     false,
                                     "The key names, default parameter test.");
+
+
+    /** NUMBER_OF_TESTDATA_RECORDS: The number of test data records. */
+    ParameterDefinition NUMBER_OF_TESTDATA_RECORDS =
+            new ParameterDefinition("numberOfTestDataRecords",
+                                    ParameterValueType.INTEGER,
+                                    26,
+                                    ParameterDefinition.OPTIONAL,
+                                    "The number of testdata records.");
 }

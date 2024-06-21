@@ -1,17 +1,16 @@
 /*
- * ValidateSeverityType.java
+ * ProcessingRuntimeStatus.java
  *
  * Copyright by toolarium, all rights reserved.
  */
 package com.github.toolarium.processing.unit.dto;
 
-
 /**
- * Defines the processing status types.
+ * Defines the processing runtime status.
  *
  * @author patrick
  */
-public enum ProcessingStatusType {
+public enum ProcessingRuntimeStatus {
 
     /** SUCCESSFUL */
     SUCCESSFUL,

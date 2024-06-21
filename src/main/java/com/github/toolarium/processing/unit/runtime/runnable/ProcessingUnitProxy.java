@@ -11,9 +11,10 @@ import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
-import com.github.toolarium.processing.unit.dto.ProcessingStatusType;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
+import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -27,39 +28,47 @@ import org.slf4j.LoggerFactory;
  */
 public final class ProcessingUnitProxy implements IProcessingUnitProxy {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingUnitProxy.class);
+    private String id;
+    private String name;
     private Class<? extends IProcessingUnit> processingUnitClass;
     private IProcessingUnit processingUnit;
     private List<Parameter> parameterList;
     private IProcessStatus lastProcessStatus;
     private IProcessingUnitContext processingUnitContext;
-    private ProcessingStatusType processingStatusType;
+    private ProcessingRuntimeStatus processingRuntimeStatus;
     private List<String> processStatusMessageList;
 
 
     /**
      * Constructor
      * 
+     * @param id the unique id of the processing
+     * @param name the name of the processing
      * @param processingUnitClass the processing unit class
      * @param processingUnit the processing unit
      * @param parameterList the parameter list
-     * @param lastProcessStatus the last process status
+     * @param lastProcessStatus the last process status or null
      * @param processingUnitContext the processing unit context
-     * @param processingStatusType the processing status type
+     * @param processingRuntimeStatus the processing runtime status
      * @param processStatusMessageList the processing status message list
      */
-    private ProcessingUnitProxy(final Class<? extends IProcessingUnit> processingUnitClass,
+    private ProcessingUnitProxy(final String id,
+                                final String name,
+                                final Class<? extends IProcessingUnit> processingUnitClass,
                                 final IProcessingUnit processingUnit, 
                                 final List<Parameter> parameterList, 
                                 final IProcessStatus lastProcessStatus,
                                 final IProcessingUnitContext processingUnitContext,
-                                final ProcessingStatusType processingStatusType,
+                                final ProcessingRuntimeStatus processingRuntimeStatus,
                                 final List<String> processStatusMessageList) {
+        this.id = id;
+        this.name = name;
         this.processingUnitClass = processingUnitClass;
         this.processingUnit = processingUnit;
         this.parameterList = parameterList;
         this.lastProcessStatus = lastProcessStatus;
         this.processingUnitContext = processingUnitContext;
-        this.processingStatusType = processingStatusType;
+        this.processingRuntimeStatus = processingRuntimeStatus;
         this.processStatusMessageList = processStatusMessageList;
     }
 
@@ -70,6 +79,8 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      * <li>Validate the input parameters against the parameter definition
      * <li>Calls on the {@link IProcessingUnit} instance initialize method
      *
+     * @param id the unique id of the processing
+     * @param name the name of the processing
      * @param processingUnitClass the processing unit class
      * @param parameterList the parameter list
      * @param processingUnitContext the processing unit context
@@ -77,45 +88,48 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
-    public static ProcessingUnitProxy init(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) 
+    public static ProcessingUnitProxy init(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) 
             throws ValidationException, ProcessingException {
         IProcessingUnit processingUnit = null;
         
+        final String processing = ProcessingUnitUtil.getInstance().preapre(id, name, processingUnitClass);
         try {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Initialize processing unit class [" + processingUnitClass + "]...");
+                LOG.debug("Initialize processing unit class " + processing);
             }
             processingUnit = createProcessingUnitInstance(processingUnitClass);
             
             // get parameter definition
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Get parameter definition of processing unit instance [" + processingUnitClass + "]");
+                LOG.debug("Get parameter definition of processing unit instance " + processing);
             }
             processingUnit.getParameterDefinition();
 
             // check consistency
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Validate parameter list of processing unit instance [" + processingUnitClass + "]");
+                LOG.debug("Validate parameter list of processing unit instance " + processing);
             }
             processingUnit.validateParameterList(parameterList);
 
             // initialize
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Initialize the processing unit instance [" + processingUnitClass + "] with parameter list [" + parameterList + "]");
+                LOG.debug("Initialize the processing unit instance " + processing + " with parameter list [" + parameterList + "]");
             }
             processingUnit.initialize(parameterList, processingUnitContext);
-            return new ProcessingUnitProxy(processingUnitClass, processingUnit, parameterList, null, processingUnitContext, ProcessingStatusType.SUCCESSFUL, new ArrayList<String>());
+            
+            LOG.info("Successful initialized processing unit instance " + processing);
+            return new ProcessingUnitProxy(id, name, processingUnitClass, processingUnit, parameterList, null, processingUnitContext, ProcessingRuntimeStatus.SUCCESSFUL, new ArrayList<String>());
         } catch (RuntimeException e) {
             if (processingUnit != null) {
                 try {
                     // release resource
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Release resource of processing unit instance [" + processingUnitClass + "].", e);
+                        LOG.debug("Release resource of processing unit instance " + processing, e);
                     }
                     processingUnit.releaseResource();
                     processingUnit = null;
                 } catch (Exception ex) {
-                    LOG.warn("Could not release resource from processing unit instance [" + processingUnitClass + "]: " + ex.getMessage(), ex);
+                    LOG.warn("Could not release resource from processing unit instance " + processing + ": " + ex.getMessage(), ex);
                 }                
             }
             
@@ -123,7 +137,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
         }
     }
 
-    
+
     /**
      * Resume a {@link IProcessingUnit}:
      * <li>Initialize the processing unit class
@@ -149,33 +163,38 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             if (resumeProcessingPersistence == null || resumeProcessingPersistence.getProcessingUnitClass() == null) {
                 throw new ValidationException("Could not recover processing unit instance!");
             }
+            
+            final String processing = ProcessingUnitUtil.getInstance().preapre(resumeProcessingPersistence.getId(), resumeProcessingPersistence.getName(), resumeProcessingPersistence.getProcessingUnitClass());
             processingUnitClass = resumeProcessingPersistence.getProcessingUnitClass();
 
             // create the process unit instance
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Initialize processing unit class [" + processingUnitClass + "]...");
+                LOG.debug("Initialize processing unit class " + processing + "...");
             }
             processingUnit = createProcessingUnitInstance(processingUnitClass);
 
             // check consistency
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Validate parameter list of processing unit instance [" + processingUnitClass + "]");
+                LOG.debug("Validate parameter list of processing unit instance " + processing);
             }
             processingUnit.validateParameterList(resumeProcessingPersistence.getParameterList());
-            IProcessStatus lastProcessStatus = resumeProcessingPersistence.getProcessingStatus();
+            final IProcessStatus lastProcessStatus = resumeProcessingPersistence.getProcessingStatus();
             IProcessingUnitContext processingUnitContext = resumeProcessingPersistence.getProcessingUnitContext();
             
             // resume processing
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Resume the processing unit instance [" + resumeProcessingPersistence.getProcessingUnitClass() + "] with parameter list [" + resumeProcessingPersistence.getParameterList() + "]");
+                LOG.debug("Resume the processing unit instance " + processing + " with parameter list [" + resumeProcessingPersistence.getParameterList() + "]");
             }
             processingUnit.resumeProcessing(resumeProcessingPersistence.getParameterList(), resumeProcessingPersistence.getProcessingStatus().getProcessingProgress(), resumeProcessingPersistence.getProcessingPersistence(), processingUnitContext);
-            return new ProcessingUnitProxy(resumeProcessingPersistence.getProcessingUnitClass(), 
+            LOG.info("Successful resumed processing unit instance " + processing);
+            return new ProcessingUnitProxy(resumeProcessingPersistence.getId(), 
+                                           resumeProcessingPersistence.getName(),
+                                           resumeProcessingPersistence.getProcessingUnitClass(), 
                                            processingUnit, 
                                            resumeProcessingPersistence.getParameterList(), 
                                            lastProcessStatus, 
                                            processingUnitContext,
-                                           resumeProcessingPersistence.getProcessingStatusType(),
+                                           resumeProcessingPersistence.getProcessingRuntimeStatus(),
                                            resumeProcessingPersistence.getProcessingStatusMessageList());
         } catch (RuntimeException e) {
             if (processingUnit != null) {
@@ -197,6 +216,24 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
 
     
     /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy#getId()
+     */
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    
+    /**
      * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy#getParameterDefinition()
      */
     @Override
@@ -211,7 +248,6 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
     @Override
     public boolean processUnit() {
         boolean continueProcessing = false;
-        
         try {
             // process
             lastProcessStatus = getProcessingUnit().processUnit(processingUnitContext);
@@ -227,23 +263,23 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             processStatusMessageList.add(prepare(ve.getMessage(), "Exception occured " + ve.getClass()  + "!"));
             
             if (continueProcessing) {
-                processingStatusType = ProcessingStatusType.WARN;
+                processingRuntimeStatus = ProcessingRuntimeStatus.WARN;
             } else {
-                processingStatusType = ProcessingStatusType.ERROR;
+                processingRuntimeStatus = ProcessingRuntimeStatus.ERROR;
             }
         } catch (ProcessingException pe) {
             continueProcessing = !pe.abortProcessing();
             processStatusMessageList.add(prepare(pe.getMessage(), "Exception occured " + pe.getClass()  + "!"));
             
             if (continueProcessing) {
-                processingStatusType = ProcessingStatusType.WARN;
+                processingRuntimeStatus = ProcessingRuntimeStatus.WARN;
             } else {
-                processingStatusType = ProcessingStatusType.ERROR;
+                processingRuntimeStatus = ProcessingRuntimeStatus.ERROR;
             }
         } catch (RuntimeException e) {
             continueProcessing = false;
             processStatusMessageList.add(prepare(e.getMessage(), "Exception occured " + e.getClass()  + "!"));
-            processingStatusType = ProcessingStatusType.ERROR;
+            processingRuntimeStatus = ProcessingRuntimeStatus.ERROR;
         }
         
         return continueProcessing;
@@ -267,12 +303,14 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             }
             
             final ProcessingPersistenceContainer suspendProcessingPersistence = 
-                    new ProcessingPersistenceContainer(getProcessingUnitClass(), 
+                    new ProcessingPersistenceContainer(id,
+                                                       name,
+                                                       getProcessingUnitClass(), 
                                                        getParameterList(), 
                                                        processingPersistence, 
                                                        lastProcessStatus, 
                                                        processingUnitContext,
-                                                       processingStatusType,
+                                                       processingRuntimeStatus,
                                                        processStatusMessageList);
     
             // persist...
@@ -304,7 +342,11 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      */
     @Override
     public void releaseResource() throws ProcessingException {
-        getProcessingUnit().releaseResource();
+        try { 
+            getProcessingUnit().releaseResource();
+        } catch (ProcessingException e) {
+            // NOP
+        }
     }
 
 
@@ -313,21 +355,18 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      */
     @Override
     public IProcessStatus getProcessStatus() {
-        if (lastProcessStatus == null) {
-            throw new ProcessingException("Processing unit is not initialized!", true);
-        }
-        
         return lastProcessStatus;
     }
 
-
+    
     /**
-     * Get the processing status type
+     * Get the processing runtime status
      * 
-     * @return the processing status type
+     * @return the processing runtime status
      */
-    public ProcessingStatusType getProcessingStatusType() {
-        return processingStatusType;
+    public ProcessingRuntimeStatus getProcessingRuntimeStatus() {
+        return processingRuntimeStatus;
+               
     }
     
     
@@ -347,7 +386,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      * @return the processing unit class
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
-    protected Class<? extends IProcessingUnit> getProcessingUnitClass() {
+    public Class<? extends IProcessingUnit> getProcessingUnitClass() {
         if (processingUnitClass == null) {
             throw new ProcessingException("Processing unit class is not initialized!", true);
         }
@@ -376,11 +415,31 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      *
      * @return the processing parameter list
      */
-    protected List<Parameter> getParameterList() {
+    public List<Parameter> getParameterList() {
         return parameterList;
     }
     
 
+    /**
+     * Get the processing unit context
+     *
+     * @return the processing unit context
+     */
+    public IProcessingUnitContext getProcessingUnitContext() {
+        return processingUnitContext;
+    }
+
+    
+    
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return ProcessingUnitUtil.getInstance().preapre(id, name, processingUnitClass);
+    }
+
+   
     /**
      * Create the processing unit implementation
      *
@@ -407,16 +466,16 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             return;
         }
         
-        ProcessingStatusType processingStatusType = lastProcessStatus.getProcessingProgress().getProcessingStatusType();
-        if (ProcessingStatusType.SUCCESSFUL.equals(processingStatusType)) {
+        ProcessingRuntimeStatus processingRuntimeStatus = lastProcessStatus.getProcessingProgress().getProcessingRuntimeStatus();
+        if (ProcessingRuntimeStatus.SUCCESSFUL.equals(processingRuntimeStatus)) {
             // NOP
-        } else if (ProcessingStatusType.WARN.equals(processingStatusType)) {
-            if (ProcessingStatusType.SUCCESSFUL.equals(this.processingStatusType)) {
-                this.processingStatusType = processingStatusType;
+        } else if (ProcessingRuntimeStatus.WARN.equals(processingRuntimeStatus)) {
+            if (ProcessingRuntimeStatus.SUCCESSFUL.equals(this.processingRuntimeStatus)) {
+                this.processingRuntimeStatus = processingRuntimeStatus;
             }
-        } else if (ProcessingStatusType.ERROR.equals(processingStatusType)) {
-            if (!ProcessingStatusType.ERROR.equals(this.processingStatusType)) {
-                this.processingStatusType = processingStatusType;
+        } else if (ProcessingRuntimeStatus.ERROR.equals(processingRuntimeStatus)) {
+            if (!ProcessingRuntimeStatus.ERROR.equals(this.processingRuntimeStatus)) {
+                this.processingRuntimeStatus = processingRuntimeStatus;
             }
         }
     }

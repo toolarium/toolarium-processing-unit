@@ -14,6 +14,7 @@ import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
+import com.github.toolarium.processing.unit.runtime.IParameterRuntime;
 import com.github.toolarium.processing.unit.runtime.ParameterRuntime;
 import com.github.toolarium.processing.unit.runtime.ProcessStatus;
 import com.github.toolarium.processing.unit.runtime.ProcessingProgress;
@@ -64,15 +65,6 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
         return getParameterRuntime().getParameterDefinition();
     }
 
-
-    /**
-     * @see com.github.toolarium.processing.unit.IProcessingUnit#initialize(java.util.List, com.github.toolarium.processing.unit.IProcessingUnitContext)
-     */
-    @Override
-    public void initialize(List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) throws ValidationException, ProcessingException {
-        getParameterRuntime().setParameterList(parameterList, processingUnitContext);
-    }
-
     
     /**
      * @see com.github.toolarium.processing.unit.IProcessingUnit#validateParameterList(java.util.List)
@@ -83,6 +75,19 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
     }
 
 
+    /**
+     * @see com.github.toolarium.processing.unit.IProcessingUnit#initialize(java.util.List, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     */
+    @Override
+    public void initialize(List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) throws ValidationException, ProcessingException {
+        getParameterRuntime().setParameterList(parameterList, processingUnitContext);
+        
+        if (getProcessingProgress().getNumberOfUnitsToProcess() < 0) {
+            getProcessingProgress().setNumberOfUnitsToProcess(countNumberOfUnitsToProcess(processingUnitContext));
+        }
+    }
+
+    
     /**
      * @see com.github.toolarium.processing.unit.IProcessingUnit#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
@@ -140,6 +145,16 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
         // initialize processing progress
         processingProgress.init(resumeProcessingProgress);
     }
+
+    
+    /**
+     * Count the number of units to process. It will be called once in the process of initialization.
+     * 
+     * @param processingUnitContext the processing context.
+     * @return returns the number of units to process
+     * @throws ProcessingException Throws this exception in case of initialization failures.
+     */
+    protected abstract long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException;
 
 
     /**

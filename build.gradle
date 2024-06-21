@@ -16,7 +16,7 @@ dependencies {
     // utilities
     //implementation "net.sf.jptools:jptools:${commonGradleJptoolsVersion}"
     //implementation "net.sf.jptools:jptools:${commonGradleJptoolsVersion}:slf4j-redirect"
-    implementation "com.github.toolarium:toolarium-common:0.7.0"
+    implementation "com.github.toolarium:toolarium-common:0.7.1"
 
     // logging
     implementation "org.slf4j:slf4j-api:${commonGradleSlf4jApiVersion}"

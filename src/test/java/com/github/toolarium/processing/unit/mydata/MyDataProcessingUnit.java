@@ -11,7 +11,7 @@ import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.Parameter;
-import com.github.toolarium.processing.unit.dto.ProcessingStatusType;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.ProcessStatus;
@@ -25,19 +25,11 @@ import java.util.logging.Logger;
  * @author patrick
  */
 public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl implements MyDataProcessingUnitConstants {
+    public static final String PROCEEDING_KEY = "PROCEEDING";
+    public static final double PROCEEDING_BASE_VALUE = 5d;
     private MyDataProducer dataProducer;
     private boolean onStop;
     private boolean onSuccess;
-
-
-    /**
-     * Constructor
-     */
-    public MyDataProcessingUnit() {
-        super();
-        onStop = false;
-        onSuccess = false;
-    }
 
 
     /**
@@ -45,6 +37,9 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
      */
     @Override
     protected void initializeParameterDefinition() {
+        onStop = false;
+        onSuccess = false;
+        getParameterRuntime().addParameterDefinition(NUMBER_OF_TESTDATA_RECORDS);
         getParameterRuntime().addParameterDefinition(FILENAME_PARAMETER);
         getParameterRuntime().addParameterDefinition(DEFAULTVALUE_TEST_PARAMETER);
         getParameterRuntime().addParameterDefinition(COUNTER_PARAMETER);
@@ -69,92 +64,13 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#initialize(java.util.List, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#countNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    public void initialize(java.util.List<com.github.toolarium.processing.unit.dto.Parameter> parameterList, IProcessingUnitContext processingUnitContext) {
-        super.initialize(parameterList, processingUnitContext);
-
+    protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException {
         dataProducer = new MyDataProducer();
-        dataProducer.init();
-        getProcessingProgress().setTotalUnits(dataProducer.getSize());
-    }
-
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#releaseResource()
-     */
-    @Override
-    public void releaseResource() throws ProcessingException {
-        try {
-            super.releaseResource();
-        } finally {
-            if (dataProducer != null) {
-                dataProducer.close();
-            }
-        }
-    }
-
-    
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#onStop()
-     */
-    @Override
-    public void onStop() {
-        onStop = true;
-    }
-
-
-    /**
-     * Gets the on stop status
-     *
-     * @return the status
-     */
-    public boolean getOnStopStatus() {
-        return onStop;
-    }
-
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#onSuccess()
-     */
-    @Override
-    public void onSuccess() {
-        onSuccess = true;
-    }
-
-
-    /**
-     * Gets the on success status
-     *
-     * @return the status
-     */
-    public boolean getOnSuccessStatus() {
-        return onSuccess;
-    }
-
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#suspendProcessing()
-     */
-    @Override
-    public IProcessingPersistence suspendProcessing() throws ProcessingException {
-        return dataProducer;
-    }
-
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(java.util.List, com.github.toolarium.processing.unit.IProcessingProgress, 
-     * com.github.toolarium.processing.unit.IProcessingPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
-     */
-    @Override
-    public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) 
-            throws ProcessingException {
-        super.initialize(parameterList, processingUnitContext);
-        dataProducer = (MyDataProducer)processingPersistence;
-
-        // initialize previous state
-        getProcessingProgress().init(resumeProcessingProgress);
+        dataProducer.init(getParameterRuntime().getParameterValueList(NUMBER_OF_TESTDATA_RECORDS).getValueAsInteger());
+        return dataProducer.getSize();
     }
 
 
@@ -183,11 +99,11 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
         } 
         
         if (result != null && result.isEmpty()) {
-            getProcessingProgress().setProcessingStatusType(ProcessingStatusType.WARN);
-            getProcessingProgress().increaseTotalFailedUnits();
+            getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
+            getProcessingProgress().increaseNumberOfFailedUnits();
         }
 
-        getProcessingProgress().addStatistic("PROCEEDING", 5d);
+        getProcessingProgress().addStatistic(PROCEEDING_KEY, PROCEEDING_BASE_VALUE);
 
         // the next lines are written to test the default value behavior. Please don't do this in your code!
         if (!status.hasNext()) {
@@ -195,7 +111,86 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
             getProcessingProgress().addStatistic(DEFAULTVALUE_TEST_PARAMETER.getKey(), getParameterRuntime().getParameterValueList(DEFAULTVALUE_TEST_PARAMETER).getValueAsDouble());
         }
 
-        getProcessingProgress().increaseTotalProcessedUnits();
+        getProcessingProgress().increaseNumberOfProcessedUnits();
         return status;
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#releaseResource()
+     */
+    @Override
+    public void releaseResource() throws ProcessingException {
+        try {
+            super.releaseResource();
+        } finally {
+            if (dataProducer != null) {
+                dataProducer.close();
+            }
+        }
+    }
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#suspendProcessing()
+     */
+    @Override
+    public IProcessingPersistence suspendProcessing() throws ProcessingException {
+        return dataProducer;
+    }
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(java.util.List, com.github.toolarium.processing.unit.IProcessingProgress, 
+     * com.github.toolarium.processing.unit.IProcessingPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     */
+    @Override
+    public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) 
+            throws ProcessingException {
+        super.initialize(parameterList, processingUnitContext);
+        dataProducer = (MyDataProducer)processingPersistence;
+
+        // initialize previous state
+        getProcessingProgress().init(resumeProcessingProgress);
+    }
+
+
+    /**
+     * Gets the on stop status
+     *
+     * @return the status
+     */
+    public boolean getOnStopStatus() {
+        return onStop;
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#onStop()
+     */
+    @Override
+    public void onStop() {
+        onStop = true;
+    }
+
+
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#onSuccess()
+     */
+    @Override
+    public void onSuccess() {
+        onSuccess = true;
+    }
+
+
+    /**
+     * Gets the on success status
+     *
+     * @return the status
+     */
+    public boolean getOnSuccessStatus() {
+        return onSuccess;
     }
 }

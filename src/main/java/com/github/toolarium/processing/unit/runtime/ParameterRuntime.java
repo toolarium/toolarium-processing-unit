@@ -6,7 +6,6 @@
 package com.github.toolarium.processing.unit.runtime;
 
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
-import com.github.toolarium.processing.unit.base.IParameterRuntime;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.dto.ParameterValue;
@@ -45,7 +44,7 @@ public class ParameterRuntime implements IParameterRuntime, Serializable {
 
     
     /**
-     * @see com.github.toolarium.processing.unit.base.IParameterRuntime#getParameterDefinition()
+     * @see com.github.toolarium.processing.unit.runtime.IParameterRuntime#getParameterDefinition()
      */
     @Override
     public List<ParameterDefinition> getParameterDefinition() {
@@ -65,7 +64,7 @@ public class ParameterRuntime implements IParameterRuntime, Serializable {
 
     
     /**
-     * @see com.github.toolarium.processing.unit.base.IParameterRuntime#addParameterDefinition(com.github.toolarium.processing.unit.dto.ParameterDefinition)
+     * @see com.github.toolarium.processing.unit.runtime.IParameterRuntime#addParameterDefinition(com.github.toolarium.processing.unit.dto.ParameterDefinition)
      */
     @Override
     public void addParameterDefinition(ParameterDefinition parameterDefinition) {
@@ -80,7 +79,7 @@ public class ParameterRuntime implements IParameterRuntime, Serializable {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.IParameterRuntime#existParameter(com.github.toolarium.processing.unit.dto.ParameterDefinition)
+     * @see com.github.toolarium.processing.unit.runtime.IParameterRuntime#existParameter(com.github.toolarium.processing.unit.dto.ParameterDefinition)
      */
     @Override
     public boolean existParameter(ParameterDefinition parameterDefinition) {
@@ -108,7 +107,7 @@ public class ParameterRuntime implements IParameterRuntime, Serializable {
  
 
     /**
-     * @see com.github.toolarium.processing.unit.base.IParameterRuntime#setParameterList(java.util.List, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.runtime.IParameterRuntime#setParameterList(java.util.List, com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
     public void setParameterList(List<Parameter> parameterList, IProcessingUnitContext processingContext) throws ValidationException, ProcessingException {
@@ -137,7 +136,7 @@ public class ParameterRuntime implements IParameterRuntime, Serializable {
 
     
     /**
-     * @see com.github.toolarium.processing.unit.base.IParameterRuntime#validateParameterList(java.util.List)
+     * @see com.github.toolarium.processing.unit.runtime.IParameterRuntime#validateParameterList(java.util.List)
      */
     @Override
     public void validateParameterList(List<Parameter> parameterList) throws ValidationException {
@@ -167,7 +166,7 @@ public class ParameterRuntime implements IParameterRuntime, Serializable {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.IParameterRuntime#getParameterValueList(com.github.toolarium.processing.unit.dto.ParameterDefinition)
+     * @see com.github.toolarium.processing.unit.runtime.IParameterRuntime#getParameterValueList(com.github.toolarium.processing.unit.dto.ParameterDefinition)
      */
     @Override
     public ParameterValue getParameterValueList(ParameterDefinition parameterDefinition) {
@@ -185,7 +184,7 @@ public class ParameterRuntime implements IParameterRuntime, Serializable {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.IParameterRuntime#getParameterValueList(java.util.List, com.github.toolarium.processing.unit.dto.ParameterDefinition)
+     * @see com.github.toolarium.processing.unit.runtime.IParameterRuntime#getParameterValueList(java.util.List, com.github.toolarium.processing.unit.dto.ParameterDefinition)
      */
     @Override
     public ParameterValue getParameterValueList(List<Parameter> parameterList, ParameterDefinition parameterDefinition) {

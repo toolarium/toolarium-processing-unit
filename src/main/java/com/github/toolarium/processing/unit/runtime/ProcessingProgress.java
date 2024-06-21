@@ -8,7 +8,7 @@ package com.github.toolarium.processing.unit.runtime;
 
 import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingStatistic;
-import com.github.toolarium.processing.unit.dto.ProcessingStatusType;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -20,10 +20,10 @@ import java.util.Objects;
  */
 public class ProcessingProgress implements IProcessingProgress, Serializable {
     private static final long serialVersionUID = -574712395121580837L;
-    private long totalUnits;
-    private long processedUnits;
-    private long totalFailedUnits;
-    private ProcessingStatusType processingStatusType;
+    private long numberOfUnitsToProcess;
+    private long numberOfProcessedUnits;
+    private long numberOfFailedUnits;
+    private ProcessingRuntimeStatus processingRuntimeStatus;
     private String processingStatusMessage;
     private ProcessingStatistic processingStatistic;
 
@@ -32,10 +32,10 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
      * Constructor
      */
     public ProcessingProgress() {
-        totalUnits = 0;
-        processedUnits = 0;
-        totalFailedUnits = 0;
-        processingStatusType = ProcessingStatusType.SUCCESSFUL;
+        numberOfUnitsToProcess = -1;
+        numberOfProcessedUnits = 0;
+        numberOfFailedUnits = 0;
+        processingRuntimeStatus = ProcessingRuntimeStatus.SUCCESSFUL;
         processingStatistic = new ProcessingStatistic();
     }
 
@@ -50,69 +50,94 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
             return;
         }
 
-        this.totalUnits = processingProgress.getTotalUnits();
-        this.processedUnits = processingProgress.getProcessedUnits();
-        this.totalFailedUnits = processingProgress.getTotalFailedUnits();
-        this.processingStatusType = processingProgress.getProcessingStatusType();
+        this.numberOfUnitsToProcess = processingProgress.getNumberOfUnitsToProcess();
+        this.numberOfProcessedUnits = processingProgress.getNumberOfProcessedUnits();
+        this.numberOfFailedUnits = processingProgress.getNumberOfFailedUnits();
+        this.processingRuntimeStatus = processingProgress.getProcessingRuntimeStatus();
         this.processingStatistic = new ProcessingStatistic(processingProgress.getProcesingStatistic());
     }
 
 
     /**
-     * 
-     * @see com.github.toolarium.processing.unit.IProcessingProgress#getTotalUnits()
+     * @see com.github.toolarium.processing.unit.IProcessingProgress#getNumberOfUnitsToProcess()
      */
     @Override
-    public long getTotalUnits() {
-        return totalUnits;
+    public long getNumberOfUnitsToProcess() {
+        return numberOfUnitsToProcess;
     }
 
 
     /**
-     * Sets the total units
+     * Sets the number of units to process in total 
      *
-     * @param totalUnits the total units
+     * @param numberOfUnitsToProcess the number of units to process in total
      */
-    public void setTotalUnits(long totalUnits) {
-        this.totalUnits = totalUnits;
+    public void setNumberOfUnitsToProcess(long numberOfUnitsToProcess) {
+        this.numberOfUnitsToProcess = numberOfUnitsToProcess;
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingProgress#getProcessedUnits()
+     * @see com.github.toolarium.processing.unit.IProcessingProgress#getNumberOfUnprocessedUnits()
      */
     @Override
-    public long getProcessedUnits() {
-        return processedUnits;
+    public long getNumberOfUnprocessedUnits() {
+        if (numberOfUnitsToProcess > 0 && numberOfUnitsToProcess > numberOfProcessedUnits) {
+            return numberOfUnitsToProcess - numberOfProcessedUnits;
+        }
+        
+        return 0;
     }
 
 
     /**
-     * Sets the total processed units
-     *
-     * @param processedUnits the total processed units
-     */
-    public void setProcessedUnits(long processedUnits) {
-        this.processedUnits = processedUnits;
-    }
-
-
-    /**
-     * @see com.github.toolarium.processing.unit.IProcessingProgress#getTotalFailedUnits()
+     * @see com.github.toolarium.processing.unit.IProcessingProgress#getNumberOfProcessedUnits()
      */
     @Override
-    public long getTotalFailedUnits() {
-        return totalFailedUnits;
+    public long getNumberOfProcessedUnits() {
+        return numberOfProcessedUnits;
+    }
+    
+
+    /**
+     * Sets the number of processed units
+     *
+     * @param processedUnits the number of processed units
+     */
+    public void setNumberOfProcessedUnits(long processedUnits) {
+        this.numberOfProcessedUnits = processedUnits;
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.IProcessingProgress#getNumberOfSuccessfulUnits()
+     */
+    @Override
+    public long getNumberOfSuccessfulUnits() {
+        if (numberOfProcessedUnits > 0 && numberOfProcessedUnits > numberOfFailedUnits) {
+            return numberOfProcessedUnits - numberOfFailedUnits;
+        }
+        
+        return 0;
     }
 
 
     /**
-     * Sets the total failed units
-     *
-     * @param totalFailedUnits the total failed units
+     * @see com.github.toolarium.processing.unit.IProcessingProgress#getNumberOfFailedUnits()
      */
-    public void setTotalFailedUnits(long totalFailedUnits) {
-        this.totalFailedUnits = totalFailedUnits;
+    @Override
+    public long getNumberOfFailedUnits() {
+        return numberOfFailedUnits;
+    }
+
+
+    /**
+     * Sets the number of failed units
+     *
+     * @param numberOfFailedUnits the number of failed units
+     */
+    public void setNumberOfFailedUnits(long numberOfFailedUnits) {
+        this.numberOfFailedUnits = numberOfFailedUnits;
     }
 
 
@@ -126,24 +151,24 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingProgress#getProcessingStatusType()
+     * @see com.github.toolarium.processing.unit.IProcessingProgress#getProcessingRuntimeStatus()
      */
     @Override
-    public ProcessingStatusType getProcessingStatusType() {
-        return processingStatusType;
+    public ProcessingRuntimeStatus getProcessingRuntimeStatus() {
+        return processingRuntimeStatus;
     }
 
 
     /**
      * Sets the processing status type
      *
-     * @param processingStatusType the processing status type
+     * @param processingRuntimeStatus the processing runtime status
      */
-    public void setProcessingStatusType(final ProcessingStatusType processingStatusType) {
-        this.processingStatusType = processingStatusType;
+    public void setProcessingRuntimeStatus(final ProcessingRuntimeStatus processingRuntimeStatus) {
+        this.processingRuntimeStatus = processingRuntimeStatus;
     }
 
-
+    
     /**
      * @see com.github.toolarium.processing.unit.IProcessingProgress#getProcessingStatusMessage()
      */
@@ -167,23 +192,23 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
      * Increase the total units
      */
     public void increaseTotalUnits() {
-        totalUnits++;
+        numberOfUnitsToProcess++;
     }
 
 
     /**
-     * Increase the total processed units
+     * Increase the number of processed units
      */
-    public void increaseTotalProcessedUnits() {
-        processedUnits++;
+    public void increaseNumberOfProcessedUnits() {
+        numberOfProcessedUnits++;
     }
 
 
     /**
-     * Increase the total failed units
+     * Increase the number of failed units
      */
-    public void increaseTotalFailedUnits() {
-        totalFailedUnits++;
+    public void increaseNumberOfFailedUnits() {
+        numberOfFailedUnits++;
     }
 
 
@@ -219,7 +244,7 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(processedUnits, processingStatistic, processingStatusMessage, processingStatusType, totalFailedUnits, totalUnits);
+        return Objects.hash(numberOfProcessedUnits, processingStatistic, processingStatusMessage, processingRuntimeStatus, numberOfFailedUnits, numberOfUnitsToProcess);
     }
 
 
@@ -241,11 +266,12 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
         }
         
         ProcessingProgress other = (ProcessingProgress) obj;
-        return processedUnits == other.processedUnits
+        return numberOfProcessedUnits == other.numberOfProcessedUnits
                 && Objects.equals(processingStatistic, other.processingStatistic)
                 && Objects.equals(processingStatusMessage, other.processingStatusMessage)
-                && processingStatusType == other.processingStatusType && totalFailedUnits == other.totalFailedUnits
-                && totalUnits == other.totalUnits;
+                && processingRuntimeStatus == other.processingRuntimeStatus 
+                && numberOfFailedUnits == other.numberOfFailedUnits
+                && numberOfUnitsToProcess == other.numberOfUnitsToProcess;
     }
 
 
@@ -254,8 +280,8 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
      */
     @Override
     public String toString() {
-        return "ProcessingProgressImpl [totalUnits=" + totalUnits + ", processedUnits=" + processedUnits
-                + ", totalFailedUnits=" + totalFailedUnits + ", processingStatusType=" + processingStatusType
+        return "ProcessingProgressImpl [numberOfUnitsToProcess=" + numberOfUnitsToProcess + ", numberOfProcessedUnits=" + numberOfProcessedUnits
+                + ", numberOfFailedUnits=" + numberOfFailedUnits + ", processingRuntimeStatus=" + processingRuntimeStatus
                 + ", processingStatusMessage=" + processingStatusMessage + ", processingStatistic="
                 + processingStatistic + "]";
     }

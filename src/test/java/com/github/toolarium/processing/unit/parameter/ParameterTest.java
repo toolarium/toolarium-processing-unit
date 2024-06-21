@@ -69,6 +69,15 @@ public class ParameterTest {
 
 
         /**
+         * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#countNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+         */
+        @Override
+        protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException {
+            return 0;
+        }
+
+
+        /**
          * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
          */
         @Override

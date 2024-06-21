@@ -108,6 +108,6 @@ public class ProcessStatus implements IProcessStatus, Serializable {
      */
     @Override
     public String toString() {
-        return "ProcessStatusImpl [processingProgress=" + processingProgress + ", hasNext=" + hasNext + "]";
+        return "ProcessStatus [processingProgress=" + processingProgress + ", hasNext=" + hasNext + "]";
     }
 }

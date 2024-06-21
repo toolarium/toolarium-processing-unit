@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.processing.unit.mydata;
 
+import com.github.toolarium.common.util.RandomGenerator;
 import com.github.toolarium.processing.unit.IProcessingPersistence;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,13 +33,17 @@ final class MyDataProducer implements IProcessingPersistence {
 
     /**
      * Initialize data producer
+     * 
+     * @param num the number of elements
      */
-    public void init() {
+    public void init(int num) {
         List<String> dataList = new ArrayList<String>();
-        for (int i = 'a'; i <= 'z'; i++) {
-            dataList.add("" + (char)i);
+        
+        for (int i = 0; i < num; i++) {
+            char c = RandomGenerator.validLowerCaseLetterCharacters[i % RandomGenerator.validLowerCaseLetterCharacters.length];
+            dataList.add("" + c);
         }
-
+        
         this.queue = new LinkedBlockingQueue<String>(dataList);
     }
 

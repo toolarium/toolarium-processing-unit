@@ -6,6 +6,7 @@
 package com.github.toolarium.processing.unit.runtime.runnable;
 
 import com.github.toolarium.processing.unit.IProcessStatus;
+import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 
 
 /**
@@ -21,7 +22,23 @@ public interface IProcessingUnitRunnable extends Runnable {
      * @return the runnable id
      */
     String getId();
+
     
+    /**
+     * Get the runnable name or null
+     *
+     * @return the name or null
+     */
+    String getName();
+
+    
+    /**
+     * Get the processing action status
+     * 
+     * @return the processing action status
+     */
+    ProcessingActionStatus getProcessingActionStatus();
+
     
     /**
      * Get the process status
@@ -29,12 +46,4 @@ public interface IProcessingUnitRunnable extends Runnable {
      * @return the process status
      */
     IProcessStatus getProcessStatus();
-
-    
-    /**
-     * Get number of units to process 
-     * 
-     * @return the number of units to process
-     */
-    long getNumberOfUnitsToProcess();
 }

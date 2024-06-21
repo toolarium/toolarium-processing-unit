@@ -5,7 +5,8 @@
  */
 package com.github.toolarium.processing.unit;
 
-import com.github.toolarium.processing.unit.dto.ProcessingStatusType;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
+
 
 /**
  * Defines the processing progress.
@@ -15,35 +16,51 @@ import com.github.toolarium.processing.unit.dto.ProcessingStatusType;
 public interface IProcessingProgress {
 
     /**
-     * Gets the number of total processed unit.
+     * Get the number of units to process in total.
      *
-     * @return the total units.
+     * @return the number of units to process in total.
      */
-    long getTotalUnits();
+    long getNumberOfUnitsToProcess();
+
+    
+    /**
+     * Get the number of unprocessed units.
+     *
+     * @return the number of unprocessed units.
+     */
+    long getNumberOfUnprocessedUnits();
 
 
     /**
-     * Gets the number of processed units.
+     * Gets the number of processed units (failed units included).
      *
-     * @return the number of processed units.
+     * @return the number of processed units (failed units included).
      */
-    long getProcessedUnits();
+    long getNumberOfProcessedUnits();
 
+    
+    /**
+     * Gets the number of successful units.
+     *
+     * @return the number of successful units.
+     */
+    long getNumberOfSuccessfulUnits();
 
+    
     /**
      * Gets the number of failed units.
      *
      * @return the number of failed units.
      */
-    long getTotalFailedUnits();
+    long getNumberOfFailedUnits();
 
 
     /**
-     * The processing status type which covers the overall status
+     * The processing runtime status which covers the overall status
      *
      * @return the processing status type.
      */
-    ProcessingStatusType getProcessingStatusType();
+    ProcessingRuntimeStatus getProcessingRuntimeStatus();
 
 
     /**

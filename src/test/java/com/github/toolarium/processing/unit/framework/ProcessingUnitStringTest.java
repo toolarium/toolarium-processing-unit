@@ -14,9 +14,8 @@ import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.dto.ParameterValueType;
-import com.github.toolarium.processing.unit.dto.ProcessingStatusType;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
-import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.ProcessStatus;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -30,60 +29,31 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
     /** DATA_FEED */
     public static final String DATA_FEED = "dataFeed";
-
+    private static final ParameterDefinition DATA_FEED_PARAMTER = new ParameterDefinition(DATA_FEED, ParameterValueType.STRING, null, ParameterDefinition.NOT_OPTIONAL, 10, ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The data feed.");
+    
     private LinkedBlockingQueue<String> queue;
-    private String result;
+    private String result = "";
 
 
     /**
-     * Constructor
-     */
-    public ProcessingUnitStringTest() {
-        this.result = "";
-        getParameterRuntime().addParameterDefinition(new ParameterDefinition(DATA_FEED, ParameterValueType.STRING, null, ParameterDefinition.NOT_OPTIONAL, 10, ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The data feed."));
-    }
-
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#initialize(java.util.List, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#initializeParameterDefinition()
      */
     @Override
-    public void initialize(List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) throws ValidationException, ProcessingException {
-        super.initialize(parameterList, processingUnitContext);
-        for (Parameter param : parameterList) {
-            if (param.getKey() != null && DATA_FEED.equals(param.getKey())) {
-                this.queue = new LinkedBlockingQueue<String>(param.getParameterValue().getValueAsStringList());
-
-                // set the total size
-                getProcessingProgress().setTotalUnits(this.queue.size());
-            }
-        }
+    protected void initializeParameterDefinition() {
+        getParameterRuntime().addParameterDefinition(DATA_FEED_PARAMTER);
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#suspendProcessing()
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#countNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    public IProcessingPersistence suspendProcessing() throws ProcessingException {
-        return new ProcessingPersistenceImpl(queue, result);
+    protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
+        this.queue = new LinkedBlockingQueue<String>(getParameterRuntime().getParameterValueList(DATA_FEED_PARAMTER).getValueAsStringList());
+        return this.queue.size();
     }
 
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(java.util.List, com.github.toolarium.processing.unit.IProcessingProgress, 
-     * com.github.toolarium.processing.unit.IProcessingPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
-     */
-    @Override
-    public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) 
-            throws IllegalStateException, ProcessingException {
-        super.initialize(parameterList, processingUnitContext);
-        this.queue = ((ProcessingPersistenceImpl)processingPersistence).getQueue();
-        this.result = ((ProcessingPersistenceImpl)processingPersistence).getResult();
-        getProcessingProgress().init(resumeProcessingProgress);
-    }
-
-
+    
     /**
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
@@ -99,12 +69,11 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
         } 
         
         if (val.isEmpty()) {
-            getProcessingProgress().setProcessingStatusType(ProcessingStatusType.WARN);
+            getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
             getProcessingProgress().setStatusMessage("Empty data");
-            getProcessingProgress().increaseTotalFailedUnits();
-        } else {
-            getProcessingProgress().increaseTotalProcessedUnits();
+            getProcessingProgress().increaseNumberOfFailedUnits();
         }
+        getProcessingProgress().increaseNumberOfProcessedUnits();
 
         result += "(" + status + ")]";
         if (status.hasNext()) {
@@ -112,6 +81,28 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
         }
 
         return status;
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#suspendProcessing()
+     */
+    @Override
+    public IProcessingPersistence suspendProcessing() throws ProcessingException {
+        return new ProcessingPersistenceImpl(queue, result);
+    }
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(java.util.List, com.github.toolarium.processing.unit.IProcessingProgress, 
+     * com.github.toolarium.processing.unit.IProcessingPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     */
+    @Override
+    public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {
+        super.initialize(parameterList, processingUnitContext);
+        this.queue = ((ProcessingPersistenceImpl)processingPersistence).getQueue();
+        this.result = ((ProcessingPersistenceImpl)processingPersistence).getResult();
+        getProcessingProgress().init(resumeProcessingProgress);
     }
 
 

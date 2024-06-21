@@ -1,17 +1,18 @@
 /*
- * ProcessingUnitRunnerFactory.java
+ * TestProcessingUnitRunnerFactory.java
  *
  * Copyright by toolarium, all rights reserved.
  */
 package com.github.toolarium.processing.unit.runtime.test;
 
+import com.github.toolarium.processing.unit.IProcessingUnit;
 
 /**
  * Factory to get a {@link TestProcessingUnitRunner}.
  *
  * @author patrick
  */
-public final class ProcessingUnitRunnerFactory {
+public final class TestProcessingUnitRunnerFactory {
     
     /**
      * Private class, the only instance of the singelton which will be created by accessing the holder class.
@@ -19,14 +20,14 @@ public final class ProcessingUnitRunnerFactory {
      * @author patrick
      */
     private static class HOLDER {
-        static final ProcessingUnitRunnerFactory INSTANCE = new ProcessingUnitRunnerFactory();
+        static final TestProcessingUnitRunnerFactory INSTANCE = new TestProcessingUnitRunnerFactory();
     }
 
     
     /**
      * Constructor
      */
-    private ProcessingUnitRunnerFactory() {
+    private TestProcessingUnitRunnerFactory() {
         // NOP
     }
 
@@ -36,7 +37,7 @@ public final class ProcessingUnitRunnerFactory {
      *
      * @return the instance
      */
-    public static ProcessingUnitRunnerFactory getInstance() {
+    public static TestProcessingUnitRunnerFactory getInstance() {
         return HOLDER.INSTANCE;
     }
 
@@ -44,9 +45,10 @@ public final class ProcessingUnitRunnerFactory {
     /**
      * The processing unit runner.
      *
+     * @param <T> Tge processing unit type
      * @return the processing unit runner
      */
-    public TestProcessingUnitRunner getProcessingUnitRunner() {
-        return new TestProcessingUnitRunner();
+    public <T extends IProcessingUnit> TestProcessingUnitRunner<T> getProcessingUnitRunner() {
+        return new TestProcessingUnitRunner<T>();
     }
 }

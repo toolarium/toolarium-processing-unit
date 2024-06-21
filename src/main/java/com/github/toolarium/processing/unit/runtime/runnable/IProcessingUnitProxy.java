@@ -21,6 +21,23 @@ import java.util.List;
  */
 public interface IProcessingUnitProxy {
     
+    
+    /**
+     * Get the runnable id
+     *
+     * @return the runnable id
+     */
+    String getId();
+
+    
+    /**
+     * Get the runnable name or null
+     *
+     * @return the name or null
+     */
+    String getName();
+
+    
     /**
      * Gets the parameter definition list of the processing.
      *

@@ -10,7 +10,7 @@ import com.github.toolarium.processing.unit.IProcessingPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
-import com.github.toolarium.processing.unit.dto.ProcessingStatusType;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.runtime.ProcessStatus;
 import com.github.toolarium.processing.unit.runtime.ProcessingProgress;
@@ -31,38 +31,46 @@ import java.util.Objects;
  */
 public class ProcessingPersistenceContainer implements Serializable {
     private static final long serialVersionUID = -7733025343789892026L;
+    private String id;
+    private String name;
     private Class<? extends IProcessingUnit> processingUnitClass;
     private List<Parameter> parameterList;
     private IProcessingPersistence processingPersistence;
     private ProcessStatus processStatus;
     private IProcessingUnitContext processingUnitContext;
-    private ProcessingStatusType processingStatusType;
+    private ProcessingRuntimeStatus processingRuntimeStatus;
     private List<String> processStatusMessageList;
 
 
     /**
      * Constructor
      *
+     * @param id the unique id of the processing 
+     * @param name the name of the processing
      * @param processingUnitClass the processing unit class
      * @param parameterList the parameter list
      * @param processingPersistence the processing persistence
      * @param processStatus the process status
      * @param processingUnitContext the processing context.
-     * @param processingStatusType the process status type
+     * @param processingRuntimeStatus the process runtime status
      * @param processStatusMessageList the process status message list
      */
-    public ProcessingPersistenceContainer(Class<? extends IProcessingUnit> processingUnitClass,
+    public ProcessingPersistenceContainer(String id,
+                                          String name,
+                                          Class<? extends IProcessingUnit> processingUnitClass,
                                           List<Parameter> parameterList,
                                           IProcessingPersistence processingPersistence,
                                           IProcessStatus processStatus,
                                           IProcessingUnitContext processingUnitContext,
-                                          ProcessingStatusType processingStatusType,
+                                          ProcessingRuntimeStatus processingRuntimeStatus,
                                           List<String> processStatusMessageList) {
+        this.id = id;
+        this.name = name;
         this.processingUnitClass = processingUnitClass;
         this.parameterList = parameterList;
         this.processingPersistence = processingPersistence;
         this.processingUnitContext = processingUnitContext;
-        this.processingStatusType = processingStatusType;
+        this.processingRuntimeStatus = processingRuntimeStatus;
         this.processStatusMessageList = processStatusMessageList;
 
         if (processStatus != null) {
@@ -75,6 +83,26 @@ public class ProcessingPersistenceContainer implements Serializable {
             this.processStatus = new ProcessStatus(processingProgress);
             this.processStatus.setHasNext(processStatus.hasNext());
         }
+    }
+
+    
+    /**
+     * Get the unique processing id
+     *
+     * @return the processing id
+     */
+    public String getId() {
+        return id;
+    }
+
+    
+    /**
+     * Get the processing name
+     *
+     * @return the processing name
+     */
+    public String getName() {
+        return name;
     }
 
 
@@ -129,12 +157,12 @@ public class ProcessingPersistenceContainer implements Serializable {
 
     
     /**
-     * Gets the process status type
+     * Gets the process runtime status
      *
-     * @return the process status type
+     * @return the process runtime status
      */
-    public ProcessingStatusType getProcessingStatusType() {
-        return processingStatusType;
+    public ProcessingRuntimeStatus getProcessingRuntimeStatus() {
+        return processingRuntimeStatus;
     }
 
     
@@ -163,7 +191,7 @@ public class ProcessingPersistenceContainer implements Serializable {
             objOutStream.close();
             outputStream.close();
             return outputStream.toByteArray();
-        } catch (IOException e) {
+        } catch (RuntimeException | IOException e) {
             throw new ProcessingException("Could not serialize processing persistence conatiner [" + processingPersistenceContainer.getClass() + "]: " + e.getMessage(), e, true);
         }
     }
@@ -182,7 +210,7 @@ public class ProcessingPersistenceContainer implements Serializable {
             ProcessingPersistenceContainer processingPersistenceContainer = (ProcessingPersistenceContainer)objInStream.readObject();
             objInStream.close();
             return processingPersistenceContainer;
-        } catch (ClassNotFoundException | IOException e) {
+        } catch (RuntimeException | ClassNotFoundException | IOException e) {
             throw new ProcessingException("Could not de-serialize processing persistence conatiner: " + e.getMessage(), e, true);
         }
     }
@@ -193,7 +221,7 @@ public class ProcessingPersistenceContainer implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(parameterList, processingPersistence, processStatus, processingUnitClass, processingUnitContext);
+        return Objects.hash(id, name, parameterList, processingPersistence, processStatus, processingUnitClass, processingUnitContext);
     }
 
 
@@ -216,9 +244,11 @@ public class ProcessingPersistenceContainer implements Serializable {
         
         ProcessingPersistenceContainer other = (ProcessingPersistenceContainer) obj;
         return Objects.equals(parameterList, other.parameterList)
+                && Objects.equals(id, other.id)
+                && Objects.equals(name, other.name)
                 && Objects.equals(processingPersistence, other.processingPersistence)
                 && Objects.equals(processStatus, other.processStatus)
                 && Objects.equals(processingUnitClass, other.processingUnitClass)
-                && Objects.equals(processingUnitClass, other.processingUnitContext);
+                && Objects.equals(processingUnitContext, other.processingUnitContext);
     }
 }

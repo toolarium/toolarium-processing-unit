@@ -10,13 +10,17 @@ import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
+import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
+import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitProxy;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -25,27 +29,63 @@ import java.util.UUID;
  * @author patrick
  */
 public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitRunnable {
-    private String id;
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractProcessingUnitRunnable.class);
+    private final String id;
+    private final String name;
     private final Class<? extends IProcessingUnit> processingUnitClass;
     private final List<Parameter> parameterList;
     private final IProcessingUnitContext processingUnitContext;
     private ProcessingUnitProxy processingUnitProxy;
+    private ProcessingActionStatus processingActionStatus;
+    private IProcessingUnitRunnableListener processingUnitRunnableListener;
 
     
     /**
      * Constructor
      *
+     * @param id the unique id of this processing 
+     * @param name the name of this processing unit runnable
      * @param processingUnitClass the processing unit class
      * @param parameterList the parameter list
      * @param processingUnitContext the processing context.
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
-    public AbstractProcessingUnitRunnable(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) {
-        this.id = UUID.randomUUID().toString();
+    public AbstractProcessingUnitRunnable(final String id, 
+                                          final String name, 
+                                          final Class<? extends IProcessingUnit> processingUnitClass,
+                                          final List<Parameter> parameterList, 
+                                          final IProcessingUnitContext processingUnitContext) {
+        if (id != null && !id.isBlank()) {
+            this.id = id;
+        } else {
+            this.id = UUID.randomUUID().toString();
+        }
+
+        this.name = name;
         this.processingUnitClass = processingUnitClass;
         this.parameterList = parameterList;
         this.processingUnitContext = processingUnitContext;
+        this.processingUnitRunnableListener = null;
+    }
+
+    
+    /**
+     * Constructor
+     *
+     * @param suspendedState the suspended state
+     * @throws ValidationException This will be throw in case the consistency check failures.
+     * @throws ProcessingException Throws this exception in case of initialization failures.
+     */
+    public AbstractProcessingUnitRunnable(final byte[] suspendedState) {
+        ProcessingUnitProxy processingUnitProxy = ProcessingUnitProxy.resume(suspendedState);
+        setProcessingUnitProxy(processingUnitProxy);
+        
+        this.id = processingUnitProxy.getId();
+        this.name = processingUnitProxy.getName();
+        this.processingUnitClass = processingUnitProxy.getProcessingUnitClass();
+        this.parameterList = processingUnitProxy.getParameterList();
+        this.processingUnitContext = processingUnitProxy.getProcessingUnitContext();
     }
 
 
@@ -56,7 +96,36 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     public String getId() {
         return id;
     }
+
     
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getProcessingActionStatus()
+     */
+    @Override
+    public ProcessingActionStatus getProcessingActionStatus() {
+        return processingActionStatus;
+    }
+    
+    
+    /**
+     * Sets the processing action status
+     *
+     * @param processingActionStatus the processing action status
+     */
+    protected void setProcessingActionStatus(ProcessingActionStatus processingActionStatus) {
+        this.processingActionStatus = processingActionStatus;
+        notifyProcessingUnitState(processingActionStatus);
+    }
+
     
     /**
      * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getProcessStatus()
@@ -86,19 +155,6 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         return null;
     }
 
-
-    /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getNumberOfUnitsToProcess()
-     */
-    @Override
-    public long getNumberOfUnitsToProcess() {
-        IProcessingProgress processingProgress = getProcessingProgress();
-        if (processingProgress != null) {
-            return processingProgress.getTotalUnits() - processingProgress.getProcessedUnits();
-        }
-        return 0;
-    }
-
     
     /**
      * Get the parameter list
@@ -126,7 +182,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      * @return the processing unit proxy
      */
     protected IProcessingUnitProxy createProcessingUnitProxy() {
-        processingUnitProxy = ProcessingUnitProxy.init(processingUnitClass, parameterList, processingUnitContext /* new ProcessingUnitContext(processingUnitContext) */);
+        processingUnitProxy = ProcessingUnitProxy.init(id, name, processingUnitClass, parameterList, processingUnitContext /* new ProcessingUnitContext(processingUnitContext) */);
         return processingUnitProxy;
     }
     
@@ -159,5 +215,33 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      */
     protected boolean afterProcessUnit(boolean continueProcessing) {
         return continueProcessing;
+    }
+
+    
+    /**
+     * Set the processing unit runnable listener
+     *
+     * @param processingUnitRunnableListener the processing unit runnable listener
+     */
+    protected void setProcessingUnitRunnableListener(final IProcessingUnitRunnableListener processingUnitRunnableListener) {
+        this.processingUnitRunnableListener = processingUnitRunnableListener;
+    }
+
+    
+    /**
+     * Notify processing unit action status
+     *
+     * @param processingActionStatus the processing action status
+     */
+    protected void notifyProcessingUnitState(final ProcessingActionStatus processingActionStatus) {
+        if (processingUnitRunnableListener == null) {
+            return;
+        }
+        
+        try {
+            processingUnitRunnableListener.notifyProcessingUnitState(getId(), getName(), processingUnitClass, processingActionStatus, getProcessingUnitContext(), getProcessingProgress());
+        } catch (RuntimeException e) {
+            LOG.warn("Could not notify the processing unit state to the processing unit runnable listener: " + e.getMessage(), e);
+        }
     }
 }

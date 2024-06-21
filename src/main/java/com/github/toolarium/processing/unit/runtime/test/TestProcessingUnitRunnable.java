@@ -5,14 +5,19 @@
  */
 package com.github.toolarium.processing.unit.runtime.test;
 
-import com.github.toolarium.common.util.ThreadUtil;
+import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
+import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
+import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
-import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitProxy;
+import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnableImpl;
+import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -20,12 +25,10 @@ import java.util.List;
  * @author patrick
  */
 public class TestProcessingUnitRunnable extends ProcessingUnitRunnableImpl {
+    private static final Logger LOG = LoggerFactory.getLogger(TestProcessingUnitRunnable.class);
     private Long suspendAfterCycles;
-    private Long suspendSleepTime;
-    private Integer maxNumberOfSuspends;
-    private volatile int suspendCounter;
     private Integer numberOfCyclesBeforeStop;
-    
+
     
     /**
      * Constructor for TestProcessingUnitRunnable
@@ -35,11 +38,20 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnableImpl {
      * @param processingUnitContext the processing unit context
      */
     protected TestProcessingUnitRunnable(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) {
-        super(processingUnitClass, parameterList, processingUnitContext);
+        super(null, null, processingUnitClass, parameterList, processingUnitContext, new LogProcessingUnitRunnableListener());
         this.suspendAfterCycles = null;
-        this.suspendSleepTime = null;
-        this.maxNumberOfSuspends = 0;
-        this.suspendCounter = 0;
+        this.numberOfCyclesBeforeStop = null;
+    }
+
+    
+    /**
+     * Constructor for TestProcessingUnitRunnable
+     * 
+     * @param suspendedState the suspended state
+     */
+    protected TestProcessingUnitRunnable(byte[] suspendedState) {
+        super(suspendedState, new LogProcessingUnitRunnableListener());
+        this.suspendAfterCycles = null;
         this.numberOfCyclesBeforeStop = null;
     }
 
@@ -55,26 +67,6 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnableImpl {
 
     
     /**
-     * Set the suspend sleep time
-     *
-     * @param suspendSleepTime the suspend sleep time
-     */
-    public void setSuspendSleepTime(Long suspendSleepTime) {
-        this.suspendSleepTime = suspendSleepTime;
-    }
-
-    
-    /**
-     * Set the max number of suspends
-     * 
-     * @param maxNumberOfSuspends the max number of suspends
-     */
-    public void setMaxNumberOfSuspends(Integer maxNumberOfSuspends) {
-        this.maxNumberOfSuspends = maxNumberOfSuspends;
-    }
-
-    
-    /**
      * Set the number of cycles before stop
      *
      * @param numberOfCyclesBeforeStop the number of cycles before stop
@@ -83,17 +75,7 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnableImpl {
         this.numberOfCyclesBeforeStop = numberOfCyclesBeforeStop;
     }
 
-
-    /**
-     * Gets the suspend counter
-     *
-     * @return the suspend counter
-     */
-    public int getSuspendCounter() {
-        return suspendCounter;
-    }
-
-    
+   
     /**
      * Get the processing unit
      *
@@ -106,30 +88,68 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnableImpl {
         
         return null;
     }
+    
+    
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.impl.AbstractProcessingUnitRunnable#getParameterList()
+     */
+    @Override
+    public List<Parameter> getParameterList() {
+        if (getProcessingUnitProxy() != null) {
+            return getProcessingUnitProxy().getParameterList();
+        }
+        
+        return null;
+    }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnableImpl#afterProcessUnit(boolean)
+     * @see com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnableImpl#getProcessingUnitThrottling()
+     */
+    @Override
+    public IBandwidthThrottling getProcessingUnitThrottling() {
+        return super.getProcessingUnitThrottling();
+    }
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.impl.AbstractProcessingUnitRunnable#afterProcessUnit(boolean)
      */
     @Override
     protected boolean afterProcessUnit(boolean continueProcessing) {
-        if (suspendAfterCycles != null && suspendAfterCycles > 1 && (getProcessingUnitProxy().getProcessStatus().getProcessingProgress().getProcessedUnits() % suspendAfterCycles == 0) && suspendCounter < maxNumberOfSuspends) {
-            // persist...
-            final byte[] persisted = getProcessingUnitProxy().suspendProcessing();
-            setProcessingUnitProxy(null);
-            suspendCounter++;
-
-            // sleep..
-            ThreadUtil.getInstance().sleep(suspendSleepTime);
-
-            // resume
-            setProcessingUnitProxy(ProcessingUnitProxy.resume(persisted));
+        if (suspendAfterCycles != null && suspendAfterCycles > 1 && (getProcessingUnitProxy().getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits() % suspendAfterCycles == 0) /*&& suspendCounter < maxNumberOfSuspends*/) {
+            suspendProcessing();
         }
-
-        if (numberOfCyclesBeforeStop != null && numberOfCyclesBeforeStop > 0 && numberOfCyclesBeforeStop <= getProcessingUnitProxy().getProcessStatus().getProcessingProgress().getProcessedUnits()) {
+        
+        if (numberOfCyclesBeforeStop != null && numberOfCyclesBeforeStop > 0 && numberOfCyclesBeforeStop <= getProcessingUnitProxy().getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits()) {
             return false;
         }
         
         return continueProcessing;
+    }
+    
+    
+    /**
+     * Implement a log processing unit runnable listener
+     * 
+     * @author patrick
+     */
+    static class LogProcessingUnitRunnableListener implements IProcessingUnitRunnableListener {
+
+        /**
+         * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener#notifyProcessingUnitState(java.lang.String, java.lang.String, java.lang.Class, 
+         *      com.github.toolarium.processing.unit.dto.ProcessingActionStatus, com.github.toolarium.processing.unit.IProcessingUnitContext, com.github.toolarium.processing.unit.IProcessingProgress)
+         */
+        @Override
+        public void notifyProcessingUnitState(final String id, 
+                                              final String name, 
+                                              final Class<? extends IProcessingUnit> processingUnitClass,
+                                              final ProcessingActionStatus processingActionStatus, 
+                                              final IProcessingUnitContext processingUnitContext, 
+                                              final IProcessingProgress processingProgress) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(ProcessingUnitUtil.getInstance().preapre(id, name, processingUnitClass) + " status: " + processingActionStatus);
+            }
+        }
     }
 }
