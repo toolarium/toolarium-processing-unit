@@ -10,15 +10,14 @@ A ProcessingUnit is a simple java class that implements the main part of a proce
 This means that you do not have to write any loops.
 
 The processing unit has the following features
-- You have to write only your "clue code", instead of loops clear conditions
+- You only need to write your "clue code", instead of loops, just conditions with only java dependencies (lightweight)
 - You can pass in [parameters](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/dto/ParameterDefinition.java) (the parameter values can reference to environment or system properties, e.g. `${MYVALUE}`)
-- [Progress](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/IProcessingProgress.java)
+- A transparent [Progress](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/IProcessingProgress.java) 
 - [Status](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/dto/ProcessingRuntimeStatus.java) defines whether the processing was successful or ended with warnings / errors included with messages.
 - Support of additional [statistic counters](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/IProcessingStatistic.java) which is available by the progress
-- [Context](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/IProcessingUnitContext.java) Which can be used to pass in or out any context information
-- [Persistence](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/IProcessingPersistence.java) A processing can have it's own additional persistence object
-- 
-- Run a processing unit 
+- [Context](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/IProcessingUnitContext.java) which can be used to pass in or out any context information
+- A processing can have it's own additional [Persistence](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/IProcessingPersistence.java) object
+- Support of [unit testing](https://github.com/toolarium/toolarium-processing-unit/blob/master/src/main/java/com/github/toolarium/processing/unit/runtime/test/TestProcessingUnitRunnerFactory.java)
 
 ## Built With
 
