@@ -7,6 +7,7 @@ package com.github.toolarium.processing.unit.runtime.runnable;
 
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingPersistence;
+import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
@@ -205,7 +206,13 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Resume the processing unit instance " + processing + " with parameter list [" + resumeProcessingPersistence.getParameterList() + "]");
             }
-            processingUnit.resumeProcessing(resumeProcessingPersistence.getParameterList(), resumeProcessingPersistence.getProcessingStatus().getProcessingProgress(), resumeProcessingPersistence.getProcessingPersistence(), processingUnitContext);
+            
+            IProcessingProgress processingProgress = null;
+            if (resumeProcessingPersistence.getProcessingStatus()!=null) {
+                processingProgress = resumeProcessingPersistence.getProcessingStatus().getProcessingProgress();
+            }
+            
+            processingUnit.resumeProcessing(resumeProcessingPersistence.getParameterList(), processingProgress, resumeProcessingPersistence.getProcessingPersistence(), processingUnitContext);
             LOG.info("Successful resumed processing unit instance " + processing);
             return new ProcessingUnitProxy(resumeProcessingPersistence.getId(), 
                                            resumeProcessingPersistence.getName(),
