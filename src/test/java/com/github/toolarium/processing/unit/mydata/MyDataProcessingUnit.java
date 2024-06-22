@@ -145,16 +145,18 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
      * com.github.toolarium.processing.unit.IProcessingPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) 
-            throws ProcessingException {
-        super.initialize(parameterList, processingUnitContext);
+    public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {
+        // initialize the parameters
+        super.initialize(parameterList, processingUnitContext); 
+        
+        // set the processing persistence
         dataProducer = (MyDataProducer)processingPersistence;
 
         // initialize previous state
         getProcessingProgress().init(resumeProcessingProgress);
     }
 
-
+    
     /**
      * Gets the on stop status
      *

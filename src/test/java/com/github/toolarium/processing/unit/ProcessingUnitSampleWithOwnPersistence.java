@@ -101,9 +101,10 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
      */
     @Override
     public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {        
-        super.initialize(parameterList, processingUnitContext);
+        // initialize the parameters
+        super.initialize(parameterList, processingUnitContext); 
         
-        // this method is called in case the processing is resumed after a suspending and we get back the self defined persistence.
+        // set the processing persistence
         persistence = (SamplePersistence)processingPersistence;
 
         // initialize previous state
