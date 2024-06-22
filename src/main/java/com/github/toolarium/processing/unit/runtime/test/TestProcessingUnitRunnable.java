@@ -13,7 +13,7 @@ import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
-import com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnableImpl;
+import com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.util.List;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * Implements a {@link IProcessingUnitRunnable} for unit test cases
  * @author patrick
  */
-public class TestProcessingUnitRunnable extends ProcessingUnitRunnableImpl {
+public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
     private static final Logger LOG = LoggerFactory.getLogger(TestProcessingUnitRunnable.class);
     private Long suspendAfterCycles;
     private Integer numberOfCyclesBeforeStop;
@@ -104,7 +104,7 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnableImpl {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnableImpl#getProcessingUnitThrottling()
+     * @see com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnable#getProcessingUnitThrottling()
      */
     @Override
     public IBandwidthThrottling getProcessingUnitThrottling() {

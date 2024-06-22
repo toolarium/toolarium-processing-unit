@@ -1,5 +1,5 @@
 /*
- * ProcessingUnitThread.java
+ * ProcessingUnitRunnable.java
  *
  * Copyright by toolarium, all rights reserved.
  */
@@ -29,13 +29,13 @@ import org.slf4j.LoggerFactory;
  * 
  * @author patrick
  */
-public class ProcessingUnitRunnableImpl extends AbstractProcessingUnitRunnable {
-    private static final Logger LOG = LoggerFactory.getLogger(ProcessingUnitRunnableImpl.class);
+public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessingUnitRunnable.class);
     private volatile boolean suspend = false;
     private byte[] suspendedState = null;
     private IBandwidthThrottling processingUnitThrottling;
-    private volatile boolean processingUnitThrottlingInitLogged;
     private TimeDifferenceFormatter timeDifferenceFormatter; 
+    private volatile boolean processingUnitThrottlingInitLogged;
 
     
     /**
@@ -50,15 +50,15 @@ public class ProcessingUnitRunnableImpl extends AbstractProcessingUnitRunnable {
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
-    public ProcessingUnitRunnableImpl(String id, 
-                                      String name, 
-                                      Class<? extends IProcessingUnit> processingUnitClass, 
-                                      List<Parameter> parameterList, 
-                                      IProcessingUnitContext processingUnitContext,
-                                      IProcessingUnitRunnableListener processingUnitRunnableListener) {
+    public ProcessingUnitRunnable(String id, 
+                                  String name, 
+                                  Class<? extends IProcessingUnit> processingUnitClass, 
+                                  List<Parameter> parameterList, 
+                                  IProcessingUnitContext processingUnitContext,
+                                  IProcessingUnitRunnableListener processingUnitRunnableListener) {
         super(id, name, processingUnitClass, parameterList, processingUnitContext);
         processingUnitThrottling = null;
-        timeDifferenceFormatter = null;
+        timeDifferenceFormatter = new TimeDifferenceFormatter();
         processingUnitThrottlingInitLogged = false;
         
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
@@ -74,7 +74,7 @@ public class ProcessingUnitRunnableImpl extends AbstractProcessingUnitRunnable {
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
-    public ProcessingUnitRunnableImpl(byte[] suspendedState, IProcessingUnitRunnableListener processingUnitRunnableListener) {
+    public ProcessingUnitRunnable(byte[] suspendedState, IProcessingUnitRunnableListener processingUnitRunnableListener) {
         super(suspendedState);
         
         // resume
@@ -95,9 +95,7 @@ public class ProcessingUnitRunnableImpl extends AbstractProcessingUnitRunnable {
             processingUnitThrottling = null;
         } else {
             processingUnitThrottling = new BandwidthThrottling(maxNumberOfProcessingUnitCallsPerSecond, 10 /* update interval*/);
-            timeDifferenceFormatter = new TimeDifferenceFormatter();
         }
-        
     }
 
     

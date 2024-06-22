@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,8 +41,10 @@ public class ProcessingPersistenceContainer implements Serializable {
     private IProcessingUnitContext processingUnitContext;
     private ProcessingRuntimeStatus processingRuntimeStatus;
     private List<String> processStatusMessageList;
+    private Instant startTimestamp;
+    private long duration;
 
-
+    
     /**
      * Constructor
      *
@@ -54,8 +57,10 @@ public class ProcessingPersistenceContainer implements Serializable {
      * @param processingUnitContext the processing context.
      * @param processingRuntimeStatus the process runtime status
      * @param processStatusMessageList the process status message list
+     * @param startTimestamp the start time stamp
+     * @param duration the actual duration in milliseconds
      */
-    public ProcessingPersistenceContainer(String id,
+    public ProcessingPersistenceContainer(String id, // CHECKSTYLE IGNORE THIS LINE
                                           String name,
                                           Class<? extends IProcessingUnit> processingUnitClass,
                                           List<Parameter> parameterList,
@@ -63,7 +68,9 @@ public class ProcessingPersistenceContainer implements Serializable {
                                           IProcessStatus processStatus,
                                           IProcessingUnitContext processingUnitContext,
                                           ProcessingRuntimeStatus processingRuntimeStatus,
-                                          List<String> processStatusMessageList) {
+                                          List<String> processStatusMessageList,
+                                          Instant startTimestamp,
+                                          long duration) {
         this.id = id;
         this.name = name;
         this.processingUnitClass = processingUnitClass;
@@ -72,6 +79,8 @@ public class ProcessingPersistenceContainer implements Serializable {
         this.processingUnitContext = processingUnitContext;
         this.processingRuntimeStatus = processingRuntimeStatus;
         this.processStatusMessageList = processStatusMessageList;
+        this.startTimestamp = startTimestamp;
+        this.duration = duration;
 
         if (processStatus != null) {
             ProcessingProgress processingProgress = new ProcessingProgress();
@@ -177,6 +186,26 @@ public class ProcessingPersistenceContainer implements Serializable {
 
     
     /**
+     * Get the start time stamp
+     *
+     * @return the start time stamp
+     */
+    public Instant getStartTimestamp() {
+        return startTimestamp;
+    }
+    
+    
+    /**
+     * Get the duration in milliseconds
+     *
+     * @return the duration
+     */
+    public long getDuration() {
+        return duration;
+    }
+    
+    
+    /**
      * Convert the object into a byte array
      *
      * @param processingPersistenceContainer the processing persistence container
@@ -221,7 +250,9 @@ public class ProcessingPersistenceContainer implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, parameterList, processingPersistence, processStatus, processingUnitClass, processingUnitContext);
+        return Objects.hash(duration, id, name, parameterList, processStatus, processStatusMessageList,
+                processingPersistence, processingRuntimeStatus, processingUnitClass, processingUnitContext,
+                startTimestamp);
     }
 
 
@@ -243,12 +274,14 @@ public class ProcessingPersistenceContainer implements Serializable {
         }
         
         ProcessingPersistenceContainer other = (ProcessingPersistenceContainer) obj;
-        return Objects.equals(parameterList, other.parameterList)
-                && Objects.equals(id, other.id)
-                && Objects.equals(name, other.name)
-                && Objects.equals(processingPersistence, other.processingPersistence)
+        return duration == other.duration && Objects.equals(id, other.id) && Objects.equals(name, other.name)
+                && Objects.equals(parameterList, other.parameterList)
                 && Objects.equals(processStatus, other.processStatus)
+                && Objects.equals(processStatusMessageList, other.processStatusMessageList)
+                && Objects.equals(processingPersistence, other.processingPersistence)
+                && processingRuntimeStatus == other.processingRuntimeStatus
                 && Objects.equals(processingUnitClass, other.processingUnitClass)
-                && Objects.equals(processingUnitContext, other.processingUnitContext);
+                && Objects.equals(processingUnitContext, other.processingUnitContext)
+                && Objects.equals(startTimestamp, other.startTimestamp);
     }
 }

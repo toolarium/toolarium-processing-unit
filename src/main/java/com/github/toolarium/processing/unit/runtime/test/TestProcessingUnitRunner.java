@@ -15,6 +15,7 @@ import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.ProcessingUnitContext;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 
 
@@ -167,6 +168,46 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      */
     public IProcessStatus getProcessStatus() {
         return processingUnitRunnable.getProcessStatus();
+    }
+
+    
+    /**
+     * Get the status message list
+     *
+     * @return the status message list
+     */
+    public List<String> getStatusMessageList() {
+        return processingUnitRunnable.getStatusMessageList();
+    }
+
+    
+    /**
+     * Get the start time stamp
+     *
+     * @return the start time stamp
+     */
+    public Instant getStartTimestamp() {
+        return processingUnitRunnable.getStartTimestamp(); 
+    }
+
+
+    /**
+     * Get the stop time stamp
+     *
+     * @return the stop time stamp
+     */
+    public Instant getStopTimestamp() {
+        return processingUnitRunnable.getStopTimestamp(); 
+    }
+
+    
+    /**
+     * Get the duration in milliseconds
+     *
+     * @return the duration
+     */
+    public long getDuration() {
+        return processingUnitRunnable.getDuration();
     }
 
 

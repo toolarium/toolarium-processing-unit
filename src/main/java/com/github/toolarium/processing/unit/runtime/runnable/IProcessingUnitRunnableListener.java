@@ -18,7 +18,6 @@ import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
  */
 public interface IProcessingUnitRunnableListener {
     
-    
     /**
      * Notify processing unit action status
      *

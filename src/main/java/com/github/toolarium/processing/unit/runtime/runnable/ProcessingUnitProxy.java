@@ -15,6 +15,7 @@ import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -37,6 +38,9 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
     private IProcessingUnitContext processingUnitContext;
     private ProcessingRuntimeStatus processingRuntimeStatus;
     private List<String> processStatusMessageList;
+    private Instant startTimestamp;
+    private Instant lastStartTimestamp;
+    private long duration;
 
 
     /**
@@ -51,8 +55,10 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      * @param processingUnitContext the processing unit context
      * @param processingRuntimeStatus the processing runtime status
      * @param processStatusMessageList the processing status message list
+     * @param startTimestamp the start time stamp
+     * @param duration the spent duration in milliseconds
      */
-    private ProcessingUnitProxy(final String id,
+    private ProcessingUnitProxy(final String id, // CHECKSTYLE IGNORE THIS LINE
                                 final String name,
                                 final Class<? extends IProcessingUnit> processingUnitClass,
                                 final IProcessingUnit processingUnit, 
@@ -60,7 +66,9 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                 final IProcessStatus lastProcessStatus,
                                 final IProcessingUnitContext processingUnitContext,
                                 final ProcessingRuntimeStatus processingRuntimeStatus,
-                                final List<String> processStatusMessageList) {
+                                final List<String> processStatusMessageList,
+                                final Instant startTimestamp,
+                                final long duration) {
         this.id = id;
         this.name = name;
         this.processingUnitClass = processingUnitClass;
@@ -70,6 +78,17 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
         this.processingUnitContext = processingUnitContext;
         this.processingRuntimeStatus = processingRuntimeStatus;
         this.processStatusMessageList = processStatusMessageList;
+        this.startTimestamp = startTimestamp;
+        this.lastStartTimestamp = startTimestamp;
+        this.duration = duration;
+        
+        if (this.duration < 0) {
+            this.duration = 0;
+        }
+        
+        if (this.duration > 0) {
+            this.lastStartTimestamp = Instant.now();
+        } 
     }
 
     
@@ -98,6 +117,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                 LOG.debug("Initialize processing unit class " + processing);
             }
             processingUnit = createProcessingUnitInstance(processingUnitClass);
+            final Instant startTimestamp = Instant.now();
             
             // get parameter definition
             if (LOG.isDebugEnabled()) {
@@ -118,7 +138,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             processingUnit.initialize(parameterList, processingUnitContext);
             
             LOG.info("Successful initialized processing unit instance " + processing);
-            return new ProcessingUnitProxy(id, name, processingUnitClass, processingUnit, parameterList, null, processingUnitContext, ProcessingRuntimeStatus.SUCCESSFUL, new ArrayList<String>());
+            return new ProcessingUnitProxy(id, name, processingUnitClass, processingUnit, parameterList, null, processingUnitContext, ProcessingRuntimeStatus.SUCCESSFUL, new ArrayList<String>(), startTimestamp, 0);
         } catch (RuntimeException e) {
             if (processingUnit != null) {
                 try {
@@ -195,7 +215,9 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                            lastProcessStatus, 
                                            processingUnitContext,
                                            resumeProcessingPersistence.getProcessingRuntimeStatus(),
-                                           resumeProcessingPersistence.getProcessingStatusMessageList());
+                                           resumeProcessingPersistence.getProcessingStatusMessageList(),
+                                           resumeProcessingPersistence.getStartTimestamp(),
+                                           resumeProcessingPersistence.getDuration());
         } catch (RuntimeException e) {
             if (processingUnit != null) {
                 try {
@@ -311,7 +333,9 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                                        lastProcessStatus, 
                                                        processingUnitContext,
                                                        processingRuntimeStatus,
-                                                       processStatusMessageList);
+                                                       processStatusMessageList,
+                                                       startTimestamp,
+                                                       getDuration());
     
             // persist...
             return ProcessingPersistenceContainer.toByteArray(suspendProcessingPersistence);
@@ -377,6 +401,26 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      */
     public List<String> getStatusMessageList() {
         return processStatusMessageList;
+    }
+    
+    
+    /**
+     * Get the start time stamp
+     *
+     * @return the start time stamp
+     */
+    public Instant getStartTimestamp() {
+        return startTimestamp;
+    }
+    
+    
+    /**
+     * Get the duration in milliseconds
+     *
+     * @return the duration in milliseconds
+     */
+    public long getDuration() {
+        return duration + Instant.now().toEpochMilli() - lastStartTimestamp.toEpochMilli();
     }
     
     

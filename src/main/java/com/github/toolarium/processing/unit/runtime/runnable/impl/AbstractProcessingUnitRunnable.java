@@ -17,6 +17,7 @@ import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProx
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitProxy;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -38,6 +39,8 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     private ProcessingUnitProxy processingUnitProxy;
     private ProcessingActionStatus processingActionStatus;
     private IProcessingUnitRunnableListener processingUnitRunnableListener;
+    private Instant stopTimestamp;
+    private Long duration;
 
     
     /**
@@ -67,6 +70,8 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.parameterList = parameterList;
         this.processingUnitContext = processingUnitContext;
         this.processingUnitRunnableListener = null;
+        this.stopTimestamp = null;
+        this.duration = null;
     }
 
     
@@ -86,6 +91,8 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.processingUnitClass = processingUnitProxy.getProcessingUnitClass();
         this.parameterList = processingUnitProxy.getParameterList();
         this.processingUnitContext = processingUnitProxy.getProcessingUnitContext();
+        this.stopTimestamp = null;
+        this.duration = null;
     }
 
 
@@ -123,6 +130,12 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      */
     protected void setProcessingActionStatus(ProcessingActionStatus processingActionStatus) {
         this.processingActionStatus = processingActionStatus;
+        
+        if (ProcessingActionStatus.ENDED.equals(processingActionStatus) || ProcessingActionStatus.ENDED.equals(processingActionStatus)) {
+            duration = getDuration();
+            stopTimestamp = Instant.now();
+        }
+        
         notifyProcessingUnitState(processingActionStatus);
     }
 
@@ -150,6 +163,37 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     }
 
 
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getStartTimestamp()
+     */
+    @Override
+    public Instant getStartTimestamp() {
+        return processingUnitProxy.getStartTimestamp(); 
+    }
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getStopTimestamp()
+     */
+    @Override
+    public Instant getStopTimestamp() {
+        return stopTimestamp; 
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getDuration()
+     */
+    @Override
+    public long getDuration() {
+        if (duration != null) {
+            return duration;
+        }
+        
+        return processingUnitProxy.getDuration();
+    }
+
+    
     /**
      * Get the processing progress
      *
