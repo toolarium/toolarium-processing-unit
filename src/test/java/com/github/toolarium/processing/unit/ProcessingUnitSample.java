@@ -13,15 +13,16 @@ import com.github.toolarium.processing.unit.exception.ProcessingException;
 
 
 /**
- * A simple processing unit
+ * Implements a simple processing unit
  *   
  * @author patrick
  */
 public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
-    private static final  ParameterDefinition INPUT_FILENAME_PARAMETER = new ParameterDefinition("inputFilename", ParameterValueType.STRING,
-                                                                                                 ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
-                                                                                                 ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
+    private static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
+            new ParameterDefinition("inputFilename", ParameterValueType.STRING,
+                                    ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
+                                    ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
 
     
     /**
@@ -37,7 +38,9 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
      */
     @Override
     protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
-        // check how many entries we have to process
+        // check how many entries we have to process, e.g. counting database records to process
+        // it will be called just once, the first time before start processing
+        // this number will be set in getProcessingProgress().setNumberOfUnitsToProcess(...) 
         return 10;
     }
     
@@ -48,13 +51,16 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
     @Override
     public IProcessStatus processUnit(IProcessingUnitContext processingUnitContext) throws ProcessingException {
         
-        // sample warning
-        getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
+        // This is the main part where the processing takes place
+        
+        // During a processing step status message can be returned
         getProcessingProgress().setStatusMessage("");
         
+        // A status SUCCESSFUL, WARN or ERROR can be set
+        getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
         
+        // It is called as long as getProcessStatus().setHasNext is set to false.
         getProcessStatus().setHasNext(true);
-        
         return getProcessStatus();
     }
 

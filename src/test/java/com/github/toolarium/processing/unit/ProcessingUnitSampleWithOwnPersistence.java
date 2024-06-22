@@ -1,90 +1,24 @@
-[![License](https://img.shields.io/github/license/toolarium/toolarium-processing-unit)](https://github.com/toolarium/toolarium-processing-unit/blob/master/LICENSE)
-[![Maven Central](https://img.shields.io/maven-central/v/com.github.toolarium/toolarium-processing-unit/0.9.0)](https://search.maven.org/artifact/com.github.toolarium/toolarium-processing-unit/0.9.0/jar)
-[![javadoc](https://javadoc.io/badge2/com.github.toolarium/toolarium-processing-unit/javadoc.svg)](https://javadoc.io/doc/com.github.toolarium/toolarium-processing-unit)
+/*
+ * ProcessingUnitSampleWithOwnPersistence.java
+ *
+ * Copyright by toolarium, all rights reserved.
+ */
+package com.github.toolarium.processing.unit;
 
-# toolarium-processing-unit
-
-Defines the processing unit interface.
-
-A ProcessingUnit is a simple java class that implements the main part of a processing. The framework is designed so that only the main part, the real processing, has to be implemented. 
-This means that you do not have to write any loops.
-
-## Built With
-
-* [cb](https://github.com/toolarium/common-build) - The toolarium common build
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/toolarium/toolarium-processing-unit/tags). 
+import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
+import com.github.toolarium.processing.unit.dto.Parameter;
+import com.github.toolarium.processing.unit.dto.ParameterDefinition;
+import com.github.toolarium.processing.unit.dto.ParameterValueType;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
+import com.github.toolarium.processing.unit.exception.ProcessingException;
+import java.util.List;
 
 
-## How to implement a processing
-Either you implement simple the interface 'com.github.toolarium.processing.unit.IProcessingUnit' or the implementation class inherit from the abstract class 'com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl'.
-The implementation is simpler to use the abstract class (see the sample below):
-
-### ProcessingUnit Sample
-```java
-public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
-    /** INPUT_FILENAME: input filename parameter. It is not optional. */
-    private static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
-            new ParameterDefinition("inputFilename", ParameterValueType.STRING,
-                                    ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
-                                    ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
-
-    
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#initializeParameterDefinition()
-     */
-    public void initializeParameterDefinition() {
-        getParameterRuntime().addParameterDefinition(INPUT_FILENAME_PARAMETER); // register parameters
-    }
-    
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#countNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
-     */
-    @Override
-    protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
-        // check how many entries we have to process, e.g. counting database records to process
-        // it will be called just once, the first time before start processing
-        // this number will be set in getProcessingProgress().setNumberOfUnitsToProcess(...) 
-        return 10;
-    }
-    
-    
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
-     */
-    @Override
-    public IProcessStatus processUnit(IProcessingUnitContext processingUnitContext) throws ProcessingException {
-        
-        // This is the main part where the processing takes place
-        
-        // During a processing step status message can be returned
-        getProcessingProgress().setStatusMessage("");
-        
-        // A status SUCCESSFUL, WARN or ERROR can be set
-        getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
-        
-        // It is called as long as getProcessStatus().setHasNext is set to false.
-        getProcessStatus().setHasNext(true);
-        return getProcessStatus();
-    }
-
-    
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#releaseResource()
-     */
-    /* In case we have to release any resources
-    @Override
-    public void releaseResource() throws ProcessingException {
-    }
-    */
-}
-```
-
-### ProcessingUnit Sample with own persistence
-```java
+/**
+ * Implements a simple processing unit with own persistence
+ * 
+ * @author patrick
+ */
 public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUnitImpl {
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
     private static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
@@ -220,22 +154,3 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
         }
     }
 }
-```
-
-### Gradle:
-
-```groovy
-dependencies {
-    implementation "com.github.toolarium:toolarium-processing-unit:0.9.0"
-}
-```
-
-### Maven:
-
-```xml
-<dependency>
-    <groupId>com.github.toolarium</groupId>
-    <artifactId>toolarium-processing-unit</artifactId>
-    <version>0.9.0</version>
-</dependency>
-```
