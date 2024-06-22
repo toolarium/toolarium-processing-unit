@@ -105,6 +105,11 @@ public final class ProcessingUnitTestCaseSample {
         assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
         assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[{counter=3.0, PROCEEDING=130.0, SHA-1=26.0, SHA-256=26.0}]");
+        
+        assertNotNull(processRunner.getStatusMessageList());
+        assertNotNull(processRunner.getStartTimestamp());
+        assertNotNull(processRunner.getStopTimestamp());
+        assertTrue(processRunner.getDuration() > 0);        
     }
 
 
