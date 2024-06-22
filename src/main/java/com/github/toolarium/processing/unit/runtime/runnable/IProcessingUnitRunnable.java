@@ -7,6 +7,7 @@ package com.github.toolarium.processing.unit.runtime.runnable;
 
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import java.time.Instant;
 import java.util.List;
 
@@ -49,6 +50,14 @@ public interface IProcessingUnitRunnable extends Runnable {
      */
     IProcessStatus getProcessStatus();
     
+    
+    /**
+     * Get the processing runtime status
+     * 
+     * @return the processing runtime status
+     */
+    ProcessingRuntimeStatus getProcessingRuntimeStatus();
+
     
     /**
      * Get the status message list

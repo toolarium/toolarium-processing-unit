@@ -11,6 +11,7 @@ import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.ProcessingUnitContext;
@@ -168,6 +169,16 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      */
     public IProcessStatus getProcessStatus() {
         return processingUnitRunnable.getProcessStatus();
+    }
+
+    
+    /**
+     * Get the processing runtime status
+     * 
+     * @return the processing runtime status
+     */
+    ProcessingRuntimeStatus getProcessingRuntimeStatus() {
+        return processingUnitRunnable.getProcessingRuntimeStatus();
     }
 
     

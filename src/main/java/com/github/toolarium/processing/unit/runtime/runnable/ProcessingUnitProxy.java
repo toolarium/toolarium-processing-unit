@@ -390,7 +390,6 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      */
     public ProcessingRuntimeStatus getProcessingRuntimeStatus() {
         return processingRuntimeStatus;
-               
     }
     
     

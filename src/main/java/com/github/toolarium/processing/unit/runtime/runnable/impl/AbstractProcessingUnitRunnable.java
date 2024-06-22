@@ -11,6 +11,7 @@ import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy;
@@ -151,6 +152,15 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         }
         
         return null;
+    }
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getProcessingRuntimeStatus()
+     */
+    @Override
+    public ProcessingRuntimeStatus getProcessingRuntimeStatus() {
+        return processingUnitProxy.getProcessingRuntimeStatus();
     }
 
 
