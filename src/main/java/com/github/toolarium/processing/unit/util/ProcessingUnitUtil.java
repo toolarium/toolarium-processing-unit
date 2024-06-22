@@ -60,8 +60,12 @@ public final class ProcessingUnitUtil {
         if (name != null && !name.isBlank()) {
             processing.append("[").append(name).append("]").append(" - ");
         }
-        processing.append("ID:").append(id).append(" ");
-        return processing.append(shortenClassReferenceAsString(processingUnitClass)).toString();
+        processing.append("ID:").append(id);
+        
+        if (processingUnitClass != null) {
+            processing.append(" ").append(shortenClassReferenceAsString(processingUnitClass));
+        }
+        return processing.toString();
     }
     
     
