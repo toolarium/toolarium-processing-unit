@@ -208,7 +208,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             }
             
             IProcessingProgress processingProgress = null;
-            if (resumeProcessingPersistence.getProcessingStatus()!=null) {
+            if (resumeProcessingPersistence.getProcessingStatus() != null) {
                 processingProgress = resumeProcessingPersistence.getProcessingStatus().getProcessingProgress();
             }
             
