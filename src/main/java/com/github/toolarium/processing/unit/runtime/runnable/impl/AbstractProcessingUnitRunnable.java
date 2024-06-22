@@ -142,6 +142,15 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
 
 
     /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getStatusMessageList()
+     */
+    @Override
+    public List<String> getStatusMessageList() {
+        return processingUnitProxy.getStatusMessageList();
+    }
+
+
+    /**
      * Get the processing progress
      *
      * @return the processing progress
