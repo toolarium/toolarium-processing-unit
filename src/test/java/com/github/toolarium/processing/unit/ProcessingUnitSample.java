@@ -8,7 +8,6 @@ package com.github.toolarium.processing.unit;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.dto.ParameterValueType;
-import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 
 
@@ -19,7 +18,7 @@ import com.github.toolarium.processing.unit.exception.ProcessingException;
  */
 public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
-    private static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
+    public static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
             new ParameterDefinition("inputFilename", ParameterValueType.STRING,
                                     ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
                                     ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
@@ -53,14 +52,21 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
         
         // This is the main part where the processing takes place
         
-        // During a processing step status message can be returned
-        getProcessingProgress().setStatusMessage("");
+        // During a processing step status message can be returned, a status SUCCESSFUL, WARN or ERROR can be set
+        //getProcessingProgress().setStatusMessage("Warning sample");
+        //getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
+
+        // Support of additional statistic:
+        //getProcessingProgress().addStatistic("counter", 1d);
+
+        // Increase the number of processed units
+        getProcessingProgress().increaseNumberOfProcessedUnits();
         
-        // A status SUCCESSFUL, WARN or ERROR can be set
-        getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
+        // If it was failed you can increase the number of failed units
+        //getProcessingProgress().increaseNumberOfFailedUnits();
         
         // It is called as long as getProcessStatus().setHasNext is set to false.
-        getProcessStatus().setHasNext(true);
+        getProcessStatus().setHasNext(getProcessingProgress().getNumberOfUnprocessedUnits() > 0);
         return getProcessStatus();
     }
 

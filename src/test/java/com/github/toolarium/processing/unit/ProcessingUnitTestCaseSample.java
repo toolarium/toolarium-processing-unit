@@ -172,4 +172,34 @@ public final class ProcessingUnitTestCaseSample {
 
         assertTrue(exception.getMessage().contains("Invalid parameter value of parameter [counter]"));
     }
+    
+
+    /**
+     * Test the ProcessingUnitSample
+     */
+    @Test
+    public void testProcessingUnitSample() {
+        // set the input parameter
+        List<Parameter> parameterList = new ArrayList<Parameter>();
+        parameterList.add(new Parameter(ProcessingUnitSample.INPUT_FILENAME_PARAMETER.getKey(), "myFilename"));
+        
+        // Get a process runner and run the unit test
+        TestProcessingUnitRunner<ProcessingUnitSample> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        assertEquals(processRunner.run(ProcessingUnitSample.class, parameterList), 10);
+    }
+
+
+    /**
+     * Test the ProcessingUnitSample
+     */
+    @Test
+    public void testProcessingUnitSampleWithOwnPersistence() {
+        // set the input parameter
+        List<Parameter> parameterList = new ArrayList<Parameter>();
+        parameterList.add(new Parameter(ProcessingUnitSampleWithOwnPersistence.INPUT_FILENAME_PARAMETER.getKey(), "myFilename"));
+        
+        // Get a process runner and run the unit test
+        TestProcessingUnitRunner<ProcessingUnitSampleWithOwnPersistence> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        assertEquals(processRunner.run(ProcessingUnitSampleWithOwnPersistence.class, parameterList), 10);
+    }
 }

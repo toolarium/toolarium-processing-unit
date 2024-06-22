@@ -18,15 +18,34 @@ This means that you do not have to write any loops.
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/toolarium/toolarium-processing-unit/tags). 
 
 
+### Gradle:
+
+```groovy
+dependencies {
+    implementation "com.github.toolarium:toolarium-processing-unit:0.9.0"
+}
+```
+
+### Maven:
+
+```xml
+<dependency>
+    <groupId>com.github.toolarium</groupId>
+    <artifactId>toolarium-processing-unit</artifactId>
+    <version>0.9.0</version>
+</dependency>
+```
+
 ## How to implement a processing
-Either you implement simple the interface 'com.github.toolarium.processing.unit.IProcessingUnit' or the implementation class inherit from the abstract class 'com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl'.
-The implementation is simpler to use the abstract class (see the sample below):
+Either you implement simple the interface `com.github.toolarium.processing.unit.IProcessingUnit` or the implementation class inherit from the abstract class `com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl`.
+The implementation is simpler to use the abstract class (see the sample below).
+
 
 ### ProcessingUnit Sample
 ```java
 public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
-    private static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
+    public static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
             new ParameterDefinition("inputFilename", ParameterValueType.STRING,
                                     ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
                                     ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
@@ -60,14 +79,21 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
         
         // This is the main part where the processing takes place
         
-        // During a processing step status message can be returned
-        getProcessingProgress().setStatusMessage("");
+        // During a processing step status message can be returned, a status SUCCESSFUL, WARN or ERROR can be set
+        //getProcessingProgress().setStatusMessage("Warning sample");
+        //getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
+
+        // Support of additional statistic:
+        //getProcessingProgress().addStatistic("counter", 1d);
+
+        // Increase the number of processed units
+        getProcessingProgress().increaseNumberOfProcessedUnits();
         
-        // A status SUCCESSFUL, WARN or ERROR can be set
-        getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
+        // If it was failed you can increase the number of failed units
+        //getProcessingProgress().increaseNumberOfFailedUnits();
         
         // It is called as long as getProcessStatus().setHasNext is set to false.
-        getProcessStatus().setHasNext(true);
+        getProcessStatus().setHasNext(getProcessingProgress().getNumberOfUnprocessedUnits() > 0);
         return getProcessStatus();
     }
 
@@ -87,7 +113,7 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
 ```java
 public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUnitImpl {
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
-    private static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
+    public static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
             new ParameterDefinition("inputFilename", ParameterValueType.STRING,
                                     ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
                                     ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
@@ -124,14 +150,21 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
         
         // This is the main part where the processing takes place
         
-        // During a processing step status message can be returned
-        getProcessingProgress().setStatusMessage("");
+        // During a processing step status message can be returned, a status SUCCESSFUL, WARN or ERROR can be set
+        //getProcessingProgress().setStatusMessage("Warning sample");
+        //getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
+
+        // Support of additional statistic:
+        //getProcessingProgress().addStatistic("counter", 1d);
+
+        // Increase the number of processed units
+        getProcessingProgress().increaseNumberOfProcessedUnits();
         
-        // A status SUCCESSFUL, WARN or ERROR can be set
-        getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
+        // If it was failed you can increase the number of failed units
+        //getProcessingProgress().increaseNumberOfFailedUnits();
         
         // It is called as long as getProcessStatus().setHasNext is set to false.
-        getProcessStatus().setHasNext(true);
+        getProcessStatus().setHasNext(getProcessingProgress().getNumberOfUnprocessedUnits() > 0);
         return getProcessStatus();
     }
 
@@ -222,20 +255,20 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
 }
 ```
 
-### Gradle:
+## How to test a processing (unit testing)
+The class `TestProcessingUnitRunner` supports different methods to simulate all kind real behaviours: `run()`, `runAndAbort()`, `runWithThrottling()`, `runWithSuspendAndResume()`
+To test the processing unit, the simple method `run()` fulfills the test purpose. The other run methods are just for specific tests.
 
-```groovy
-dependencies {
-    implementation "com.github.toolarium:toolarium-processing-unit:0.9.0"
-}
+```java
+    @Test
+    public void testProcessingUnitSample() {
+        // set the input parameter
+        List<Parameter> parameterList = new ArrayList<Parameter>();
+        parameterList.add(new Parameter(ProcessingUnitSample.INPUT_FILENAME_PARAMETER.getKey(), "myFilename"));
+        
+        // Get a process runner and run the unit test
+        TestProcessingUnitRunner<ProcessingUnitSample> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        assertEquals(processRunner.run(ProcessingUnitSample.class, parameterList), 10);
+    }
 ```
 
-### Maven:
-
-```xml
-<dependency>
-    <groupId>com.github.toolarium</groupId>
-    <artifactId>toolarium-processing-unit</artifactId>
-    <version>0.9.0</version>
-</dependency>
-```
