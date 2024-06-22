@@ -13,28 +13,28 @@ package com.github.toolarium.processing.unit.dto;
  */
 public enum ProcessingActionStatus {
 
-    /** STARTING -> RUNNING | ABORTING */
+    /** STARTING -&gt; RUNNING | ABORTING */
     STARTING,
 
-    /** RUNNING  -> ENDING | ABORTING | SUSPENDING */
+    /** RUNNING  -&gt; ENDING | ABORTING | SUSPENDING */
     RUNNING,
 
-    /** ENDING -> ENDED */
+    /** ENDING -&gt; ENDED */
     ENDING,
 
     /** ENDED */
     ENDED,
 
-    /** SUSPENDING -> SUSPENDED | ABORTING */
+    /** SUSPENDING -&gt; SUSPENDED | ABORTING */
     SUSPENDING,
 
-    /** SUSPENDED -> RESUMING | ABORTING */
+    /** SUSPENDED -&gt; RESUMING | ABORTING */
     SUSPENDED,
 
-    /** RESUMING -> RUNNING | ABORTING */
+    /** RESUMING -&gt; RUNNING | ABORTING */
     RESUMING,
 
-    /** ABORTING -> ABORTED */
+    /** ABORTING -&gt; ABORTED */
     ABORTING,
 
     /** ABORTED */
