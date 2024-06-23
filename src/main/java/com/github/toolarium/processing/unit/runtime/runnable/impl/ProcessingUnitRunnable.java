@@ -8,6 +8,7 @@ package com.github.toolarium.processing.unit.runtime.runnable.impl;
 import com.github.toolarium.common.bandwidth.BandwidthThrottling;
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
 import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
+import com.github.toolarium.common.util.TextUtil;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
@@ -76,14 +77,31 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
      */
     public ProcessingUnitRunnable(byte[] suspendedState, IProcessingUnitRunnableListener processingUnitRunnableListener) {
         super(suspendedState);
+        timeDifferenceFormatter = new TimeDifferenceFormatter();
+        processingUnitThrottlingInitLogged = false;
         
         // resume
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
         setProcessingActionStatus(ProcessingActionStatus.RESUMING);
-        setProcessingUnitProxy(ProcessingUnitProxy.resume(suspendedState));
+        ProcessingUnitProxy processingUnitProxy = ProcessingUnitProxy.resume(suspendedState);
+        setProcessingUnitProxy(processingUnitProxy);        
+        setProcessingUnitThrottling(processingUnitProxy.getMaxNumberOfProcessingUnitCallsPerSecond());
     }
 
-    
+    /**
+     * Create processing unit proxy
+     * 
+     * @return the processing unit proxy
+     */
+    protected ProcessingUnitProxy createProcessingUnitProxy() {
+        ProcessingUnitProxy processingUnitProxy = super.createProcessingUnitProxy();
+        if (processingUnitThrottling != null) {
+            processingUnitProxy.setMaxNumberOfProcessingUnitCallsPerSecond(processingUnitThrottling.getBandwidth());
+        }
+        
+        return processingUnitProxy;
+    }
+
     
     /**
      * Defines the max calls per second to throttle the processing unit
@@ -91,6 +109,10 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
      * @param maxNumberOfProcessingUnitCallsPerSecond the max number of processing units per second
      */
     public void setProcessingUnitThrottling(Long maxNumberOfProcessingUnitCallsPerSecond) {
+        if (getProcessingUnitProxy() != null) {
+            getProcessingUnitProxy().setMaxNumberOfProcessingUnitCallsPerSecond(maxNumberOfProcessingUnitCallsPerSecond);
+        }
+        
         if (maxNumberOfProcessingUnitCallsPerSecond == null || maxNumberOfProcessingUnitCallsPerSecond.longValue() == BandwidthThrottling.NO_BANDWIDTH) {
             processingUnitThrottling = null;
         } else {
@@ -127,7 +149,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
     @Override
     public void run() {
         // && !Thread.currentThread().isInterrupted()
-        String processingInfo = "";
+        final String processingInfo;
         
         try {
             if (ProcessingActionStatus.RESUMING.equals(getProcessingActionStatus())) {
@@ -135,12 +157,14 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
                     throw new ProcessingException("Could not initialize processing!", true);
                 }
                 processingInfo = getProcessingUnitProxy().toString(); 
+                LOG.info("Resumed processing unit " + processingInfo);                
             } else {
                 IProcessingUnitProxy processingUnitProxy = createProcessingUnitProxy();
                 if (processingUnitProxy == null) {
                     throw new ProcessingException("Could not initialize processing!", true);
                 }
                 processingInfo = processingUnitProxy.toString();
+                LOG.info("Started processing unit " + processingInfo);
             }
 
             boolean continueProcessing = true;
@@ -148,15 +172,18 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
                 if (!ProcessingActionStatus.RUNNING.equals(getProcessingActionStatus())) {
                     setProcessingActionStatus(ProcessingActionStatus.RUNNING);
                 }
+                
+                continueProcessing = getProcessingUnitProxy().processUnit();
                 if (LOG.isDebugEnabled()) {
+                    /*
                     long processedUnits = 1;
                     if (getProcessingProgress() != null) {
                         processedUnits = getProcessingProgress().getNumberOfProcessedUnits() + 1;
                     }
-                    
                     LOG.debug(ProcessingUnitUtil.getInstance().preapre(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " call #" + processedUnits + ": " + getProcessingActionStatus());
+                    */
+                    LOG.debug(toString());
                 }
-                continueProcessing = getProcessingUnitProxy().processUnit();
 
                 if (continueProcessing && !suspend) {
                     continueProcessing = afterProcessUnit(continueProcessing);
@@ -166,9 +193,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
 
             if (suspend) {
                 // we must suspend and end
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Suspended processing unit " + processingInfo);
-                }
+                LOG.info("Suspended processing unit " + processingInfo);
                 setProcessingActionStatus(ProcessingActionStatus.SUSPENDING);
                 suspendedState = getProcessingUnitProxy().suspendProcessing();
                 setProcessingActionStatus(ProcessingActionStatus.SUSPENDED);
@@ -181,6 +206,10 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
                     }
                     getProcessingUnitProxy().getProcessingUnit().onStop();
                     setProcessingActionStatus(ProcessingActionStatus.ABORTED);
+                    
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(toString());
+                    }
                     LOG.info("Aborted processing unit " + processingInfo);
                 } else {
                     setProcessingActionStatus(ProcessingActionStatus.ENDING);                
@@ -188,7 +217,11 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
                         LOG.debug("Ending processing unit " + processingInfo);
                     }
                     getProcessingUnitProxy().getProcessingUnit().onSuccess();
-                    setProcessingActionStatus(ProcessingActionStatus.ENDED);                
+                    setProcessingActionStatus(ProcessingActionStatus.ENDED);
+                    
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(toString());
+                    }
                     LOG.info("Ended processing unit " + processingInfo);
                 }
             }
@@ -196,9 +229,15 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
             // release
             if (getProcessingUnitProxy() != null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Release resource of processing unit " + processingInfo + ": " + getProcessingActionStatus());
+                    LOG.debug("Release resource of processing unit " + getProcessingUnitProxy().toString() + ": " + getProcessingActionStatus());
                 }
-                getProcessingUnitProxy().releaseResource();
+                
+                try {
+                    getProcessingUnitProxy().releaseResource();
+                } catch (ProcessingException e) {
+                    LOG.debug("Could not release resource of processing unit " + getProcessingUnitProxy().toString() + ": " + e.getMessage(), e);
+                    LOG.warn("Could not release resource of processing unit " + getProcessingUnitProxy().toString() + ": " + e.getMessage());
+                }
             }
         }
     }
@@ -248,5 +287,63 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable {
      */
     protected IBandwidthThrottling getProcessingUnitThrottling() {
         return processingUnitThrottling;
+    }
+
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        boolean hasNotEnded = true;
+        if (getProcessingUnitProxy() != null && getProcessingUnitProxy().getProcessStatus() != null) {
+            hasNotEnded = !ProcessingActionStatus.ABORTED.equals(getProcessingActionStatus()) && !ProcessingActionStatus.ENDED.equals(getProcessingActionStatus()); //getProcessingUnitProxy().getProcessStatus().hasNext() ;
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append(ProcessingUnitUtil.getInstance().preapre(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass())).append(": ").append(getProcessingActionStatus()).append(TextUtil.NL);
+
+        // processes units
+        if (getProcessingProgress() != null) {
+            builder.append(" - Processed units: ").append(getProcessingProgress().getNumberOfProcessedUnits())
+                   .append(" (successful: ").append(getProcessingProgress().getNumberOfSuccessfulUnits()).append(", failed: ").append(getProcessingProgress().getNumberOfFailedUnits());
+            if (hasNotEnded) {
+                builder.append(", unprocessed: ").append(getProcessingProgress().getNumberOfUnprocessedUnits());
+            }
+            builder.append(") -> ").append(getProcessingRuntimeStatus()).append(TextUtil.NL);
+        }
+        
+        // time stamps & duration
+        builder.append(" - ");
+        if (hasNotEnded) {
+            builder.append("Current duration ");
+        } else {
+            builder.append("Total duration ");
+        }
+        builder.append(timeDifferenceFormatter.formatAsString(getDuration())).append(" (started: ").append(getStartTimestamp());
+        if (!hasNotEnded) {
+            builder.append(", ended: ").append(getStopTimestamp());
+        }
+        builder.append(")");
+
+        // messages
+        if (hasNotEnded) {
+            if (getProcessingProgress() != null && getProcessingProgress().getProcessingStatusMessage() != null && !getProcessingProgress().getProcessingStatusMessage().isBlank()) {
+                builder.append(TextUtil.NL).append(" - Message: [").append(getProcessingProgress().getProcessingStatusMessage()).append("]").append(TextUtil.NL);
+            }
+        } else if (getStatusMessageList() != null && !getStatusMessageList().isEmpty()) {
+            builder.append(TextUtil.NL).append(" - Messages: ").append(getStatusMessageList());
+        }
+        
+        // statistic
+        if (getProcessingProgress() != null && getProcessingProgress().getProcesingStatistic() != null && !getProcessingProgress().getProcesingStatistic().isEmpty()) {
+            builder.append(TextUtil.NL).append(" - Statistic: ").append(getProcessingProgress().getProcesingStatistic());
+        }
+        
+        // throttling
+        if (processingUnitThrottling != null) {
+            builder.append(TextUtil.NL).append(" - Throttling: ").append(processingUnitThrottling.getBandwidthStatisticCounter().getAverage());
+        }
+        
+        return builder.toString();
     }
 }

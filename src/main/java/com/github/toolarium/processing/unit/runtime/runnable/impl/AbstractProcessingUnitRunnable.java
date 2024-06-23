@@ -200,7 +200,11 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
             return duration;
         }
         
-        return processingUnitProxy.getDuration();
+        if (processingUnitProxy != null) {
+            return processingUnitProxy.getDuration();
+        }
+        
+        return 0;
     }
 
     
@@ -244,7 +248,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      * 
      * @return the processing unit proxy
      */
-    protected IProcessingUnitProxy createProcessingUnitProxy() {
+    protected ProcessingUnitProxy createProcessingUnitProxy() {
         processingUnitProxy = ProcessingUnitProxy.init(id, name, processingUnitClass, parameterList, processingUnitContext /* new ProcessingUnitContext(processingUnitContext) */);
         return processingUnitProxy;
     }

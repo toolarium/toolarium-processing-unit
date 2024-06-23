@@ -43,7 +43,8 @@ public class ProcessingPersistenceContainer implements Serializable {
     private List<String> processStatusMessageList;
     private Instant startTimestamp;
     private long duration;
-
+    private Long maxNumberOfProcessingUnitCallsPerSecond;
+    
     
     /**
      * Constructor
@@ -59,6 +60,7 @@ public class ProcessingPersistenceContainer implements Serializable {
      * @param processStatusMessageList the process status message list
      * @param startTimestamp the start time stamp
      * @param duration the actual duration in milliseconds
+     * @param maxNumberOfProcessingUnitCallsPerSecond the max number of processing unit calls per seconds
      */
     public ProcessingPersistenceContainer(String id, // CHECKSTYLE IGNORE THIS LINE
                                           String name,
@@ -70,7 +72,8 @@ public class ProcessingPersistenceContainer implements Serializable {
                                           ProcessingRuntimeStatus processingRuntimeStatus,
                                           List<String> processStatusMessageList,
                                           Instant startTimestamp,
-                                          long duration) {
+                                          long duration,
+                                          Long maxNumberOfProcessingUnitCallsPerSecond) {
         this.id = id;
         this.name = name;
         this.processingUnitClass = processingUnitClass;
@@ -81,6 +84,7 @@ public class ProcessingPersistenceContainer implements Serializable {
         this.processStatusMessageList = processStatusMessageList;
         this.startTimestamp = startTimestamp;
         this.duration = duration;
+        this.maxNumberOfProcessingUnitCallsPerSecond = maxNumberOfProcessingUnitCallsPerSecond;
 
         if (processStatus != null) {
             ProcessingProgress processingProgress = new ProcessingProgress();
@@ -206,6 +210,16 @@ public class ProcessingPersistenceContainer implements Serializable {
     
     
     /**
+     * Get the max number of processing unit calls per seconds
+     *
+     * @return the max number of processing unit calls per seconds
+     */
+    public Long getMaxNumberOfProcessingUnitCallsPerSecond() {
+        return maxNumberOfProcessingUnitCallsPerSecond;
+    }
+    
+    
+    /**
      * Convert the object into a byte array
      *
      * @param processingPersistenceContainer the processing persistence container
@@ -252,7 +266,7 @@ public class ProcessingPersistenceContainer implements Serializable {
     public int hashCode() {
         return Objects.hash(duration, id, name, parameterList, processStatus, processStatusMessageList,
                 processingPersistence, processingRuntimeStatus, processingUnitClass, processingUnitContext,
-                startTimestamp);
+                startTimestamp, maxNumberOfProcessingUnitCallsPerSecond);
     }
 
 
@@ -282,6 +296,7 @@ public class ProcessingPersistenceContainer implements Serializable {
                 && processingRuntimeStatus == other.processingRuntimeStatus
                 && Objects.equals(processingUnitClass, other.processingUnitClass)
                 && Objects.equals(processingUnitContext, other.processingUnitContext)
-                && Objects.equals(startTimestamp, other.startTimestamp);
+                && Objects.equals(startTimestamp, other.startTimestamp)
+                && Objects.equals(maxNumberOfProcessingUnitCallsPerSecond, other.maxNumberOfProcessingUnitCallsPerSecond);
     }
 }

@@ -64,13 +64,19 @@ public interface IProcessingProgress {
 
 
     /**
-     * Returns the processing status message
+     * Returns the current processing status message
      *
-     * @return the processing status message
+     * @return the current processing status message
      */
     String getProcessingStatusMessage();
 
+    
+    /**
+     * Reset the processing status message. This will be called before the processUnit call
+     */
+    void resetProcessingStatusMessage();
 
+    
     /**
      * The processing statistic.
      *

@@ -42,6 +42,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
     private Instant startTimestamp;
     private Instant lastStartTimestamp;
     private long duration;
+    private Long maxNumberOfProcessingUnitCallsPerSecond;
 
 
     /**
@@ -58,6 +59,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      * @param processStatusMessageList the processing status message list
      * @param startTimestamp the start time stamp
      * @param duration the spent duration in milliseconds
+     * @param maxNumberOfProcessingUnitCallsPerSecond the max number of processing unit calls per seconds
      */
     private ProcessingUnitProxy(final String id, // CHECKSTYLE IGNORE THIS LINE
                                 final String name,
@@ -69,7 +71,8 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                 final ProcessingRuntimeStatus processingRuntimeStatus,
                                 final List<String> processStatusMessageList,
                                 final Instant startTimestamp,
-                                final long duration) {
+                                final long duration,
+                                final Long maxNumberOfProcessingUnitCallsPerSecond) {
         this.id = id;
         this.name = name;
         this.processingUnitClass = processingUnitClass;
@@ -82,6 +85,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
         this.startTimestamp = startTimestamp;
         this.lastStartTimestamp = startTimestamp;
         this.duration = duration;
+        this.maxNumberOfProcessingUnitCallsPerSecond = maxNumberOfProcessingUnitCallsPerSecond;
         
         if (this.duration < 0) {
             this.duration = 0;
@@ -138,8 +142,10 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             }
             processingUnit.initialize(parameterList, processingUnitContext);
             
-            LOG.info("Successful initialized processing unit instance " + processing);
-            return new ProcessingUnitProxy(id, name, processingUnitClass, processingUnit, parameterList, null, processingUnitContext, ProcessingRuntimeStatus.SUCCESSFUL, new ArrayList<String>(), startTimestamp, 0);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Successful initialized processing unit instance " + processing);
+            }
+            return new ProcessingUnitProxy(id, name, processingUnitClass, processingUnit, parameterList, null, processingUnitContext, ProcessingRuntimeStatus.SUCCESSFUL, new ArrayList<String>(), startTimestamp, 0, null);
         } catch (RuntimeException e) {
             if (processingUnit != null) {
                 try {
@@ -213,7 +219,10 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             }
             
             processingUnit.resumeProcessing(resumeProcessingPersistence.getParameterList(), processingProgress, resumeProcessingPersistence.getProcessingPersistence(), processingUnitContext);
-            LOG.info("Successful resumed processing unit instance " + processing);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Successful resumed processing unit instance " + processing);
+            }
+            
             return new ProcessingUnitProxy(resumeProcessingPersistence.getId(), 
                                            resumeProcessingPersistence.getName(),
                                            resumeProcessingPersistence.getProcessingUnitClass(), 
@@ -224,7 +233,8 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                            resumeProcessingPersistence.getProcessingRuntimeStatus(),
                                            resumeProcessingPersistence.getProcessingStatusMessageList(),
                                            resumeProcessingPersistence.getStartTimestamp(),
-                                           resumeProcessingPersistence.getDuration());
+                                           resumeProcessingPersistence.getDuration(),
+                                           resumeProcessingPersistence.getMaxNumberOfProcessingUnitCallsPerSecond());
         } catch (RuntimeException e) {
             if (processingUnit != null) {
                 try {
@@ -279,6 +289,9 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
         boolean continueProcessing = false;
         try {
             // process
+            if (lastProcessStatus != null && lastProcessStatus.getProcessingProgress() != null) {
+                lastProcessStatus.getProcessingProgress().resetProcessingStatusMessage();
+            }
             lastProcessStatus = getProcessingUnit().processUnit(processingUnitContext);
             
             // update the status
@@ -342,7 +355,8 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                                        processingRuntimeStatus,
                                                        processStatusMessageList,
                                                        startTimestamp,
-                                                       getDuration());
+                                                       getDuration(),
+                                                       maxNumberOfProcessingUnitCallsPerSecond);
     
             // persist...
             return ProcessingPersistenceContainer.toByteArray(suspendProcessingPersistence);
@@ -429,6 +443,25 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
         return duration + Instant.now().toEpochMilli() - lastStartTimestamp.toEpochMilli();
     }
     
+
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy#getMaxNumberOfProcessingUnitCallsPerSecond()
+     */
+    @Override
+    public Long getMaxNumberOfProcessingUnitCallsPerSecond() {
+        return maxNumberOfProcessingUnitCallsPerSecond;
+    }
+
+    
+    /**
+     * Set the max number of processing unit calls per seconds
+     *
+     * @param maxNumberOfProcessingUnitCallsPerSecond The max number of processing unit calls per seconds
+     */
+    public void setMaxNumberOfProcessingUnitCallsPerSecond(Long maxNumberOfProcessingUnitCallsPerSecond) {
+        this.maxNumberOfProcessingUnitCallsPerSecond = maxNumberOfProcessingUnitCallsPerSecond;
+    }
+
     
     /**
      * Get the processing unit class.

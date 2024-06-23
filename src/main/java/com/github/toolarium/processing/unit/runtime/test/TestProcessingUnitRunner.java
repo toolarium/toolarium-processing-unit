@@ -90,7 +90,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
         return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
     }
 
-
+    
     /**
      * Run processing unit
      *
@@ -108,9 +108,32 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
                                         long suspendAfterCycles,
                                         long suspendSleepTime,
                                         int maxNumberOfSuspends) throws ValidationException, ProcessingException {
+        return runWithSuspendAndResume(processingUnitClass, parameterList, suspendAfterCycles, suspendSleepTime, maxNumberOfSuspends, null);
+    }
+
+    /**
+     * Run processing unit
+     *
+     * @param processingUnitClass the processing unit class
+     * @param parameterList the parameter list
+     * @param suspendAfterCycles after the number of cycles it will suspended
+     * @param suspendSleepTime the sleep time after suspending or null
+     * @param maxNumberOfSuspends the max number of suspends
+     * @param maxNumberOfProcessingUnitCallsPerSecond the max number of calls per second of the processing unit
+     * @return the number of cycles
+     * @throws ValidationException In case the processing can not be initilized 
+     * @throws ProcessingException In case of an error in a processing
+     */
+    public long runWithSuspendAndResume(Class<? extends IProcessingUnit> processingUnitClass,
+                                        List<Parameter> parameterList,
+                                        long suspendAfterCycles,
+                                        long suspendSleepTime,
+                                        int maxNumberOfSuspends,
+                                        Long maxNumberOfProcessingUnitCallsPerSecond) throws ValidationException, ProcessingException {
 
         long cycles = 0;
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, new ProcessingUnitContext());
+        processingUnitRunnable.setProcessingUnitThrottling(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.setSuspendAfterCycles(suspendAfterCycles);
 
         byte[] suspendedState = null;
@@ -161,6 +184,36 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
         return 0;
     }
 
+        
+    /**
+     * Get the runnable id
+     *
+     * @return the runnable id
+     */
+    public String getId() {
+        return processingUnitRunnable.getId();
+    }
+
+    
+    /**
+     * Get the runnable name or null
+     *
+     * @return the name or null
+     */
+    public String getName() {
+        return processingUnitRunnable.getName();
+    }
+
+    
+    /**
+     * Get the processing action status
+     * 
+     * @return the processing action status
+     */
+    public ProcessingActionStatus getProcessingActionStatus() {
+        return processingUnitRunnable.getProcessingActionStatus();
+    }
+    
 
     /**
      * Gets the last process status
@@ -177,7 +230,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      * 
      * @return the processing runtime status
      */
-    ProcessingRuntimeStatus getProcessingRuntimeStatus() {
+    public ProcessingRuntimeStatus getProcessingRuntimeStatus() {
         return processingUnitRunnable.getProcessingRuntimeStatus();
     }
 
@@ -255,5 +308,14 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      */
     public IBandwidthThrottling getProcessingUnitThrottling() {
         return processingUnitRunnable.getProcessingUnitThrottling();
+    }
+
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return processingUnitRunnable.toString();
     }
 }

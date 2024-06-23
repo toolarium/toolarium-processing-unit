@@ -79,6 +79,15 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
 
 
     /**
+     * @see com.github.toolarium.processing.unit.IProcessingStatistic#isEmpty()
+     */
+    @Override
+    public boolean isEmpty() {
+        return statisticData.isEmpty();
+    }
+
+
+    /**
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -116,21 +125,23 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append("[{");
-        boolean addSeparator = false;
-        for (String key : keySet()) {
-            if (addSeparator) {
-                result.append(", ");
-            } else {
-                addSeparator = true;
+        
+        if (!isEmpty()) {
+            boolean addSeparator = false;
+            for (String key : keySet()) {
+                if (addSeparator) {
+                    result.append(", ");
+                } else {
+                    addSeparator = true;
+                }
+    
+                result.append(key);
+                result.append("=");
+                result.append(statisticData.get(key));
             }
-
-            result.append(key);
-            result.append("=");
-            result.append(statisticData.get(key));
         }
-
+        
         result.append("}]");
-
         return result.toString();
     }
 }

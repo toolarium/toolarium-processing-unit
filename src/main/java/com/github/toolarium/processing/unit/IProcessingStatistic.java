@@ -30,4 +30,12 @@ public interface IProcessingStatistic {
      * @return the value if it was set; otherwise null
      */
     Double get(String key);
+    
+    
+    /**
+     * Check if the statistic if empty
+     *
+     * @return true if it is empty
+     */
+    boolean isEmpty();
 }

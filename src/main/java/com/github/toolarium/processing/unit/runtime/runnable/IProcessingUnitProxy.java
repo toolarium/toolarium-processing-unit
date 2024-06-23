@@ -55,6 +55,14 @@ public interface IProcessingUnitProxy {
 
     
     /**
+     * Get the max number of processing unit calls per seconds
+     *
+     * @return The max number of processing unit calls per seconds
+     */
+    Long getMaxNumberOfProcessingUnitCallsPerSecond();
+
+    
+    /**
      * Process unit: This method will be called until the {@link IProcessStatus#hasNext} returns false
      * or an exception occurs: RuntimeException will abort; ValidationException or ProcessingException depends
      * on the value returned by the method abortProcessing.

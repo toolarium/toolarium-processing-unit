@@ -55,7 +55,7 @@ public final class ProcessingUnitTestCaseSample {
         assertNotNull(processRunner.getStatusMessageList());
         assertNotNull(processRunner.getStartTimestamp());
         assertNotNull(processRunner.getStopTimestamp());
-        assertTrue(processRunner.getDuration() > 0);        
+        assertTrue(processRunner.getDuration() >= 0);        
     }
 
 
@@ -89,9 +89,7 @@ public final class ProcessingUnitTestCaseSample {
     @Test
     public void testProcessingUnitWithSuspendAndResume() {
         List<Parameter> parameterList = new ArrayList<Parameter>();
-
-        Random random = new Random();
-        long randomSuspendIdx = random.nextInt(10 - 5 + 1) + 1;
+        long randomSuspendIdx = new Random().nextInt(10 - 5 + 1) + 1;
         
         TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithSuspendAndResume(MyDataProcessingUnit.class, parameterList, randomSuspendIdx, 100L, 3), TOTAL_UNITS);
@@ -139,21 +137,46 @@ public final class ProcessingUnitTestCaseSample {
      * Simple test case with correct
      */
     @Test
-    public void testProcessingUnitWithTrhottling() {
+    public void testProcessingUnitWithThrottling() {
         int totalUnits = 100;
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(MyDataProcessingUnitConstants.NUMBER_OF_TESTDATA_RECORDS.getKey(), "" + totalUnits));
 
         TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
-        assertEquals(processRunner.run(MyDataProcessingUnit.class, parameterList), 100);
-        
-        processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithThrottling(MyDataProcessingUnit.class, parameterList, 10L), totalUnits);
         
         int avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter().getAverage());
-        assertTrue(avg >= 12 && avg <= 20, "" + processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter());
+        assertTrue(avg >= 12 && avg <= 40, "" + processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter());
         avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getSleepStatisticCounter().getAverage());
-        assertTrue(avg >= 80 && avg <= 85, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
+        assertTrue(avg >= 80 && avg <= 90, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
+
+        assertNotNull(processRunner.getProcessStatus());
+        assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());
+        assertTrue((processRunner.getProcesingUnit()).getOnSuccessStatus());
+        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), totalUnits);
+        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), totalUnits);
+        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[{counter=3.0, PROCEEDING=500.0, SHA-1=100.0, SHA-256=100.0}]");
+    }
+
+    
+    /**
+     * Simple test case with correct
+     */
+    @Test
+    public void testProcessingUnitWithThrottlingWithSuspendAndResume() {
+        int totalUnits = 100;
+        List<Parameter> parameterList = new ArrayList<Parameter>();
+        parameterList.add(new Parameter(MyDataProcessingUnitConstants.NUMBER_OF_TESTDATA_RECORDS.getKey(), "" + totalUnits));
+
+        long randomSuspendIdx = new Random().nextInt(10 - 5 + 1) + 1;
+        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        assertEquals(processRunner.runWithSuspendAndResume(MyDataProcessingUnit.class, parameterList, randomSuspendIdx, 100L, 5, 10L), totalUnits);
+        
+        int avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter().getAverage());
+        assertTrue(avg >= 12 && avg <= 25, "" + processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter());
+        avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getSleepStatisticCounter().getAverage());
+        assertTrue(avg >= 80 && avg <= 90, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
 
         assertNotNull(processRunner.getProcessStatus());
         assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());

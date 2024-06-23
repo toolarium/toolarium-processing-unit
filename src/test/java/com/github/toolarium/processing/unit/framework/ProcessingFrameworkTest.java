@@ -7,7 +7,11 @@ package com.github.toolarium.processing.unit.framework;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
@@ -15,6 +19,8 @@ import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.dto.ParameterValueType;
+import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.test.TestProcessingUnitRunner;
@@ -57,6 +63,15 @@ public class ProcessingFrameworkTest {
                + "[b(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=2, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[{}]], hasNext=true])] | "
                + "[c(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=3, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[{}]], hasNext=true])] | "
                + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[{}]], hasNext=false])]");
+        
+        assertNotNull(processRunner.getId());
+        assertNull(processRunner.getName());
+        assertEquals(ProcessingActionStatus.ENDED, processRunner.getProcessingActionStatus());
+        assertFalse(processRunner.getProcessStatus().hasNext());
+        assertEquals(ProcessingRuntimeStatus.SUCCESSFUL, processRunner.getProcessingRuntimeStatus());
+        assertEquals("[]", "" + processRunner.getStatusMessageList());
+        assertTrue(processRunner.getStartTimestamp().toEpochMilli() <= processRunner.getStartTimestamp().toEpochMilli());
+        assertTrue(processRunner.getDuration() > 0);
     }
 
     
@@ -98,7 +113,7 @@ public class ProcessingFrameworkTest {
                  "[a(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=1, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[{}]], hasNext=true])] | "
                + "[b(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=2, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[{}]], hasNext=true])] | "
                + "[(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=3, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=Empty data, processingStatistic=[{}]], hasNext=true])] | "
-               + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=Empty data, processingStatistic=[{}]], hasNext=false])]");
+               + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=null, processingStatistic=[{}]], hasNext=false])]");
     }
 
     
@@ -120,7 +135,7 @@ public class ProcessingFrameworkTest {
                  "[a(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=1, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[{}]], hasNext=true])] | "
                + "[b(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=2, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[{}]], hasNext=true])] | "
                + "[(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=3, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=Empty data, processingStatistic=[{}]], hasNext=true])] | "
-               + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=Empty data, processingStatistic=[{}]], hasNext=false])]");
+               + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=null, processingStatistic=[{}]], hasNext=false])]");
     }
     
     

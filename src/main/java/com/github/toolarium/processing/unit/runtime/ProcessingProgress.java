@@ -177,7 +177,16 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
         return processingStatusMessage;
     }
 
+    
+    /**
+     * @see com.github.toolarium.processing.unit.IProcessingProgress#resetProcessingStatusMessage()
+     */
+    @Override
+    public void resetProcessingStatusMessage() {
+        processingStatusMessage = null;
+    }
 
+    
     /**
      * Sets the processing status message
      *
