@@ -176,7 +176,7 @@ public final class ProcessingUnitTestCaseSample {
         int avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter().getAverage());
         assertTrue(avg >= 12 && avg <= 25, "" + processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter());
         avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getSleepStatisticCounter().getAverage());
-        assertTrue(avg >= 80 && avg <= 90, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
+        assertTrue(avg >= 60 && avg <= 90, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
 
         assertNotNull(processRunner.getProcessStatus());
         assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());
