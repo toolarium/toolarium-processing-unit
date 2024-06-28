@@ -17,7 +17,7 @@ import java.util.List;
  * 
  * @author patrick
  */
-public interface IProcessingUnitRunnable extends Runnable {
+public interface IProcessingUnitRunnable {
     
     /**
      * Get the runnable id
