@@ -92,6 +92,15 @@ public class ProcessingUnitContext implements IProcessingUnitContext, Serializab
 
     
     /**
+     * @see com.github.toolarium.processing.unit.IProcessingUnitContext#isEmpty()
+     */
+    @Override
+    public boolean isEmpty() {
+        return context.isEmpty();
+    }
+    
+    
+    /**
      * @see com.github.toolarium.processing.unit.IProcessingUnitContext#clear()
      */
     @Override
@@ -136,6 +145,25 @@ public class ProcessingUnitContext implements IProcessingUnitContext, Serializab
      */
     @Override
     public String toString() {
-        return "ProcessingUnitContext [context=" + context + "]";
+        StringBuilder result = new StringBuilder();
+        result.append("[");
+        
+        if (!isEmpty()) {
+            boolean addSeparator = false;
+            for (String key : keySet()) {
+                if (addSeparator) {
+                    result.append(", ");
+                } else {
+                    addSeparator = true;
+                }
+    
+                result.append(key);
+                result.append("=");
+                result.append(context.get(key));
+            }
+        }
+        
+        result.append("]");
+        return result.toString();
     }
 }

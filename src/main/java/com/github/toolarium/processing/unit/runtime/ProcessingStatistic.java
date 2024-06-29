@@ -124,7 +124,7 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append("[{");
+        result.append("[");
         
         if (!isEmpty()) {
             boolean addSeparator = false;
@@ -141,7 +141,7 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
             }
         }
         
-        result.append("}]");
+        result.append("]");
         return result.toString();
     }
 }

@@ -6,6 +6,7 @@
 package com.github.toolarium.processing.unit.runtime.test;
 
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
+import com.github.toolarium.common.util.TextUtil;
 import com.github.toolarium.common.util.ThreadUtil;
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingUnit;
@@ -16,8 +17,11 @@ import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 import com.github.toolarium.processing.unit.runtime.ProcessingUnitContext;
+import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.io.Serializable;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -27,6 +31,7 @@ import java.util.List;
  */
 public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Serializable {
     private static final long serialVersionUID = 7297801281265114031L;
+    private static final Logger LOG = LoggerFactory.getLogger(TestProcessingUnitRunner.class);
     private TestProcessingUnitRunnable processingUnitRunnable;
     private int suspendCounter = 0;
 
@@ -51,7 +56,12 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
     public long run(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList) throws ValidationException, ProcessingException {
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, new ProcessingUnitContext());
         processingUnitRunnable.run();
-        return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
+        
+        if (processingUnitRunnable.getProcessStatus() != null && processingUnitRunnable.getProcessStatus().getProcessingProgress() != null) {
+            return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
+        }
+        
+        return 0;
     }
 
     
@@ -69,7 +79,12 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, new ProcessingUnitContext());
         processingUnitRunnable.setNumberOfCyclesBeforeStop(numberOfCyclesBeforeStop);
         processingUnitRunnable.run();
-        return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
+        
+        if (processingUnitRunnable.getProcessStatus() != null && processingUnitRunnable.getProcessStatus().getProcessingProgress() != null) {
+            return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
+        }
+        
+        return 0;
     }
 
     
@@ -87,7 +102,12 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, new ProcessingUnitContext());
         processingUnitRunnable.setProcessingUnitThrottling(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.run();
-        return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
+        
+        if (processingUnitRunnable.getProcessStatus() != null && processingUnitRunnable.getProcessStatus().getProcessingProgress() != null) {
+            return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
+        }
+        
+        return 0;
     }
 
     
@@ -149,6 +169,8 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
             } else {
                 // suspend & resume
                 suspendedState = processingUnitRunnable.getSuspendedState();
+                
+                LOG.info("Suspended state: " + TextUtil.NL + ProcessingUnitUtil.getInstance().toString(suspendedState));
                 suspendCounter++;
                 processingUnitRunnable = null;
 

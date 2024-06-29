@@ -34,6 +34,7 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
      */
     public void initializeParameterDefinition() {
         getParameterRuntime().addParameterDefinition(INPUT_FILENAME_PARAMETER); // register parameters
+        persistence = new SamplePersistence();
     }
     
 
@@ -64,6 +65,9 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
         // Support of additional statistic:
         //getProcessingProgress().addStatistic("counter", 1d);
 
+        persistence.setCounter(persistence.getCounter() + 1);
+        persistence.setText("Counter" + persistence.getCounter());
+        
         // Increase the number of processed units
         getProcessingProgress().increaseNumberOfProcessedUnits();
         
@@ -117,7 +121,7 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
      * 
      * @author patrick
      */
-    class SamplePersistence implements IProcessingPersistence {
+    static class SamplePersistence implements IProcessingPersistence {
         private static final long serialVersionUID = -178680376384580300L;
         private String text;
         private int counter;
@@ -158,6 +162,15 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
          */
         public void setCounter(int counter) {
             this.counter = counter;
+        }
+
+        
+        /**
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return "SamplePersistence [text=" + text + ", counter=" + counter + "]";
         }
     }
 }

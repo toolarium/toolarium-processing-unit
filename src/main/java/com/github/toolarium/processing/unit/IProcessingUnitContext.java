@@ -50,6 +50,14 @@ public interface IProcessingUnitContext {
      * @return the keys
      */
     Set<String> keySet();
+    
+    
+    /**
+     * Check if the statistic if empty
+     *
+     * @return true if it is empty
+     */
+    boolean isEmpty();
 
     
     /**

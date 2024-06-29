@@ -116,7 +116,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             throws ValidationException, ProcessingException {
         IProcessingUnit processingUnit = null;
         
-        final String processing = ProcessingUnitUtil.getInstance().prepare(id, name, processingUnitClass);
+        final String processing = ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass);
         try {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Initialize processing unit class " + processing);
@@ -191,7 +191,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                 throw new ValidationException("Could not recover processing unit instance!");
             }
             
-            final String processing = ProcessingUnitUtil.getInstance().prepare(resumeProcessingPersistence.getId(), resumeProcessingPersistence.getName(), resumeProcessingPersistence.getProcessingUnitClass());
+            final String processing = ProcessingUnitUtil.getInstance().toString(resumeProcessingPersistence.getId(), resumeProcessingPersistence.getName(), resumeProcessingPersistence.getProcessingUnitClass());
             processingUnitClass = resumeProcessingPersistence.getProcessingUnitClass();
 
             // create the process unit instance
@@ -519,7 +519,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      */
     @Override
     public String toString() {
-        return ProcessingUnitUtil.getInstance().prepare(id, name, processingUnitClass);
+        return ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass);
     }
 
    

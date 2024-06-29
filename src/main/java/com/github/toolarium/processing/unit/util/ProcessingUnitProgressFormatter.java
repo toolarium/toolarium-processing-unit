@@ -9,9 +9,11 @@ import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
 import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
 import com.github.toolarium.common.util.RoundUtil;
 import com.github.toolarium.common.util.TextUtil;
+import com.github.toolarium.processing.unit.IProcessingPersistence;
 import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingStatistic;
-import com.github.toolarium.processing.unit.IProcessingUnit;
+import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
@@ -24,43 +26,17 @@ import java.util.List;
  * @author patrick
  */
 public class ProcessingUnitProgressFormatter {
-    private String processUnitIdentification;
-    private TimeDifferenceFormatter formatter = new TimeDifferenceFormatter();
-    private String startTag; 
+    private static ThreadLocal<TimeDifferenceFormatter> timeDifferenceFormatter = ThreadLocal.withInitial(() -> new TimeDifferenceFormatter());    
+    private final String startTag; 
     
-    
+
     /**
      * Constructor for ProcessUnitProgressFormatter
-     *
-     * @param id the id
-     * @param name the name
-     * @param processingUnitClass the processing unit class
-     */
-    public ProcessingUnitProgressFormatter(String id, String name, String processingUnitClass) {
-        this.processUnitIdentification = ProcessingUnitUtil.getInstance().prepare(id, name, processingUnitClass);
-        setStartTag(" - ");
-    }
-
-    
-    /**
-     * Constructor for ProcessUnitProgressFormatter
-     *
-     * @param id the id
-     * @param name the name
-     * @param processingUnitClass the processing unit class
-     */
-    public ProcessingUnitProgressFormatter(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) {
-        this.processUnitIdentification = ProcessingUnitUtil.getInstance().prepare(id, name, processingUnitClass);
-        setStartTag(" - ");
-    }
-
-
-    /**
-     * Format process unit progress
-     *
+     * 
      * @param startTag the start tag
+     *
      */
-    public void setStartTag(String startTag) {
+    public ProcessingUnitProgressFormatter(String startTag) {
         this.startTag = TextUtil.NL + startTag;
     }
 
@@ -68,31 +44,50 @@ public class ProcessingUnitProgressFormatter {
     /**
      * Format process unit progress
      *
+     * @param id the id
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     * @param parameters the parameters
+     * @param processingUnitContext the processing unit context
      * @param processingProgress the progress
      * @param processingActionStatus the action status
      * @param processingRuntimeStatus the runtime status
      * @param messages the messages
      * @param timeMeasurement the time measurement
      * @param processingUnitThrottling the processing unit throttling
+     * @param processingPersistence the processing persistence
      * @return the formatted message
      */
-    public String formatProgress(IProcessingProgress processingProgress, 
-                                 ProcessingActionStatus processingActionStatus,
-                                 ProcessingRuntimeStatus processingRuntimeStatus,
-                                 List<String> messages,
-                                 IProcessingUnitRuntimeTimeMeasurement timeMeasurement, 
-                                 IBandwidthThrottling processingUnitThrottling) {
+    public String toString(String id, // CHECKSTYLE IGNORE THIS LINE
+                           String name, 
+                           String processingUnitClass,
+                           List<Parameter> parameters,
+                           IProcessingUnitContext processingUnitContext,
+                           IProcessingProgress processingProgress, 
+                           ProcessingActionStatus processingActionStatus,
+                           ProcessingRuntimeStatus processingRuntimeStatus,
+                           List<String> messages,
+                           IProcessingUnitRuntimeTimeMeasurement timeMeasurement, 
+                           IBandwidthThrottling processingUnitThrottling,
+                           IProcessingPersistence processingPersistence) {
         StringBuilder builder = new StringBuilder();
-        builder.append(processUnitIdentification).append(": ").append(processingActionStatus);
+        builder.append(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass)).append(": ").append(processingActionStatus);
         builder.append(prepareProgressNumbers(startTag, processingProgress, true));
         if (processingProgress != null) {
             builder.append(" -> ").append(processingRuntimeStatus);
         }
-
+        
+        builder.append(prepareParameters(startTag, parameters));
+        builder.append(prepareProcessingContext(startTag, processingUnitContext));
         builder.append(prepareTimeMeasurement(startTag, timeMeasurement));
         builder.append(prepareMessages(startTag, messages));
-        builder.append(prepareStatistic(startTag, processingProgress.getProcesingStatistic()));
+        
+        if (processingProgress != null) {
+            builder.append(prepareStatistic(startTag, processingProgress.getProcesingStatistic()));
+        }
+        
         builder.append(prepareBandwidthThrottling(startTag, processingUnitThrottling));
+        builder.append(prepareProcesingPersistenceContainer(startTag, processingPersistence));
         return builder.toString();
     }    
     
@@ -121,6 +116,77 @@ public class ProcessingUnitProgressFormatter {
         }
         
         builder.append(")");
+        return builder;
+    }
+
+    
+    /**
+     * Prepare parameters
+     *
+     * @param header the message header
+     * @param parameters the parameters
+     * @return the prepared string
+     */
+    public StringBuilder prepareParameters(String header, List<Parameter> parameters) {
+        StringBuilder builder = new StringBuilder();
+        if (parameters == null || parameters.isEmpty()) {
+            return builder;
+        }
+
+        builder.append(header);
+        builder.append("Parameters: ");
+        
+        builder.append("[");
+        boolean addSeparator = false;
+        for (Parameter parameter : parameters) {
+            if (addSeparator) {
+                builder.append(", ");
+            } else {
+                addSeparator = true;
+            }
+
+            builder.append(parameter.getKey());
+            builder.append("=");
+            if (parameter.getParameterValue() != null) {
+                builder.append(parameter.getParameterValue().getValueAsStringList());
+            }
+        }
+        
+        builder.append("]");
+        return builder;
+    }
+
+    
+    /**
+     * Prepare process context
+     *
+     * @param header the message header
+     * @param processingUnitContext the processing context
+     * @return the prepared string
+     */
+    public StringBuilder prepareProcessingContext(String header, IProcessingUnitContext processingUnitContext) {
+        StringBuilder builder = new StringBuilder();
+        if (processingUnitContext == null || processingUnitContext.isEmpty()) {
+            return builder;
+        }
+
+        builder.append(header);
+        builder.append("Context: ");
+        builder.append("[");
+        boolean addSeparator = false;
+        for (String key : processingUnitContext.keySet()) {
+            if (addSeparator) {
+                builder.append(", ");
+            } else {
+                addSeparator = true;
+            }
+
+            builder.append(key);
+            builder.append("=");
+            builder.append(processingUnitContext.get(key));
+        }
+        
+        builder.append("]");
         return builder;
     }
 
@@ -190,7 +256,24 @@ public class ProcessingUnitProgressFormatter {
         }
 
         builder.append(header);
-        builder.append("Statistic: ").append(processingStatistic);
+        builder.append("Statistic: ");
+        
+        builder.append("[");
+        boolean addSeparator = false;
+        for (String key : processingStatistic.keySet()) {
+            if (addSeparator) {
+                builder.append(", ");
+            } else {
+                addSeparator = true;
+            }
+
+            builder.append(key);
+            builder.append("=");
+            builder.append(processingStatistic.get(key));
+        }
+        
+        builder.append("]");
+        
         return builder;
     }
 
@@ -210,11 +293,57 @@ public class ProcessingUnitProgressFormatter {
 
         builder.append(header)
             .append("Throttling: av. ")
-            .append(formatter.formatAsString(bandwidthThrottling.getBandwidthStatisticCounter().getAverage()))
+            .append(timeDifferenceFormatter.get().formatAsString(bandwidthThrottling.getBandwidthStatisticCounter().getAverage()))
             .append(", sd. ")
             .append(RoundUtil.getInstance().round(bandwidthThrottling.getBandwidthStatisticCounter().getStandardDeviation(), 2))
             .append(", no. ")
             .append(bandwidthThrottling.getBandwidthStatisticCounter().getCounter());
         return builder;
+    }
+
+    
+    /**
+     * Prepare process unit persistence
+     *
+     * @param header the message header
+     * @param processingPersistence the processing persistence
+     * @return the prepared string
+     */
+    public StringBuilder prepareProcesingPersistenceContainer(String header, IProcessingPersistence processingPersistence) {
+        StringBuilder builder = new StringBuilder();
+        if (processingPersistence == null) {
+            return builder;
+        }
+
+        builder.append(header)
+            .append("Persistence: ")
+            .append(processingPersistence);
+        return builder;
+    }
+
+
+    /**
+     * Get the start tag
+     *
+     * @return the start tag
+     */
+    public String getStartTag() {
+        return startTag;
+    }
+
+    
+    /**
+     * Get the time difference formatter
+     * 
+     * @return the time difference formatter
+     */
+    protected TimeDifferenceFormatter getTimeDifferenceFormatter() {
+        TimeDifferenceFormatter formatter = timeDifferenceFormatter.get();
+        if (formatter == null) {
+            formatter = new TimeDifferenceFormatter();
+            timeDifferenceFormatter.set(formatter);
+        }
+        
+        return formatter;
     }
 }

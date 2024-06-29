@@ -151,7 +151,7 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
                                               final IProcessingUnitRuntimeTimeMeasurement runtimeTimeMeasurment,
                                               final IProcessingUnitContext processingUnitContext) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(ProcessingUnitUtil.getInstance().prepare(id, name, processingUnitClass) + " status: " + processingActionStatus);
+                LOG.debug(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass) + " status: " + processingActionStatus);
             }
         }
     }

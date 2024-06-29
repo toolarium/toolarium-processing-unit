@@ -5,7 +5,19 @@
  */
 package com.github.toolarium.processing.unit.util;
 
+import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
+import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
+import com.github.toolarium.processing.unit.IProcessingPersistence;
+import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
+import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.dto.Parameter;
+import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
+import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
+import com.github.toolarium.processing.unit.runtime.runnable.ProcessingPersistenceContainer;
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ProcessingUnitUtil {
     private Map<String, String> shortenClassReferenceMap;
+    private ProcessingUnitProgressFormatter processingUnitProgressFormatter;
 
     
     /**
@@ -34,6 +47,7 @@ public final class ProcessingUnitUtil {
      */
     private ProcessingUnitUtil() {
         shortenClassReferenceMap = new ConcurrentHashMap<String, String>();
+        processingUnitProgressFormatter = new ProcessingUnitProgressFormatter(" - ");
     }
 
     
@@ -55,12 +69,13 @@ public final class ProcessingUnitUtil {
      * @param processingUnitClass the processing unit class
      * @return the prepared string
      */
-    public String prepare(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) {
+    public String toString(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) {
         if (processingUnitClass == null) {
-            return prepare(id, name, (String)null);
+            final String processingUnitClassName = null;
+            return toString(id, name, processingUnitClassName);
         }
         
-        return prepare(id, name, processingUnitClass.getName());
+        return toString(id, name, processingUnitClass.getName());
     }
     
     
@@ -72,7 +87,7 @@ public final class ProcessingUnitUtil {
      * @param processingUnitClass the processing unit class
      * @return the prepared string
      */
-    public String prepare(String id, String name, String processingUnitClass) {
+    public String toString(String id, String name, String processingUnitClass) {
         StringBuilder processing = new StringBuilder().append("Processing ");
         if (name != null && !name.isBlank()) {
             processing.append("[").append(name).append("]").append(" - ");
@@ -85,6 +100,209 @@ public final class ProcessingUnitUtil {
         return processing.toString();
     }
 
+    
+    /**
+     * Format process unit progress
+     *
+     * @param id the id
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     * @param processingProgress the progress
+     * @param processingActionStatus the action status
+     * @param processingRuntimeStatus the runtime status
+     * @return the formatted message
+     */
+    public String toString(String id, 
+                           String name, 
+                           String processingUnitClass,
+                           IProcessingProgress processingProgress, 
+                           ProcessingActionStatus processingActionStatus,
+                           ProcessingRuntimeStatus processingRuntimeStatus) {
+        return toString(id, name, processingUnitClass, null, null, processingProgress, processingActionStatus, processingRuntimeStatus, null, null, null, null);
+    }
+
+    
+    /**
+     * Format process unit progress
+     *
+     * @param id the id
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     * @param processingProgress the progress
+     * @param processingActionStatus the action status
+     * @param processingRuntimeStatus the runtime status
+     * @param messages the messages
+     * @return the formatted message
+     */
+    public String toString(String id, 
+                           String name, 
+                           String processingUnitClass,
+                           IProcessingProgress processingProgress, 
+                           ProcessingActionStatus processingActionStatus,
+                           ProcessingRuntimeStatus processingRuntimeStatus,
+                           List<String> messages) {
+        return toString(id, name, processingUnitClass, null, null, processingProgress, processingActionStatus, processingRuntimeStatus, messages, null, null, null);
+    }
+
+    
+    /**
+     * Format process unit progress
+     *
+     * @param id the id
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     * @param processingProgress the progress
+     * @param processingActionStatus the action status
+     * @param processingRuntimeStatus the runtime status
+     * @param messages the messages
+     * @param timeMeasurement the time measurement
+     * @param processingUnitThrottling the processing unit throttling
+     * @return the formatted message
+     */
+    public String toString(String id, 
+                           String name, 
+                           String processingUnitClass,
+                           IProcessingProgress processingProgress, 
+                           ProcessingActionStatus processingActionStatus,
+                           ProcessingRuntimeStatus processingRuntimeStatus,
+                           List<String> messages,
+                           IProcessingUnitRuntimeTimeMeasurement timeMeasurement, 
+                           IBandwidthThrottling processingUnitThrottling) {
+        return toString(id, name, processingUnitClass, null, null, processingProgress, processingActionStatus, processingRuntimeStatus, messages,timeMeasurement, processingUnitThrottling);
+    }
+
+    
+    /**
+     * Format process unit progress
+     *
+     * @param id the id
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     * @param parameters the parameters
+     * @param processingUnitContext the processing unit context
+     * @param processingProgress the progress
+     * @param processingActionStatus the action status
+     * @param processingRuntimeStatus the runtime status
+     * @param messages the messages
+     * @param timeMeasurement the time measurement
+     * @param processingUnitThrottling the processing unit throttling
+     * @return the formatted message
+     */
+    public String toString(String id, // CHECKSTYLE IGNORE THIS LINE
+                           String name, 
+                           String processingUnitClass,
+                           List<Parameter> parameters,
+                           IProcessingUnitContext processingUnitContext,
+                           IProcessingProgress processingProgress, 
+                           ProcessingActionStatus processingActionStatus,
+                           ProcessingRuntimeStatus processingRuntimeStatus,
+                           List<String> messages,
+                           IProcessingUnitRuntimeTimeMeasurement timeMeasurement, 
+                           IBandwidthThrottling processingUnitThrottling) {
+        return toString(id, name, processingUnitClass, parameters, processingUnitContext, processingProgress, processingActionStatus, processingRuntimeStatus, messages,timeMeasurement, processingUnitThrottling, null);
+    }
+
+    
+    /**
+     * Format process unit progress
+     *
+     * @param id the id
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     * @param parameters the parameters
+     * @param processingUnitContext the processing unit context
+     * @param processingProgress the progress
+     * @param processingActionStatus the action status
+     * @param processingRuntimeStatus the runtime status
+     * @param messages the messages
+     * @param timeMeasurement the time measurement
+     * @param processingUnitThrottling the processing unit throttling
+     * @param processingPersistence the processing persistence
+     * @return the formatted message
+     */
+    public String toString(String id, // CHECKSTYLE IGNORE THIS LINE
+                           String name, 
+                           String processingUnitClass,
+                           List<Parameter> parameters,
+                           IProcessingUnitContext processingUnitContext,
+                           IProcessingProgress processingProgress, 
+                           ProcessingActionStatus processingActionStatus,
+                           ProcessingRuntimeStatus processingRuntimeStatus,
+                           List<String> messages,
+                           IProcessingUnitRuntimeTimeMeasurement timeMeasurement, 
+                           IBandwidthThrottling processingUnitThrottling,
+                           IProcessingPersistence processingPersistence) {
+        return processingUnitProgressFormatter.toString(id, 
+                                                        name, 
+                                                        processingUnitClass,
+                                                        parameters,
+                                                        processingUnitContext,
+                                                        processingProgress, 
+                                                        processingActionStatus, 
+                                                        processingRuntimeStatus, 
+                                                        messages,
+                                                        timeMeasurement, 
+                                                        processingUnitThrottling,
+                                                        processingPersistence);
+    }
+
+    
+    /**
+     * Get the persisted state as string 
+     *
+     * @param persistedState the persisted state
+     * @return the string re-presenation
+     */
+    public String toString(byte[] persistedState) {
+        ProcessingPersistenceContainer processingPersistenceContainer = ProcessingPersistenceContainer.toProcessingPersistenceContainer(persistedState);
+        return processingUnitProgressFormatter
+                .toString(processingPersistenceContainer.getId(),
+                        processingPersistenceContainer.getName(),
+                        processingPersistenceContainer.getProcessingUnitClass().getName(),
+                        processingPersistenceContainer.getParameterList(),
+                        processingPersistenceContainer.getProcessingUnitContext(),
+                        processingPersistenceContainer.getProcessingStatus().getProcessingProgress(),
+                        ProcessingActionStatus.SUSPENDED,
+                        processingPersistenceContainer.getProcessingRuntimeStatus(),
+                        processingPersistenceContainer.getProcessingStatusMessageList(),
+                        new IProcessingUnitRuntimeTimeMeasurement() {
+                            /**
+                             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getStopTimestamp()
+                             */
+                            @Override
+                            public Instant getStopTimestamp() {
+                                return null;
+                            }
+
+                            /**
+                             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getStartTimestamp()
+                             */
+                            @Override
+                            public Instant getStartTimestamp() {
+                                return processingPersistenceContainer.getStartTimestamp();
+                            }
+
+                            /**
+                             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getDurationAsString()
+                             */
+                            @Override
+                            public String getDurationAsString() {
+                                final TimeDifferenceFormatter timeDifferenceFormatter = new TimeDifferenceFormatter();
+                                return timeDifferenceFormatter.formatAsString(getDuration());
+                            }
+
+                            /**
+                             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getDuration()
+                             */
+                            @Override
+                            public long getDuration() {
+                                return processingPersistenceContainer.getDuration();
+                            }
+                        }, 
+                        null,
+                        processingPersistenceContainer.getProcessingPersistence());
+    }
+     
     
     /**
      * Shorten the class reference as string

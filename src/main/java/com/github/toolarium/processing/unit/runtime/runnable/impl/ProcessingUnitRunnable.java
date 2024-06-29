@@ -18,7 +18,6 @@ import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProx
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitProxy;
-import com.github.toolarium.processing.unit.util.ProcessingUnitProgressFormatter;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.util.List;
 import org.slf4j.Logger;
@@ -36,7 +35,6 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
     private byte[] suspendedState = null;
     private IBandwidthThrottling processingUnitThrottling;
     private volatile boolean processingUnitThrottlingInitLogged;
-    private ProcessingUnitProgressFormatter processUnitProgressFormatter;
 
     
     /**
@@ -60,7 +58,6 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
         super(id, name, processingUnitClass, parameterList, processingUnitContext);
         processingUnitThrottling = null;
         processingUnitThrottlingInitLogged = false;
-        processUnitProgressFormatter = null;
         
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
         setProcessingActionStatus(ProcessingActionStatus.STARTING);
@@ -78,7 +75,6 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
     public ProcessingUnitRunnable(byte[] suspendedState, IProcessingUnitRunnableListener processingUnitRunnableListener) {
         super(suspendedState);
         processingUnitThrottlingInitLogged = false;
-        processUnitProgressFormatter = null;
         
         // resume
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
@@ -199,7 +195,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                 setProcessingActionStatus(ProcessingActionStatus.SUSPENDED);
             } else {                
                 // in case continue processing is marked as false but there are still unit to process open, there we have to stop
-                if (!continueProcessing && getProcessingProgress().getNumberOfUnprocessedUnits() > 0) {
+                if (!continueProcessing && (getProcessingProgress() != null && getProcessingProgress().getNumberOfUnprocessedUnits() > 0)) {
                     setProcessingActionStatus(ProcessingActionStatus.ABORTING);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Aborting processing unit " + processingInfo);
@@ -251,7 +247,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
             if (processingUnitThrottling == null) {
                 if (!processingUnitThrottlingInitLogged) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(ProcessingUnitUtil.getInstance().prepare(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has no throttling delay.");
+                        LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has no throttling delay.");
                     }
                 }
                 return;
@@ -259,7 +255,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
     
             if (!processingUnitThrottlingInitLogged) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(ProcessingUnitUtil.getInstance().prepare(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has throttling update interval: " + processingUnitThrottling.getUpdateInterval() + ".");
+                    LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has throttling update interval: " + processingUnitThrottling.getUpdateInterval() + ".");
                 }
             }
     
@@ -269,7 +265,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
             long time = System.currentTimeMillis() - start;
             if (time > processingUnitThrottling.getUpdateInterval()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(ProcessingUnitUtil.getInstance().prepare(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " waited for " + getTimeDifferenceFormatter().formatAsString(time));
+                    LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " waited for " + getTimeDifferenceFormatter().formatAsString(time));
                 }
             }
         } finally {
@@ -295,12 +291,17 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      */
     @Override
     public String toString() {
-        if (processUnitProgressFormatter == null) {
-            processUnitProgressFormatter = new ProcessingUnitProgressFormatter(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass());
-            processUnitProgressFormatter.setStartTag(" - ");
-        }
-
-        return processUnitProgressFormatter.formatProgress(getProcessingProgress(), getProcessingActionStatus(), getProcessingRuntimeStatus(), getProcessingStatusMessageList(), getTimeMeasurement(), getProcessingUnitThrottling());
+        return ProcessingUnitUtil.getInstance().toString(getId(), 
+                                                         getName(), 
+                                                         getProcessingUnitProxy().getProcessingUnitClass().getName(),
+                                                         getParameterList(),
+                                                         getProcessingUnitContext(),
+                                                         getProcessingProgress(), 
+                                                         getProcessingActionStatus(), 
+                                                         getProcessingRuntimeStatus(), 
+                                                         getProcessingStatusMessageList(), 
+                                                         getTimeMeasurement(), 
+                                                         getProcessingUnitThrottling());
     }
     
     
