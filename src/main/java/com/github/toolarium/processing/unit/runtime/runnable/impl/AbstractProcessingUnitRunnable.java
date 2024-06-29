@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable.impl;
 
+import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
@@ -14,6 +15,7 @@ import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
+import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
@@ -42,6 +44,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     private IProcessingUnitRunnableListener processingUnitRunnableListener;
     private Instant stopTimestamp;
     private Long duration;
+    private TimeDifferenceFormatter timeDifferenceFormatter; 
 
     
     /**
@@ -73,6 +76,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.processingUnitRunnableListener = null;
         this.stopTimestamp = null;
         this.duration = null;
+        timeDifferenceFormatter = new TimeDifferenceFormatter();
     }
 
     
@@ -94,6 +98,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.processingUnitContext = processingUnitProxy.getProcessingUnitContext();
         this.stopTimestamp = null;
         this.duration = null;
+        timeDifferenceFormatter = new TimeDifferenceFormatter();
     }
 
 
@@ -133,7 +138,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.processingActionStatus = processingActionStatus;
         
         if (ProcessingActionStatus.ENDED.equals(processingActionStatus) || ProcessingActionStatus.ENDED.equals(processingActionStatus)) {
-            duration = getDuration();
+            duration = getTimeMeasurement().getDuration();
             stopTimestamp = Instant.now();
         }
         
@@ -174,37 +179,65 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
 
 
     /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getStartTimestamp()
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getTimeMeasurement()
      */
     @Override
-    public Instant getStartTimestamp() {
-        return processingUnitProxy.getStartTimestamp(); 
-    }
+    public IProcessingUnitRuntimeTimeMeasurement getTimeMeasurement() {
+        return new IProcessingUnitRuntimeTimeMeasurement() {
+
+            /**
+             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getStartTimestamp()
+             */
+            @Override
+            public Instant getStartTimestamp() {
+                return processingUnitProxy.getStartTimestamp();
+            }
+
+            
+            /**
+             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getStopTimestamp()
+             */
+            @Override
+            public Instant getStopTimestamp() {
+                return stopTimestamp;
+            }
+            
+
+            /**
+             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getDuration()
+             */
+            @Override
+            public long getDuration() {
+                if (duration != null) {
+                    return duration;
+                }
+                
+                if (processingUnitProxy != null) {
+                    return processingUnitProxy.getDuration();
+                }
+                
+                return 0;
+            }
 
 
-    /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getStopTimestamp()
-     */
-    @Override
-    public Instant getStopTimestamp() {
-        return stopTimestamp; 
-    }
-
-    
-    /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getDuration()
-     */
-    @Override
-    public long getDuration() {
-        if (duration != null) {
-            return duration;
-        }
-        
-        if (processingUnitProxy != null) {
-            return processingUnitProxy.getDuration();
-        }
-        
-        return 0;
+            /**
+             * 
+             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getDurationAsString()
+             */
+            @Override
+            public String getDurationAsString() {
+                return getTimeDifferenceFormatter().formatAsString(getDuration());
+            }
+            
+            
+            /**
+             * @see java.lang.Object#toString()
+             */
+            @Override
+            public String toString() {
+                return getDurationAsString();
+            }
+        };
     }
 
     
@@ -306,9 +339,19 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         }
         
         try {
-            processingUnitRunnableListener.notifyProcessingUnitState(getId(), getName(), processingUnitClass, processingActionStatus, getProcessingUnitContext(), getProcessingProgress());
+            processingUnitRunnableListener.notifyProcessingUnitState(getId(), getName(), processingUnitClass.getName(), processingActionStatus, getProcessingProgress(), getTimeMeasurement(), getProcessingUnitContext());
         } catch (RuntimeException e) {
             LOG.warn("Could not notify the processing unit state to the processing unit runnable listener: " + e.getMessage(), e);
         }
+    }
+    
+    
+    /**
+     * Get the time difference formatter
+     *
+     * @return the time difference formatter
+     */
+    protected TimeDifferenceFormatter getTimeDifferenceFormatter() {
+        return timeDifferenceFormatter;
     }
 }

@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author patrick
  */
 public final class ProcessingUnitUtil {
-    private Map<Class<? extends IProcessingUnit>, String> shortenClassReferenceMap;
+    private Map<String, String> shortenClassReferenceMap;
 
     
     /**
@@ -33,7 +33,7 @@ public final class ProcessingUnitUtil {
      * Constructor
      */
     private ProcessingUnitUtil() {
-        shortenClassReferenceMap = new ConcurrentHashMap<Class<? extends IProcessingUnit>, String>();
+        shortenClassReferenceMap = new ConcurrentHashMap<String, String>();
     }
 
     
@@ -55,7 +55,24 @@ public final class ProcessingUnitUtil {
      * @param processingUnitClass the processing unit class
      * @return the prepared string
      */
-    public String preapre(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) {
+    public String prepare(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) {
+        if (processingUnitClass == null) {
+            return prepare(id, name, (String)null);
+        }
+        
+        return prepare(id, name, processingUnitClass.getName());
+    }
+    
+    
+    /**
+     * Prepare processing log message
+     * 
+     * @param id the id
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     * @return the prepared string
+     */
+    public String prepare(String id, String name, String processingUnitClass) {
         StringBuilder processing = new StringBuilder().append("Processing ");
         if (name != null && !name.isBlank()) {
             processing.append("[").append(name).append("]").append(" - ");
@@ -67,7 +84,7 @@ public final class ProcessingUnitUtil {
         }
         return processing.toString();
     }
-    
+
     
     /**
      * Shorten the class reference as string
@@ -75,7 +92,7 @@ public final class ProcessingUnitUtil {
      * @param processingUnitClass the class
      * @return the shorten classname as string
      */
-    private String shortenClassReferenceAsString(Class<? extends IProcessingUnit> processingUnitClass) {
+    private String shortenClassReferenceAsString(String processingUnitClass) {
         if (processingUnitClass == null) {
             return "";
         }
@@ -86,7 +103,7 @@ public final class ProcessingUnitUtil {
         }
         
         StringBuilder builder = new StringBuilder().append("[");
-        final String[] split = processingUnitClass.getName().split("\\.");
+        final String[] split = processingUnitClass.split("\\.");
         if (split.length > 1) {
             for (int i = 0; i < split.length - 1; i++) {
                 builder.append(split[i].substring(0, 1)).append(".");
@@ -96,6 +113,5 @@ public final class ProcessingUnitUtil {
         name = builder.append(split[split.length - 1]).append("]").toString();
         shortenClassReferenceMap.put(processingUnitClass, name);
         return name;
-        
     }
 }

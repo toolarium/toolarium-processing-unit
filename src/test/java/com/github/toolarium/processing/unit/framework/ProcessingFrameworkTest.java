@@ -70,8 +70,8 @@ public class ProcessingFrameworkTest {
         assertFalse(processRunner.getProcessStatus().hasNext());
         assertEquals(ProcessingRuntimeStatus.SUCCESSFUL, processRunner.getProcessingRuntimeStatus());
         assertEquals("[]", "" + processRunner.getStatusMessageList());
-        assertTrue(processRunner.getStartTimestamp().toEpochMilli() <= processRunner.getStartTimestamp().toEpochMilli());
-        assertTrue(processRunner.getDuration() > 0);
+        assertTrue(processRunner.getTimeMeasurement().getStartTimestamp().toEpochMilli() <= processRunner.getTimeMeasurement().getStartTimestamp().toEpochMilli());
+        assertTrue(processRunner.getTimeMeasurement().getDuration() > 0);
     }
 
     

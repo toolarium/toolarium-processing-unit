@@ -7,8 +7,7 @@ package com.github.toolarium.processing.unit.runtime.runnable.impl;
 
 import com.github.toolarium.common.bandwidth.BandwidthThrottling;
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
-import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
-import com.github.toolarium.common.util.TextUtil;
+import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
@@ -19,6 +18,7 @@ import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProx
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitProxy;
+import com.github.toolarium.processing.unit.util.ProcessingUnitProgressFormatter;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.util.List;
 import org.slf4j.Logger;
@@ -35,8 +35,8 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
     private volatile boolean suspend = false;
     private byte[] suspendedState = null;
     private IBandwidthThrottling processingUnitThrottling;
-    private TimeDifferenceFormatter timeDifferenceFormatter; 
     private volatile boolean processingUnitThrottlingInitLogged;
+    private ProcessingUnitProgressFormatter processUnitProgressFormatter;
 
     
     /**
@@ -59,8 +59,8 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                                   IProcessingUnitRunnableListener processingUnitRunnableListener) {
         super(id, name, processingUnitClass, parameterList, processingUnitContext);
         processingUnitThrottling = null;
-        timeDifferenceFormatter = new TimeDifferenceFormatter();
         processingUnitThrottlingInitLogged = false;
+        processUnitProgressFormatter = null;
         
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
         setProcessingActionStatus(ProcessingActionStatus.STARTING);
@@ -77,8 +77,8 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      */
     public ProcessingUnitRunnable(byte[] suspendedState, IProcessingUnitRunnableListener processingUnitRunnableListener) {
         super(suspendedState);
-        timeDifferenceFormatter = new TimeDifferenceFormatter();
         processingUnitThrottlingInitLogged = false;
+        processUnitProgressFormatter = null;
         
         // resume
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
@@ -251,7 +251,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
             if (processingUnitThrottling == null) {
                 if (!processingUnitThrottlingInitLogged) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(ProcessingUnitUtil.getInstance().preapre(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has no throttling delay.");
+                        LOG.debug(ProcessingUnitUtil.getInstance().prepare(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has no throttling delay.");
                     }
                 }
                 return;
@@ -259,7 +259,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
     
             if (!processingUnitThrottlingInitLogged) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(ProcessingUnitUtil.getInstance().preapre(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has throttling update interval: " + processingUnitThrottling.getUpdateInterval() + ".");
+                    LOG.debug(ProcessingUnitUtil.getInstance().prepare(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has throttling update interval: " + processingUnitThrottling.getUpdateInterval() + ".");
                 }
             }
     
@@ -269,7 +269,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
             long time = System.currentTimeMillis() - start;
             if (time > processingUnitThrottling.getUpdateInterval()) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(ProcessingUnitUtil.getInstance().preapre(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " waited for " + timeDifferenceFormatter.formatAsString(time));
+                    LOG.debug(ProcessingUnitUtil.getInstance().prepare(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " waited for " + getTimeDifferenceFormatter().formatAsString(time));
                 }
             }
         } finally {
@@ -295,55 +295,31 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      */
     @Override
     public String toString() {
-        boolean hasNotEnded = true;
-        if (getProcessingUnitProxy() != null && getProcessingUnitProxy().getProcessStatus() != null) {
-            hasNotEnded = !ProcessingActionStatus.ABORTED.equals(getProcessingActionStatus()) && !ProcessingActionStatus.ENDED.equals(getProcessingActionStatus()); //getProcessingUnitProxy().getProcessStatus().hasNext() ;
+        if (processUnitProgressFormatter == null) {
+            processUnitProgressFormatter = new ProcessingUnitProgressFormatter(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass());
+            processUnitProgressFormatter.setStartTag(" - ");
         }
-        StringBuilder builder = new StringBuilder();
-        builder.append(ProcessingUnitUtil.getInstance().preapre(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass())).append(": ").append(getProcessingActionStatus()).append(TextUtil.NL);
 
-        // processes units
-        if (getProcessingProgress() != null) {
-            builder.append(" - Processed units: ").append(getProcessingProgress().getNumberOfProcessedUnits())
-                   .append(" (successful: ").append(getProcessingProgress().getNumberOfSuccessfulUnits()).append(", failed: ").append(getProcessingProgress().getNumberOfFailedUnits());
-            if (hasNotEnded) {
-                builder.append(", unprocessed: ").append(getProcessingProgress().getNumberOfUnprocessedUnits());
-            }
-            builder.append(") -> ").append(getProcessingRuntimeStatus()).append(TextUtil.NL);
-        }
-        
-        // time stamps & duration
-        builder.append(" - ");
-        if (hasNotEnded) {
-            builder.append("Current duration ");
-        } else {
-            builder.append("Total duration ");
-        }
-        builder.append(timeDifferenceFormatter.formatAsString(getDuration())).append(" (started: ").append(getStartTimestamp());
-        if (!hasNotEnded) {
-            builder.append(", ended: ").append(getStopTimestamp());
-        }
-        builder.append(")");
-
-        // messages
-        if (hasNotEnded) {
-            if (getProcessingProgress() != null && getProcessingProgress().getProcessingStatusMessage() != null && !getProcessingProgress().getProcessingStatusMessage().isBlank()) {
-                builder.append(TextUtil.NL).append(" - Message: [").append(getProcessingProgress().getProcessingStatusMessage()).append("]").append(TextUtil.NL);
-            }
+        return processUnitProgressFormatter.formatProgress(getProcessingProgress(), getProcessingActionStatus(), getProcessingRuntimeStatus(), getProcessingStatusMessageList(), getTimeMeasurement(), getProcessingUnitThrottling());
+    }
+    
+    
+    /**
+     * Get the processing status message list: In case it's running the current message otherwise all selected messages
+     *
+     * @return the processing status messages
+     */
+    protected List<String> getProcessingStatusMessageList() {
+        final IProcessingProgress processingProgress = getProcessingProgress();
+        final ProcessingActionStatus processingActionStatus = getProcessingActionStatus();
+        if (processingActionStatus != null && (ProcessingActionStatus.ABORTED.equals(processingActionStatus) || ProcessingActionStatus.ENDED.equals(processingActionStatus))) {
+            return getStatusMessageList();
         } else if (getStatusMessageList() != null && !getStatusMessageList().isEmpty()) {
-            builder.append(TextUtil.NL).append(" - Messages: ").append(getStatusMessageList());
+            if (processingProgress != null && processingProgress.getProcessingStatusMessage() != null && !processingProgress.getProcessingStatusMessage().isBlank()) {
+                return List.of(processingProgress.getProcessingStatusMessage());
+            }
         }
-        
-        // statistic
-        if (getProcessingProgress() != null && getProcessingProgress().getProcesingStatistic() != null && !getProcessingProgress().getProcesingStatistic().isEmpty()) {
-            builder.append(TextUtil.NL).append(" - Statistic: ").append(getProcessingProgress().getProcesingStatistic());
-        }
-        
-        // throttling
-        if (processingUnitThrottling != null) {
-            builder.append(TextUtil.NL).append(" - Throttling: ").append(processingUnitThrottling.getBandwidthStatisticCounter().getAverage());
-        }
-        
-        return builder.toString();
+
+        return null;
     }
 }

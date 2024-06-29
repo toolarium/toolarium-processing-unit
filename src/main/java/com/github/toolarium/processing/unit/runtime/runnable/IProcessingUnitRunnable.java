@@ -8,7 +8,7 @@ package com.github.toolarium.processing.unit.runtime.runnable;
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
-import java.time.Instant;
+import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 import java.util.List;
 
 
@@ -68,25 +68,9 @@ public interface IProcessingUnitRunnable {
 
     
     /**
-     * Get the start time stamp
+     * Get the time measurement
      *
-     * @return the start time stamp
+     * @return the time measurement
      */
-    Instant getStartTimestamp();
-
-    
-    /**
-     * Get the stop time stamp
-     *
-     * @return the stop time stamp
-     */
-    Instant getStopTimestamp();
-
-    
-    /**
-     * Get the duration in milliseconds
-     *
-     * @return the duration
-     */
-    long getDuration();
+    IProcessingUnitRuntimeTimeMeasurement getTimeMeasurement();
 }
