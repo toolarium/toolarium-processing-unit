@@ -36,11 +36,24 @@ public class ProcessingUnitProgressFormatter {
      * @param name the name
      * @param processingUnitClass the processing unit class
      */
+    public ProcessingUnitProgressFormatter(String id, String name, String processingUnitClass) {
+        this.processUnitIdentification = ProcessingUnitUtil.getInstance().prepare(id, name, processingUnitClass);
+        setStartTag(" - ");
+    }
+
+    
+    /**
+     * Constructor for ProcessUnitProgressFormatter
+     *
+     * @param id the id
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     */
     public ProcessingUnitProgressFormatter(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) {
         this.processUnitIdentification = ProcessingUnitUtil.getInstance().prepare(id, name, processingUnitClass);
         setStartTag(" - ");
     }
-    
+
 
     /**
      * Format process unit progress

@@ -39,6 +39,17 @@ public class ProcessingProgress implements IProcessingProgress, Serializable {
         processingStatistic = new ProcessingStatistic();
     }
 
+        
+    /**
+     * Constructor
+     * 
+     * @param processingProgress the processing progress to initialize
+     */
+    public ProcessingProgress(final IProcessingProgress processingProgress) {
+        this();
+        init(processingProgress);
+    }
+
 
     /**
      * Initialize a previous state
