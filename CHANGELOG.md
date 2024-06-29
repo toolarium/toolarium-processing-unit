@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added new interface for time measurement: IProcessingUnitRuntimeTimeMeasurement.
 ### Changed
-- Added IProcessingUnitRuntimeTimeMeasurement to IProcessingUnitRunnableListener 
+- Added IProcessingUnitRuntimeTimeMeasurement to IProcessingUnitRunnableListener.
 
 ## [ 1.1.1 ] - 2024-06-28
 ### Changed
