@@ -10,9 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.ParameterDefinitionBuilder;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
-import com.github.toolarium.processing.unit.dto.ParameterValueType;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import java.util.Arrays;
 import java.util.List;
@@ -31,10 +31,10 @@ public class ParameterTest {
      */
     @Test
     public void testDefaultParameter() {
-        ParameterDefinition def1 = new ParameterDefinition("myKey", ParameterValueType.STRING, "myName", 1, "The my key description");
+        ParameterDefinition def1 = new ParameterDefinitionBuilder().name("myKey").defaultValue("myName").isMandatory().description("The my key description").build();
         assertEquals(def1.getDefaultValue(), "myName");
 
-        ParameterDefinition def2 = new ParameterDefinition("myKey", ParameterValueType.STRING, new String[] {"myName1", "myName2"}, 1, "The my key description");
+        ParameterDefinition def2 = new ParameterDefinitionBuilder().name("myKey").defaultValue(new String[] {"myName1", "myName2"}).isMandatory().description("The my key description").build(); 
         assertTrue(Arrays.equals((String[])def2.getDefaultValue(), new String[] {"myName1", "myName2"}));
     }
 
@@ -59,12 +59,12 @@ public class ParameterTest {
          * Constructor
          */
         SimpleProcessingUnitStringTest() {
-            getParameterRuntime().addParameterDefinition(new ParameterDefinition("numberOfUnitsToProcess", 1, ""));
-            getParameterRuntime().addParameterDefinition(new ParameterDefinition("numberOfFailedUnits", 1, ""));
-            getParameterRuntime().addParameterDefinition(new ParameterDefinition("endStatus", 1, ""));
-            getParameterRuntime().addParameterDefinition(new ParameterDefinition("endMessage", 1, ""));
-            getParameterRuntime().addParameterDefinition(new ParameterDefinition("unitProcessTimeMax", 1, ""));
-            getParameterRuntime().addParameterDefinition(new ParameterDefinition("unitProcessTimeMin", 1, ""));
+            getParameterRuntime().addParameterDefinition(new ParameterDefinitionBuilder().name("numberOfUnitsToProcess").isMandatory().description("").build());
+            getParameterRuntime().addParameterDefinition(new ParameterDefinitionBuilder().name("numberOfFailedUnits").isMandatory().description("").build());
+            getParameterRuntime().addParameterDefinition(new ParameterDefinitionBuilder().name("endStatus").isMandatory().description("").build());
+            getParameterRuntime().addParameterDefinition(new ParameterDefinitionBuilder().name("endMessage").isMandatory().description("").build());
+            getParameterRuntime().addParameterDefinition(new ParameterDefinitionBuilder().name("unitProcessTimeMax").isMandatory().description("").build());
+            getParameterRuntime().addParameterDefinition(new ParameterDefinitionBuilder().name("unitProcessTimeMin").isMandatory().description("").build());
         }
 
 

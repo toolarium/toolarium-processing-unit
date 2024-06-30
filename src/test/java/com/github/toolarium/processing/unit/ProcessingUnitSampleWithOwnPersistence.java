@@ -8,7 +8,6 @@ package com.github.toolarium.processing.unit;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
-import com.github.toolarium.processing.unit.dto.ParameterValueType;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import java.util.List;
 
@@ -20,10 +19,7 @@ import java.util.List;
  */
 public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUnitImpl {
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
-    public static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
-            new ParameterDefinition("inputFilename", ParameterValueType.STRING,
-                                    ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
-                                    ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
+    public static final  ParameterDefinition INPUT_FILENAME_PARAMETER = new ParameterDefinitionBuilder().name("inputFilename").isMandatory().description("The filename incl. path to read in a file.").build();
     
     // our self defined persistence
     private SamplePersistence persistence;

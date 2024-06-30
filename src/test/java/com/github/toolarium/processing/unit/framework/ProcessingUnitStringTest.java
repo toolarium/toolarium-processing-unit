@@ -10,10 +10,10 @@ import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingPersistence;
 import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.ParameterDefinitionBuilder;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
-import com.github.toolarium.processing.unit.dto.ParameterValueType;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.runtime.ProcessStatus;
@@ -29,8 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
     /** DATA_FEED */
     public static final String DATA_FEED = "dataFeed";
-    private static final ParameterDefinition DATA_FEED_PARAMTER = new ParameterDefinition(DATA_FEED, ParameterValueType.STRING, null, ParameterDefinition.NOT_OPTIONAL, 10, ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The data feed.");
-    
+    private static final ParameterDefinition DATA_FEED_PARAMTER = new ParameterDefinitionBuilder().name(DATA_FEED).isMandatory().maxOccurs(10).emptyValueIsNotAllowed().description("The data feed.").build();
     private LinkedBlockingQueue<String> queue;
     private String result = "";
 

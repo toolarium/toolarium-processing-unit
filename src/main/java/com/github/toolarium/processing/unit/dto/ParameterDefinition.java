@@ -59,6 +59,18 @@ public final class ParameterDefinition implements Serializable {
     /** The parameter description */
     private String description;
 
+    
+    /**
+     * Constructor: only key parameter without value.
+     *
+     * @param key the key
+     * @param description The parameter description
+     * @throws IllegalArgumentException In case of illegal arguments
+     */
+    public ParameterDefinition(String key, String description) throws IllegalArgumentException {
+        this(key, null, NO_DEFAULT_PARAMETER, OPTIONAL, 1, EMPTY_VALUE_ALLOWED, description);
+    }
+
 
     /**
      * Constructor: only key parameter without value.
@@ -128,14 +140,13 @@ public final class ParameterDefinition implements Serializable {
      * @param description The parameter description
      * @throws IllegalArgumentException In case of illegal arguments
      */
-    public ParameterDefinition(String key,
-                               ParameterValueType valueDataType,
-                               Object defaultValue,
-                               int minOccurs,
-                               int maxOccurs,
-                               boolean isEmptyValueAllowed,
-                               String description)
-        throws IllegalArgumentException {
+    private ParameterDefinition(String key,
+                                ParameterValueType valueDataType,
+                                Object defaultValue,
+                                int minOccurs,
+                                int maxOccurs,
+                                boolean isEmptyValueAllowed,
+                                String description) throws IllegalArgumentException {
         this(key, valueDataType, defaultValue, minOccurs, maxOccurs, isEmptyValueAllowed, false, description);
     }
 

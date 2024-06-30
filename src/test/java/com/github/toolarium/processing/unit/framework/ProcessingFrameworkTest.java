@@ -15,10 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.ParameterDefinitionBuilder;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
-import com.github.toolarium.processing.unit.dto.ParameterValueType;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
@@ -145,9 +145,9 @@ public class ProcessingFrameworkTest {
     @Test
     public void testMissingMandatoryParameters() {
         List<ParameterDefinition> list1 = new ArrayList<ParameterDefinition>();
-        list1.add(new ParameterDefinition(PARAM1, ParameterValueType.STRING, ParameterDefinition.NOT_OPTIONAL, "The first parameter."));
-        list1.add(new ParameterDefinition(PARAM2, ParameterValueType.STRING, ParameterDefinition.NOT_OPTIONAL, "The second parameter."));
-        list1.add(new ParameterDefinition(PARAM3, ParameterValueType.STRING, ParameterDefinition.OPTIONAL, "The third parameter."));
+        list1.add(new ParameterDefinitionBuilder().name(PARAM1).isMandatory().description("The first parameter.").build());
+        list1.add(new ParameterDefinitionBuilder().name(PARAM2).isMandatory().description("The second parameter.").build());
+        list1.add(new ParameterDefinitionBuilder().name(PARAM3).isOptional().description("The third parameter.").build());
         // no asserts needed because expected exceptions in case of not set mandatory parameters
         new ProcessingUnitParamterTest(list1).validateParameterList(Arrays.asList(new Parameter(PARAM1, VALUE1), new Parameter(PARAM2, VALUE2)));
         new ProcessingUnitParamterTest(list1).validateParameterList(Arrays.asList(new Parameter(PARAM1, VALUE1), new Parameter(PARAM2, VALUE2), new Parameter(PARAM3, VALUE3)));
