@@ -10,6 +10,7 @@ import com.github.toolarium.common.util.TextUtil;
 import com.github.toolarium.common.util.ThreadUtil;
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingUnit;
+import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
@@ -34,6 +35,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
     private static final Logger LOG = LoggerFactory.getLogger(TestProcessingUnitRunner.class);
     private TestProcessingUnitRunnable processingUnitRunnable;
     private int suspendCounter = 0;
+    private IProcessingUnitContext processingContext;
 
     
     /**
@@ -41,6 +43,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      */
     protected TestProcessingUnitRunner() {
         processingUnitRunnable = null;
+        processingContext = new ProcessingUnitContext();
     }
 
 
@@ -54,7 +57,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      * @throws ProcessingException In case of an error in a processing
      */
     public long run(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList) throws ValidationException, ProcessingException {
-        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, new ProcessingUnitContext());
+        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
         processingUnitRunnable.run();
         
         if (processingUnitRunnable.getProcessStatus() != null && processingUnitRunnable.getProcessStatus().getProcessingProgress() != null) {
@@ -76,7 +79,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      * @throws ProcessingException In case of an error in a processing
      */
     public long runAndAbort(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, Integer numberOfCyclesBeforeStop) throws ValidationException, ProcessingException {
-        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, new ProcessingUnitContext());
+        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
         processingUnitRunnable.setNumberOfCyclesBeforeStop(numberOfCyclesBeforeStop);
         processingUnitRunnable.run();
         
@@ -99,7 +102,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      * @throws ProcessingException In case of an error in a processing
      */
     public long runWithThrottling(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, Long maxNumberOfProcessingUnitCallsPerSecond) throws ValidationException, ProcessingException {
-        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, new ProcessingUnitContext());
+        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
         processingUnitRunnable.setProcessingUnitThrottling(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.run();
         
@@ -152,7 +155,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
                                         Long maxNumberOfProcessingUnitCallsPerSecond) throws ValidationException, ProcessingException {
 
         long cycles = 0;
-        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, new ProcessingUnitContext());
+        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
         processingUnitRunnable.setProcessingUnitThrottling(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.setSuspendAfterCycles(suspendAfterCycles);
 
@@ -193,6 +196,18 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
     }
 
 
+    /**
+     * Set the processing context
+     *
+     * @param processingContext the processing context
+     * @return this instance
+     */
+    public TestProcessingUnitRunner<T> processingUnitContext(IProcessingUnitContext processingContext) {
+        this.processingContext = processingContext;
+        return this;
+    }
+
+    
     /**
      * Gets the suspend counter
      *

@@ -16,6 +16,7 @@ import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.mydata.MyDataProcessingUnit;
 import com.github.toolarium.processing.unit.mydata.MyDataProcessingUnitConstants;
+import com.github.toolarium.processing.unit.runtime.ProcessingUnitContext;
 import com.github.toolarium.processing.unit.runtime.test.TestProcessingUnitRunner;
 import com.github.toolarium.processing.unit.runtime.test.TestProcessingUnitRunnerFactory;
 import java.util.ArrayList;
@@ -43,6 +44,34 @@ public final class ProcessingUnitTestCaseSample {
 
         TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.run(MyDataProcessingUnit.class, parameterList), TOTAL_UNITS);
+
+        assertEquals(processRunner.getSuspendCounter(), 0);
+        assertNotNull(processRunner.getProcessStatus());
+        assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());
+        assertTrue((processRunner.getProcesingUnit()).getOnSuccessStatus());
+        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[counter=3.0, PROCEEDING=130.0, SHA-1=26.0, SHA-256=26.0]");
+        assertNotNull(processRunner.getStatusMessageList());
+        assertNotNull(processRunner.getTimeMeasurement().getStartTimestamp());
+        assertNotNull(processRunner.getTimeMeasurement().getStopTimestamp());
+        assertTrue(processRunner.getTimeMeasurement().getDuration() >= 0);        
+    }
+
+    
+    /**
+     * Simple test case with correct
+     */
+    @Test
+    public void testProcessingUnitWithOnwContext() {
+        List<Parameter> parameterList = new ArrayList<Parameter>();
+        parameterList.add(new Parameter("keyNames", "name1", "name2"));
+
+        IProcessingUnitContext processingUnitContext = new ProcessingUnitContext();
+        processingUnitContext.set("myInputKey", "1234");
+        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        assertEquals(processRunner.processingUnitContext(processingUnitContext).run(MyDataProcessingUnit.class, parameterList), TOTAL_UNITS);
 
         assertEquals(processRunner.getSuspendCounter(), 0);
         assertNotNull(processRunner.getProcessStatus());

@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.processing.unit.mydata;
 
+import com.github.toolarium.common.util.RandomGenerator;
 import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingPersistence;
 import com.github.toolarium.processing.unit.IProcessingProgress;
@@ -103,6 +104,10 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
             getProcessingProgress().increaseNumberOfFailedUnits();
         }
 
+        if (!processingUnitContext.isEmpty()) {
+            processingUnitContext.set("myId", RandomGenerator.getInstance().createUUID());
+        }
+        
         getProcessingProgress().addStatistic(PROCEEDING_KEY, PROCEEDING_BASE_VALUE);
 
         // the next lines are written to test the default value behavior. Please don't do this in your code!
