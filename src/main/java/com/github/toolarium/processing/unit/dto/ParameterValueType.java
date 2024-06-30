@@ -1,5 +1,5 @@
 /*
- * ValueDataType.java
+ * ParameterValueType.java
  *
  * Copyright by toolarium, all rights reserved.
  */

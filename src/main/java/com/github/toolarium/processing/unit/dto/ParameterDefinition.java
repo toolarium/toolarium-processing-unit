@@ -38,8 +38,8 @@ public final class ParameterDefinition implements Serializable {
     /** The parameter key */
     private String key;
 
-    /** The data type of the value */
-    private ParameterValueType valueDataType;
+    /** The type of the value */
+    private ParameterValueType valueType;
 
     /** Defines the default value */
     private Object defaultValue;
@@ -103,13 +103,13 @@ public final class ParameterDefinition implements Serializable {
      * Constructor
      *
      * @param key the key
-     * @param valueDataType the value data type
+     * @param valueType the value type
      * @param minOccurs The min occurs (zero minOccurs has the meaning of the value is optional)
      * @param description The parameter description
      * @throws IllegalArgumentException In case of illegal arguments
      */
-    public ParameterDefinition(String key, ParameterValueType valueDataType, int minOccurs, String description) throws IllegalArgumentException {
-        this(key, valueDataType, NO_DEFAULT_PARAMETER, minOccurs, 1, EMPTY_VALUE_ALLOWED, description);
+    public ParameterDefinition(String key, ParameterValueType valueType, int minOccurs, String description) throws IllegalArgumentException {
+        this(key, valueType, NO_DEFAULT_PARAMETER, minOccurs, 1, EMPTY_VALUE_ALLOWED, description);
     }
 
 
@@ -117,14 +117,14 @@ public final class ParameterDefinition implements Serializable {
      * Constructor
      *
      * @param key the key
-     * @param valueDataType the value data type
+     * @param valueType the value type
      * @param defaultValue the default value
      * @param minOccurs The min occurs (zero minOccurs has the meaning of the value is optional)
      * @param description The parameter description
      * @throws IllegalArgumentException In case of illegal arguments
      */
-    public ParameterDefinition(String key, ParameterValueType valueDataType, Object defaultValue, int minOccurs, String description) throws IllegalArgumentException {
-        this(key, valueDataType, defaultValue, minOccurs, 1, EMPTY_VALUE_ALLOWED, description);
+    public ParameterDefinition(String key, ParameterValueType valueType, Object defaultValue, int minOccurs, String description) throws IllegalArgumentException {
+        this(key, valueType, defaultValue, minOccurs, 1, EMPTY_VALUE_ALLOWED, description);
     }
 
 
@@ -132,7 +132,7 @@ public final class ParameterDefinition implements Serializable {
      * Constructor
      *
      * @param key the key
-     * @param valueDataType the value data type
+     * @param valueType the value type
      * @param defaultValue the default value
      * @param minOccurs The min occurs (zero minOccurs has the meaning of the value is optional)
      * @param maxOccurs the max occurs
@@ -141,13 +141,13 @@ public final class ParameterDefinition implements Serializable {
      * @throws IllegalArgumentException In case of illegal arguments
      */
     private ParameterDefinition(String key,
-                                ParameterValueType valueDataType,
+                                ParameterValueType valueType,
                                 Object defaultValue,
                                 int minOccurs,
                                 int maxOccurs,
                                 boolean isEmptyValueAllowed,
                                 String description) throws IllegalArgumentException {
-        this(key, valueDataType, defaultValue, minOccurs, maxOccurs, isEmptyValueAllowed, false, description);
+        this(key, valueType, defaultValue, minOccurs, maxOccurs, isEmptyValueAllowed, false, description);
     }
 
 
@@ -155,7 +155,7 @@ public final class ParameterDefinition implements Serializable {
      * Constructor
      *
      * @param key the key
-     * @param valueDataType the value data type
+     * @param valueType the value type
      * @param defaultValue the default value
      * @param minOccurs The min occurs (zero minOccurs has the meaning of the value is optional)
      * @param maxOccurs the max occurs
@@ -165,7 +165,7 @@ public final class ParameterDefinition implements Serializable {
      * @throws IllegalArgumentException In case of illegal arguments
      */
     public ParameterDefinition(String key,
-                               ParameterValueType valueDataType,
+                               ParameterValueType valueType,
                                Object defaultValue,
                                int minOccurs,
                                int maxOccurs,
@@ -174,7 +174,7 @@ public final class ParameterDefinition implements Serializable {
                                String description)
         throws IllegalArgumentException {
         this.key = key;
-        this.valueDataType = valueDataType;
+        this.valueType = valueType;
         this.defaultValue = defaultValue;
         this.minOccurs = minOccurs;
         this.maxOccurs = maxOccurs;
@@ -182,33 +182,33 @@ public final class ParameterDefinition implements Serializable {
         this.hasValueToProtect = hasValueToProtect;
         this.description = description;
 
-        if (valueDataType == null && defaultValue != null) {
+        if (valueType == null && defaultValue != null) {
             if (defaultValue instanceof String) {
-                this.valueDataType = ParameterValueType.STRING;
+                this.valueType = ParameterValueType.STRING;
             } else if (defaultValue instanceof Boolean) {
-                this.valueDataType = ParameterValueType.BOOLEAN;
+                this.valueType = ParameterValueType.BOOLEAN;
             } else if (defaultValue instanceof Character) {
-                this.valueDataType = ParameterValueType.CHAR;
+                this.valueType = ParameterValueType.CHAR;
             } else if (defaultValue instanceof Short) {
-                this.valueDataType = ParameterValueType.SHORT;
+                this.valueType = ParameterValueType.SHORT;
             } else if (defaultValue instanceof Integer) {
-                this.valueDataType = ParameterValueType.INTEGER;
+                this.valueType = ParameterValueType.INTEGER;
             } else if (defaultValue instanceof Long) {
-                this.valueDataType = ParameterValueType.LONG;
+                this.valueType = ParameterValueType.LONG;
             } else if (defaultValue instanceof Float) {
-                this.valueDataType = ParameterValueType.FLOAT;
+                this.valueType = ParameterValueType.FLOAT;
             } else if (defaultValue instanceof Double) {
-                this.valueDataType = ParameterValueType.DOUBLE;
+                this.valueType = ParameterValueType.DOUBLE;
             } else if (defaultValue instanceof Date) {
-                this.valueDataType = ParameterValueType.DATETIME;
+                this.valueType = ParameterValueType.DATETIME;
             }
         }
 
-        if (this.valueDataType == null) {
-            this.valueDataType = ParameterValueType.STRING;
+        if (this.valueType == null) {
+            this.valueType = ParameterValueType.STRING;
         }
 
-        validateDefaultValue(this.valueDataType, defaultValue);
+        validateDefaultValue(this.valueType, defaultValue);
     }
 
 
@@ -223,12 +223,12 @@ public final class ParameterDefinition implements Serializable {
 
     
     /**
-     * Gets the value data type
+     * Gets the value type
      *
-     * @return the data type
+     * @return the type
      */
-    public ParameterValueType getValueDataType() {
-        return valueDataType;
+    public ParameterValueType getValueType() {
+        return valueType;
     }
 
     
@@ -308,7 +308,7 @@ public final class ParameterDefinition implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(defaultValue, description, hasValueToProtect, isEmptyValueAllowed, key, maxOccurs, minOccurs, valueDataType);
+        return Objects.hash(defaultValue, description, hasValueToProtect, isEmptyValueAllowed, key, maxOccurs, minOccurs, valueType);
     }
 
 
@@ -333,7 +333,7 @@ public final class ParameterDefinition implements Serializable {
         return Objects.equals(defaultValue, other.defaultValue) && Objects.equals(description, other.description)
                 && hasValueToProtect == other.hasValueToProtect && isEmptyValueAllowed == other.isEmptyValueAllowed
                 && Objects.equals(key, other.key) && maxOccurs == other.maxOccurs && minOccurs == other.minOccurs
-                && valueDataType == other.valueDataType;
+                && valueType == other.valueType;
     }
     
 
@@ -342,7 +342,7 @@ public final class ParameterDefinition implements Serializable {
      */
     @Override
     public String toString() {
-        return "ParameterDefinition [key=" + key + ", valueDataType=" + valueDataType + ", defaultValue=" + defaultValue
+        return "ParameterDefinition [key=" + key + ", valueType=" + valueType + ", defaultValue=" + defaultValue
                 + ", minOccurs=" + minOccurs + ", maxOccurs=" + maxOccurs + ", isEmptyValueAllowed="
                 + isEmptyValueAllowed + ", hasValueToProtect=" + hasValueToProtect + ", description=" + description
                 + "]";
@@ -356,7 +356,7 @@ public final class ParameterDefinition implements Serializable {
     public ParameterDefinition clone() throws CloneNotSupportedException {
         ParameterDefinition result = (ParameterDefinition)super.clone();
         result.key = key;
-        result.valueDataType = valueDataType;
+        result.valueType = valueType;
         result.defaultValue = defaultValue;
         result.minOccurs = minOccurs;
         result.maxOccurs = maxOccurs;
@@ -370,26 +370,26 @@ public final class ParameterDefinition implements Serializable {
     /**
      * Validate the default value
      *
-     * @param valueDataTypeDef the value data type definition
-     * @param defaultDataValue the default value
+     * @param valueTypeDef the value type definition
+     * @param inputdefaultValue the default value
      * @throws IllegalArgumentException In case of illegal arguments
      */
-    private void validateDefaultValue(ParameterValueType valueDataTypeDef, Object defaultDataValue) throws IllegalArgumentException {
+    private void validateDefaultValue(ParameterValueType valueTypeDef, Object inputdefaultValue) throws IllegalArgumentException {
         if (defaultValue == null) {
             return;
         }
 
-        if (valueDataTypeDef == null) {
-            throw new IllegalArgumentException("Invalid empty ValueDataType!");
+        if (valueTypeDef == null) {
+            throw new IllegalArgumentException("Invalid empty ValueType!");
         }
 
-        if (defaultDataValue.getClass().isArray()) {
-            Object[] defaultDataValueArray = (Object[]) defaultDataValue;
-            for (int i = 0; i < defaultDataValueArray.length; i++) {
-                validateDefaultValueAssignment(valueDataTypeDef, defaultDataValueArray[i]);
+        if (inputdefaultValue.getClass().isArray()) {
+            Object[] defaultValueArray = (Object[]) inputdefaultValue;
+            for (int i = 0; i < defaultValueArray.length; i++) {
+                validateDefaultValueAssignment(valueTypeDef, defaultValueArray[i]);
             }
         } else {
-            validateDefaultValueAssignment(valueDataTypeDef, defaultDataValue);
+            validateDefaultValueAssignment(valueTypeDef, inputdefaultValue);
         }
     }
 
@@ -397,27 +397,27 @@ public final class ParameterDefinition implements Serializable {
     /**
      * Validate the default value assignment
      *
-     * @param valueDataTypeDef the value data type definition
-     * @param defaultDataValue the default value
+     * @param valueTypeDef the value type definition
+     * @param inputDefaultValue the default value
      * @throws IllegalArgumentException In case of illegal arguments
      */
-    private void validateDefaultValueAssignment(ParameterValueType valueDataTypeDef, Object defaultDataValue) throws IllegalArgumentException {
-        if ((ParameterValueType.STRING.equals(valueDataTypeDef) && (defaultDataValue instanceof CharSequence))
-                || (ParameterValueType.BOOLEAN.equals(valueDataTypeDef) && (defaultDataValue instanceof Boolean))
-                || (ParameterValueType.CHAR.equals(valueDataTypeDef) && (defaultDataValue instanceof Character))
-                || (ParameterValueType.SHORT.equals(valueDataTypeDef) && (defaultDataValue instanceof Short))
-                || (ParameterValueType.INTEGER.equals(valueDataTypeDef) && (defaultDataValue instanceof Integer))
-                || (ParameterValueType.LONG.equals(valueDataTypeDef) && (defaultDataValue instanceof Long))
-                || (ParameterValueType.FLOAT.equals(valueDataTypeDef) && (defaultDataValue instanceof Character))
-                || (ParameterValueType.DOUBLE.equals(valueDataTypeDef) && (defaultDataValue instanceof Character))
-                || (ParameterValueType.INTEGER.equals(valueDataTypeDef) && (defaultDataValue instanceof Character))
-                || (ParameterValueType.DATE.equals(valueDataTypeDef) && (defaultDataValue instanceof Date))
-                || (ParameterValueType.TIME.equals(valueDataTypeDef) && (defaultDataValue instanceof Date))
-                || (ParameterValueType.DATETIME.equals(valueDataTypeDef) && (defaultDataValue instanceof Date))
-                || (ParameterValueType.REGEXP.equals(valueDataTypeDef) && (defaultDataValue instanceof CharSequence))) {
+    private void validateDefaultValueAssignment(ParameterValueType valueTypeDef, Object inputDefaultValue) throws IllegalArgumentException {
+        if ((ParameterValueType.STRING.equals(valueTypeDef) && (inputDefaultValue instanceof CharSequence))
+                || (ParameterValueType.BOOLEAN.equals(valueTypeDef) && (inputDefaultValue instanceof Boolean))
+                || (ParameterValueType.CHAR.equals(valueTypeDef) && (inputDefaultValue instanceof Character))
+                || (ParameterValueType.SHORT.equals(valueTypeDef) && (inputDefaultValue instanceof Short))
+                || (ParameterValueType.INTEGER.equals(valueTypeDef) && (inputDefaultValue instanceof Integer))
+                || (ParameterValueType.LONG.equals(valueTypeDef) && (inputDefaultValue instanceof Long))
+                || (ParameterValueType.FLOAT.equals(valueTypeDef) && (inputDefaultValue instanceof Character))
+                || (ParameterValueType.DOUBLE.equals(valueTypeDef) && (inputDefaultValue instanceof Character))
+                || (ParameterValueType.INTEGER.equals(valueTypeDef) && (inputDefaultValue instanceof Character))
+                || (ParameterValueType.DATE.equals(valueTypeDef) && (inputDefaultValue instanceof Date))
+                || (ParameterValueType.TIME.equals(valueTypeDef) && (inputDefaultValue instanceof Date))
+                || (ParameterValueType.DATETIME.equals(valueTypeDef) && (inputDefaultValue instanceof Date))
+                || (ParameterValueType.REGEXP.equals(valueTypeDef) && (inputDefaultValue instanceof CharSequence))) {
             // valid
         } else {
-            throw new IllegalArgumentException("Invalid default value, don't match to the definied ValueDataType: '" + valueDataTypeDef + "' != " + defaultValue.getClass());
+            throw new IllegalArgumentException("Invalid default value, don't match to the definied ValueType: '" + valueTypeDef + "' != " + defaultValue.getClass());
         }
     }
 }

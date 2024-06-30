@@ -287,47 +287,47 @@ public class ParameterRuntime implements IParameterRuntime, Serializable {
         }
 
         try {
-            if (ParameterValueType.BOOLEAN.equals(def.getValueDataType())) {
+            if (ParameterValueType.BOOLEAN.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsBooleanList();
             }
             
-            if (ParameterValueType.CHAR.equals(def.getValueDataType())) {
+            if (ParameterValueType.CHAR.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsCharacterList();
             }
             
-            if (ParameterValueType.STRING.equals(def.getValueDataType())) {
+            if (ParameterValueType.STRING.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsStringList();
             }
             
-            if (ParameterValueType.SHORT.equals(def.getValueDataType())) {
+            if (ParameterValueType.SHORT.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsShortList();
             }
             
-            if (ParameterValueType.INTEGER.equals(def.getValueDataType())) {
+            if (ParameterValueType.INTEGER.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsIntegerList();
             }
             
-            if (ParameterValueType.LONG.equals(def.getValueDataType())) {
+            if (ParameterValueType.LONG.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsLongList();
             }
             
-            if (ParameterValueType.FLOAT.equals(def.getValueDataType())) {
+            if (ParameterValueType.FLOAT.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsFloatList();
             }
             
-            if (ParameterValueType.DOUBLE.equals(def.getValueDataType())) {
+            if (ParameterValueType.DOUBLE.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsDoubleList();
             }
             
-            if (ParameterValueType.DATE.equals(def.getValueDataType()) || ParameterValueType.TIME.equals(def.getValueDataType()) || ParameterValueType.DATETIME.equals(def.getValueDataType())) {
+            if (ParameterValueType.DATE.equals(def.getValueType()) || ParameterValueType.TIME.equals(def.getValueType()) || ParameterValueType.DATETIME.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsDateList();
             }
             
-            if (ParameterValueType.REGEXP.equals(def.getValueDataType())) {
+            if (ParameterValueType.REGEXP.equals(def.getValueType())) {
                 parameter.getParameterValue().getValueAsRegularExpressionList();
             }
         } catch (Exception e) {
-            message += "\n-invalid data type in value list of key " + key + ": " + parameter + "!";
+            message += "\n-invalid type in value list of key " + key + ": " + parameter + "!";
         }
 
         return message;

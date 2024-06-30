@@ -7,6 +7,10 @@ package com.github.toolarium.processing.unit;
 
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.dto.ParameterValueType;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Date;
 
 
 /**
@@ -17,7 +21,7 @@ import com.github.toolarium.processing.unit.dto.ParameterValueType;
 public class ParameterDefinitionBuilder {
     private String name;
     private String description;
-    private ParameterValueType valueDataType;
+    private ParameterValueType valueType;
     private Object defaultValue;
     private int minOccurs;
     private int maxOccurs;
@@ -31,7 +35,7 @@ public class ParameterDefinitionBuilder {
     public ParameterDefinitionBuilder() {
         name = null;
         description = null;
-        valueDataType = ParameterValueType.STRING;
+        valueType = null;
         defaultValue = ParameterDefinition.NO_DEFAULT_PARAMETER;
         minOccurs = ParameterDefinition.OPTIONAL;
         maxOccurs = 1;
@@ -65,13 +69,13 @@ public class ParameterDefinitionBuilder {
 
     
     /**
-     * Set the value data type
+     * Set the value type
      *
-     * @param valueDataType the value data type
+     * @param valueType the value type
      * @return this instance
      */
-    public ParameterDefinitionBuilder type(ParameterValueType valueDataType) {
-        this.valueDataType = valueDataType;
+    public ParameterDefinitionBuilder type(ParameterValueType valueType) {
+        this.valueType = valueType;
         return this;
     }
 
@@ -173,6 +177,58 @@ public class ParameterDefinitionBuilder {
      * @return the parameter definition
      */
     public ParameterDefinition build() {
-        return new ParameterDefinition(name, valueDataType, defaultValue, minOccurs, maxOccurs, isEmptyValueAllowed, hasValueToProtect, description);
+        valueType = guessValueType(valueType, defaultValue);
+        return new ParameterDefinition(name, valueType, defaultValue, minOccurs, maxOccurs, isEmptyValueAllowed, hasValueToProtect, description);
+    }
+
+
+    /**
+     * Guess the value type
+     * 
+     * @param inputValueType the value type
+     * @param inputDefaultValue the default value
+     * @return the resolved value type base on default value
+     */
+    public static ParameterValueType guessValueType(ParameterValueType inputValueType, Object inputDefaultValue) {
+        ParameterValueType resultValueType = inputValueType;
+        if (resultValueType != null) {
+            return resultValueType;
+        }
+
+        if (inputDefaultValue == null) {
+            resultValueType = ParameterValueType.STRING;
+        } else {
+            if (String.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.STRING;
+            } else if (Character.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.CHAR;
+            } else if (Boolean.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.BOOLEAN;
+            } else if (Boolean.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.BOOLEAN;
+            } else if (Short.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.SHORT;
+            } else if (Integer.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.INTEGER;
+            } else if (Long.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.LONG;
+            } else if (Float.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.FLOAT;
+            } else if (Double.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.DOUBLE;
+            } else if (LocalDate.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.DATE;
+            } else if (LocalTime.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.TIME;
+            } else if (Instant.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.DATETIME;
+            } else if (Date.class.equals(inputDefaultValue.getClass())) {
+                resultValueType = ParameterValueType.DATETIME;
+            } else {
+                resultValueType = ParameterValueType.STRING;
+            }
+        }
+
+        return resultValueType;
     }
 }

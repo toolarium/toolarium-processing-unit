@@ -102,7 +102,7 @@ public class ProcessingFrameworkTest {
      * Simple test case with warnings
      */
     @Test
-    public void testDataProcessingUnitWarnings1() {
+    public void testProcessingUnitWarnings1() {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(ProcessingUnitStringTest.DATA_FEED, "a", "b", "", "d"));
 
@@ -121,7 +121,7 @@ public class ProcessingFrameworkTest {
      * Simple test case with warnings
      */
     @Test
-    public void testDataProcessingUnitWarnings2() {
+    public void testProcessingUnitWarnings2() {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(ProcessingUnitStringTest.DATA_FEED, "a", "b", "", "d"));
 
