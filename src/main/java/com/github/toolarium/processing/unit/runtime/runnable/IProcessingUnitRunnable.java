@@ -5,7 +5,7 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable;
 
-import com.github.toolarium.processing.unit.IProcessStatus;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
@@ -44,11 +44,11 @@ public interface IProcessingUnitRunnable {
 
     
     /**
-     * Get the process status
+     * Get the processing unit progress
      *
      * @return the process status
      */
-    IProcessStatus getProcessStatus();
+    IProcessingUnitProgress getProcessingUnitProgress();
     
     
     /**

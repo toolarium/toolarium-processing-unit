@@ -8,9 +8,9 @@ package com.github.toolarium.processing.unit.runtime.test;
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
 import com.github.toolarium.common.util.TextUtil;
 import com.github.toolarium.common.util.ThreadUtil;
-import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
@@ -59,12 +59,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
     public long run(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList) throws ValidationException, ProcessingException {
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
         processingUnitRunnable.run();
-        
-        if (processingUnitRunnable.getProcessStatus() != null && processingUnitRunnable.getProcessStatus().getProcessingProgress() != null) {
-            return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
-        }
-        
-        return 0;
+        return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
     }
 
     
@@ -82,12 +77,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
         processingUnitRunnable.setNumberOfCyclesBeforeStop(numberOfCyclesBeforeStop);
         processingUnitRunnable.run();
-        
-        if (processingUnitRunnable.getProcessStatus() != null && processingUnitRunnable.getProcessStatus().getProcessingProgress() != null) {
-            return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
-        }
-        
-        return 0;
+        return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
     }
 
     
@@ -105,12 +95,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
         processingUnitRunnable.setProcessingUnitThrottling(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.run();
-        
-        if (processingUnitRunnable.getProcessStatus() != null && processingUnitRunnable.getProcessStatus().getProcessingProgress() != null) {
-            return processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
-        }
-        
-        return 0;
+        return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
     }
 
     
@@ -154,7 +139,6 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
                                         int maxNumberOfSuspends,
                                         Long maxNumberOfProcessingUnitCallsPerSecond) throws ValidationException, ProcessingException {
 
-        long cycles = 0;
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
         processingUnitRunnable.setProcessingUnitThrottling(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.setSuspendAfterCycles(suspendAfterCycles);
@@ -162,10 +146,6 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
         byte[] suspendedState = null;
         while (suspendCounter < maxNumberOfSuspends) {
             processingUnitRunnable.run();
-            
-            if (processingUnitRunnable.getProcessStatus() != null && processingUnitRunnable.getProcessStatus().getProcessingProgress() != null) {
-                cycles += processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
-            }
             
             if (ProcessingActionStatus.ENDED.equals(processingUnitRunnable.getProcessingActionStatus()) || ProcessingActionStatus.ABORTED.equals(processingUnitRunnable.getProcessingActionStatus())) {
                 break;
@@ -186,13 +166,11 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
                 } else {
                     processingUnitRunnable = new TestProcessingUnitRunnable(suspendedState);
                     processingUnitRunnable.run();
-                    
-                    cycles += processingUnitRunnable.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits();
                 }
             }
         }
         
-        return cycles;
+        return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
     }
 
 
@@ -253,12 +231,12 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
     
 
     /**
-     * Gets the last process status
+     * Gets the processing unit progress
      *
-     * @return the last process status
+     * @return the processing unit progress
      */
-    public IProcessStatus getProcessStatus() {
-        return processingUnitRunnable.getProcessStatus();
+    public IProcessingUnitProgress getProcessingUnitProgress() {
+        return processingUnitRunnable.getProcessingUnitProgress();
     }
 
     

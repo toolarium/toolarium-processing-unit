@@ -6,7 +6,7 @@
 package com.github.toolarium.processing.unit.mydata;
 
 import com.github.toolarium.common.util.RandomGenerator;
-import com.github.toolarium.processing.unit.IProcessingPersistence;
+import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -18,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  *
  * @author patrick
  */
-final class MyDataProducer implements IProcessingPersistence {
+final class MyDataProducer implements IProcessingUnitPersistence {
     private static final long serialVersionUID = -7861222316001789141L;
     private Queue<String> queue;
 

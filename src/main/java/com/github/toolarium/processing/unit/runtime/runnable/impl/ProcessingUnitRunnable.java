@@ -7,7 +7,6 @@ package com.github.toolarium.processing.unit.runtime.runnable.impl;
 
 import com.github.toolarium.common.bandwidth.BandwidthThrottling;
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
-import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.dto.Parameter;
@@ -164,12 +163,19 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
             }
 
             boolean continueProcessing = true;
+            boolean exceptionOccured = false;
             while (continueProcessing && !suspend) {
                 if (!ProcessingActionStatus.RUNNING.equals(getProcessingActionStatus())) {
                     setProcessingActionStatus(ProcessingActionStatus.RUNNING);
                 }
                 
-                continueProcessing = getProcessingUnitProxy().processUnit();
+                try { 
+                    continueProcessing = getProcessingUnitProxy().processUnit();
+                } catch (RuntimeException e) {
+                    continueProcessing = false;
+                    exceptionOccured = true;
+                }
+            
                 if (LOG.isDebugEnabled()) {
                     /*
                     long processedUnits = 1;
@@ -195,7 +201,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                 setProcessingActionStatus(ProcessingActionStatus.SUSPENDED);
             } else {                
                 // in case continue processing is marked as false but there are still unit to process open, there we have to stop
-                if (!continueProcessing && (getProcessingProgress() != null && getProcessingProgress().getNumberOfUnprocessedUnits() > 0)) {
+                if (exceptionOccured || (!continueProcessing && (getProcessingUnitProgress().getNumberOfUnprocessedUnits() > 0))) {
                     setProcessingActionStatus(ProcessingActionStatus.ABORTING);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Aborting processing unit " + processingInfo);
@@ -296,31 +302,11 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                                                          getProcessingUnitProxy().getProcessingUnitClass().getName(),
                                                          getParameterList(),
                                                          getProcessingUnitContext(),
-                                                         getProcessingProgress(), 
+                                                         getProcessingUnitProgress(), 
                                                          getProcessingActionStatus(), 
                                                          getProcessingRuntimeStatus(), 
-                                                         getProcessingStatusMessageList(), 
+                                                         getStatusMessageList(), 
                                                          getTimeMeasurement(), 
                                                          getProcessingUnitThrottling());
-    }
-    
-    
-    /**
-     * Get the processing status message list: In case it's running the current message otherwise all selected messages
-     *
-     * @return the processing status messages
-     */
-    protected List<String> getProcessingStatusMessageList() {
-        final IProcessingProgress processingProgress = getProcessingProgress();
-        final ProcessingActionStatus processingActionStatus = getProcessingActionStatus();
-        if (processingActionStatus != null && (ProcessingActionStatus.ABORTED.equals(processingActionStatus) || ProcessingActionStatus.ENDED.equals(processingActionStatus))) {
-            return getStatusMessageList();
-        } else if (getStatusMessageList() != null && !getStatusMessageList().isEmpty()) {
-            if (processingProgress != null && processingProgress.getProcessingStatusMessage() != null && !processingProgress.getProcessingStatusMessage().isBlank()) {
-                return List.of(processingProgress.getProcessingStatusMessage());
-            }
-        }
-
-        return null;
     }
 }

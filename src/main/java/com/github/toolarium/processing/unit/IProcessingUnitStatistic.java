@@ -1,20 +1,22 @@
 /*
- * IProcessingStatistic.java
+ * IProcessingUnitStatistic.java
  *
  * Copyright by toolarium, all rights reserved.
  */
 package com.github.toolarium.processing.unit;
 
+import com.github.toolarium.common.statistic.StatisticCounter;
 import java.util.Set;
 
 
 /**
- * The processing statistic
+ * The processing unit statistic
  *
  * @author patrick
  */
-public interface IProcessingStatistic {
+public interface IProcessingUnitStatistic {
 
+    
     /**
      * Returns the statistic key set
      *
@@ -22,14 +24,23 @@ public interface IProcessingStatistic {
      */
     Set<String> keySet();
 
+    
+    /**
+     * Test if a key is defined or not
+     *
+     * @param key the key
+     * @return true if it exist
+     */
+    boolean hasKey(String key);
+
 
     /**
-     * Gets the statistic value
+     * Gets the statistic counter
      *
      * @param key the statistic key
      * @return the value if it was set; otherwise null
      */
-    Double get(String key);
+    StatisticCounter get(String key);
     
     
     /**

@@ -1,19 +1,18 @@
 /*
- * ProcessingPersistenceImpl.java
+ * ProcessingUnitPersistenceContainer.java
  *
  * Copyright by toolarium, all rights reserved.
  */
 package com.github.toolarium.processing.unit.runtime.runnable;
 
-import com.github.toolarium.processing.unit.IProcessStatus;
-import com.github.toolarium.processing.unit.IProcessingPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
-import com.github.toolarium.processing.unit.runtime.ProcessStatus;
-import com.github.toolarium.processing.unit.runtime.ProcessingProgress;
+import com.github.toolarium.processing.unit.runtime.ProcessingUnitProgress;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -30,14 +29,14 @@ import java.util.Objects;
  *
  * @author patrick
  */
-public class ProcessingPersistenceContainer implements Serializable {
+public class ProcessingUnitPersistenceContainer implements Serializable {
     private static final long serialVersionUID = -7733025343789892026L;
     private String id;
     private String name;
     private Class<? extends IProcessingUnit> processingUnitClass;
     private List<Parameter> parameterList;
-    private IProcessingPersistence processingPersistence;
-    private ProcessStatus processStatus;
+    private IProcessingUnitPersistence processingPersistence;
+    private IProcessingUnitProgress processingUnitProgress;
     private IProcessingUnitContext processingUnitContext;
     private ProcessingRuntimeStatus processingRuntimeStatus;
     private List<String> processStatusMessageList;
@@ -54,7 +53,7 @@ public class ProcessingPersistenceContainer implements Serializable {
      * @param processingUnitClass the processing unit class
      * @param parameterList the parameter list
      * @param processingPersistence the processing persistence
-     * @param processStatus the process status
+     * @param processingUnitProgress the processing unit progress
      * @param processingUnitContext the processing context.
      * @param processingRuntimeStatus the process runtime status
      * @param processStatusMessageList the process status message list
@@ -62,40 +61,30 @@ public class ProcessingPersistenceContainer implements Serializable {
      * @param duration the actual duration in milliseconds
      * @param maxNumberOfProcessingUnitCallsPerSecond the max number of processing unit calls per seconds
      */
-    public ProcessingPersistenceContainer(String id, // CHECKSTYLE IGNORE THIS LINE
-                                          String name,
-                                          Class<? extends IProcessingUnit> processingUnitClass,
-                                          List<Parameter> parameterList,
-                                          IProcessingPersistence processingPersistence,
-                                          IProcessStatus processStatus,
-                                          IProcessingUnitContext processingUnitContext,
-                                          ProcessingRuntimeStatus processingRuntimeStatus,
-                                          List<String> processStatusMessageList,
-                                          Instant startTimestamp,
-                                          long duration,
-                                          Long maxNumberOfProcessingUnitCallsPerSecond) {
+    public ProcessingUnitPersistenceContainer(String id, // CHECKSTYLE IGNORE THIS LINE
+                                              String name,
+                                              Class<? extends IProcessingUnit> processingUnitClass,
+                                              List<Parameter> parameterList,
+                                              IProcessingUnitPersistence processingPersistence,
+                                              IProcessingUnitProgress processingUnitProgress,
+                                              IProcessingUnitContext processingUnitContext,
+                                              ProcessingRuntimeStatus processingRuntimeStatus,
+                                              List<String> processStatusMessageList,
+                                              Instant startTimestamp,
+                                              long duration,
+                                              Long maxNumberOfProcessingUnitCallsPerSecond) {
         this.id = id;
         this.name = name;
         this.processingUnitClass = processingUnitClass;
         this.parameterList = parameterList;
         this.processingPersistence = processingPersistence;
+        this.processingUnitProgress = new ProcessingUnitProgress(processingUnitProgress);
         this.processingUnitContext = processingUnitContext;
         this.processingRuntimeStatus = processingRuntimeStatus;
         this.processStatusMessageList = processStatusMessageList;
         this.startTimestamp = startTimestamp;
         this.duration = duration;
         this.maxNumberOfProcessingUnitCallsPerSecond = maxNumberOfProcessingUnitCallsPerSecond;
-
-        if (processStatus != null) {
-            ProcessingProgress processingProgress = new ProcessingProgress();
-            
-            if (processStatus.getProcessingProgress() != null) {
-                processingProgress.init(processStatus.getProcessingProgress());
-            }
-            
-            this.processStatus = new ProcessStatus(processingProgress);
-            this.processStatus.setHasNext(processStatus.hasNext());
-        }
     }
 
     
@@ -144,18 +133,18 @@ public class ProcessingPersistenceContainer implements Serializable {
      *
      * @return the processing information
      */
-    public IProcessingPersistence getProcessingPersistence() {
+    public IProcessingUnitPersistence getProcessingPersistence() {
         return processingPersistence;
     }
 
 
     /**
-     * Gets the process status
+     * Gets the processing unit progress
      *
-     * @return the process status
+     * @return the processing unit progress
      */
-    public IProcessStatus getProcessingStatus() {
-        return processStatus;
+    public IProcessingUnitProgress getProcessingUnitProgress() {
+        return processingUnitProgress;
     }
 
 
@@ -226,7 +215,7 @@ public class ProcessingPersistenceContainer implements Serializable {
      * @return the byte array to persist
      * @throws ProcessingException In case the processing container can't be serialized properly 
      */
-    public static byte[] toByteArray(ProcessingPersistenceContainer processingPersistenceContainer) throws ProcessingException {
+    public static byte[] toByteArray(ProcessingUnitPersistenceContainer processingPersistenceContainer) throws ProcessingException {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ObjectOutputStream objOutStream = new ObjectOutputStream(outputStream);
@@ -247,10 +236,10 @@ public class ProcessingPersistenceContainer implements Serializable {
      * @return the object representation
      * @throws ProcessingException In case the processing container can't be de-serialized properly 
      */
-    public static ProcessingPersistenceContainer toProcessingPersistenceContainer(byte[] persistedState) throws ProcessingException {
+    public static ProcessingUnitPersistenceContainer toProcessingPersistenceContainer(byte[] persistedState) throws ProcessingException {
         try {
             ObjectInputStream objInStream = new ObjectInputStream(new ByteArrayInputStream(persistedState));
-            ProcessingPersistenceContainer processingPersistenceContainer = (ProcessingPersistenceContainer)objInStream.readObject();
+            ProcessingUnitPersistenceContainer processingPersistenceContainer = (ProcessingUnitPersistenceContainer)objInStream.readObject();
             objInStream.close();
             return processingPersistenceContainer;
         } catch (RuntimeException | ClassNotFoundException | IOException e) {
@@ -264,7 +253,7 @@ public class ProcessingPersistenceContainer implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(duration, id, name, parameterList, processStatus, processStatusMessageList,
+        return Objects.hash(duration, id, name, parameterList, processingUnitProgress, processStatusMessageList,
                 processingPersistence, processingRuntimeStatus, processingUnitClass, processingUnitContext,
                 startTimestamp, maxNumberOfProcessingUnitCallsPerSecond);
     }
@@ -287,10 +276,10 @@ public class ProcessingPersistenceContainer implements Serializable {
             return false;
         }
         
-        ProcessingPersistenceContainer other = (ProcessingPersistenceContainer) obj;
+        ProcessingUnitPersistenceContainer other = (ProcessingUnitPersistenceContainer) obj;
         return duration == other.duration && Objects.equals(id, other.id) && Objects.equals(name, other.name)
                 && Objects.equals(parameterList, other.parameterList)
-                && Objects.equals(processStatus, other.processStatus)
+                && Objects.equals(processingUnitProgress, other.processingUnitProgress)
                 && Objects.equals(processStatusMessageList, other.processStatusMessageList)
                 && Objects.equals(processingPersistence, other.processingPersistence)
                 && processingRuntimeStatus == other.processingRuntimeStatus

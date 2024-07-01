@@ -6,17 +6,15 @@
 package com.github.toolarium.processing.unit.runtime.runnable.impl;
 
 import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
-import com.github.toolarium.processing.unit.IProcessStatus;
-import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
-import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitProxy;
@@ -147,13 +145,12 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
 
     
     /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getProcessStatus()
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getProcessingUnitProgress()
      */
     @Override
-    public IProcessStatus getProcessStatus() {
-        IProcessingUnitProxy processingUnitProxy = getProcessingUnitProxy();
+    public IProcessingUnitProgress getProcessingUnitProgress() {
         if (processingUnitProxy != null) {
-            return processingUnitProxy.getProcessStatus();
+            return processingUnitProxy.getProcessingUnitProgress();
         }
         
         return null;
@@ -242,21 +239,6 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
 
     
     /**
-     * Get the processing progress
-     *
-     * @return the processing progress
-     */
-    protected IProcessingProgress getProcessingProgress() {
-        IProcessStatus processStatus = getProcessStatus();
-        if (processStatus != null) {
-            return processStatus.getProcessingProgress();
-        }
-        
-        return null;
-    }
-
-    
-    /**
      * Get the parameter list
      *
      * @return the parameter list
@@ -339,7 +321,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         }
         
         try {
-            processingUnitRunnableListener.notifyProcessingUnitState(getId(), getName(), processingUnitClass.getName(), processingActionStatus, getProcessingProgress(), getTimeMeasurement(), getProcessingUnitContext());
+            processingUnitRunnableListener.notifyProcessingUnitState(getId(), getName(), processingUnitClass.getName(), processingActionStatus, getProcessingUnitProgress(), getTimeMeasurement(), getProcessingUnitContext());
         } catch (RuntimeException e) {
             LOG.warn("Could not notify the processing unit state to the processing unit runnable listener: " + e.getMessage(), e);
         }

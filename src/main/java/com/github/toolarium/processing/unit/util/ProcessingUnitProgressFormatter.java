@@ -9,10 +9,10 @@ import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
 import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
 import com.github.toolarium.common.util.RoundUtil;
 import com.github.toolarium.common.util.TextUtil;
-import com.github.toolarium.processing.unit.IProcessingPersistence;
-import com.github.toolarium.processing.unit.IProcessingProgress;
-import com.github.toolarium.processing.unit.IProcessingStatistic;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
+import com.github.toolarium.processing.unit.IProcessingUnitStatistic;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
@@ -63,13 +63,13 @@ public class ProcessingUnitProgressFormatter {
                            String processingUnitClass,
                            List<Parameter> parameters,
                            IProcessingUnitContext processingUnitContext,
-                           IProcessingProgress processingProgress, 
+                           IProcessingUnitProgress processingProgress, 
                            ProcessingActionStatus processingActionStatus,
                            ProcessingRuntimeStatus processingRuntimeStatus,
                            List<String> messages,
                            IProcessingUnitRuntimeTimeMeasurement timeMeasurement, 
                            IBandwidthThrottling processingUnitThrottling,
-                           IProcessingPersistence processingPersistence) {
+                           IProcessingUnitPersistence processingPersistence) {
         StringBuilder builder = new StringBuilder();
         builder.append(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass)).append(": ").append(processingActionStatus);
         builder.append(prepareProgressNumbers(startTag, processingProgress, true));
@@ -83,7 +83,7 @@ public class ProcessingUnitProgressFormatter {
         builder.append(prepareMessages(startTag, messages));
         
         if (processingProgress != null) {
-            builder.append(prepareStatistic(startTag, processingProgress.getProcesingStatistic()));
+            builder.append(prepareStatistic(startTag, processingProgress.getProcesingUnitStatistic()));
         }
         
         builder.append(prepareBandwidthThrottling(startTag, processingUnitThrottling));
@@ -100,7 +100,7 @@ public class ProcessingUnitProgressFormatter {
      * @param includeUnprocessed true to include unprocessed units
      * @return the prepared string
      */
-    public StringBuilder prepareProgressNumbers(String header, IProcessingProgress processingProgress, boolean includeUnprocessed) {
+    public StringBuilder prepareProgressNumbers(String header, IProcessingUnitProgress processingProgress, boolean includeUnprocessed) {
         StringBuilder builder = new StringBuilder();
         if (processingProgress == null) {
             return builder;
@@ -249,7 +249,7 @@ public class ProcessingUnitProgressFormatter {
      * @param processingStatistic the processing unit statistic
      * @return the prepared string
      */
-    public StringBuilder prepareStatistic(String header, IProcessingStatistic processingStatistic) {
+    public StringBuilder prepareStatistic(String header, IProcessingUnitStatistic processingStatistic) {
         StringBuilder builder = new StringBuilder();
         if (processingStatistic == null || processingStatistic.isEmpty()) {
             return builder;
@@ -269,7 +269,7 @@ public class ProcessingUnitProgressFormatter {
 
             builder.append(key);
             builder.append("=");
-            builder.append(processingStatistic.get(key));
+            builder.append(RoundUtil.getInstance().round(processingStatistic.get(key).getAverage(), 2));
         }
         
         builder.append("]");
@@ -309,7 +309,7 @@ public class ProcessingUnitProgressFormatter {
      * @param processingPersistence the processing persistence
      * @return the prepared string
      */
-    public StringBuilder prepareProcesingPersistenceContainer(String header, IProcessingPersistence processingPersistence) {
+    public StringBuilder prepareProcesingPersistenceContainer(String header, IProcessingUnitPersistence processingPersistence) {
         StringBuilder builder = new StringBuilder();
         if (processingPersistence == null) {
             return builder;

@@ -5,8 +5,8 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable;
 
-import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 
@@ -25,7 +25,7 @@ public interface IProcessingUnitRunnableListener {
      * @param name the name of this processing unit runnable
      * @param processingUnitClass the processing unit class
      * @param processingActionStatus the processing action status
-     * @param processingProgress the processing progress 
+     * @param processingUnitProgress the processing unit progress 
      * @param runtimeTimeMeasurment the runtime time measurement
      * @param processingUnitContext the processing unit context
      */
@@ -33,7 +33,7 @@ public interface IProcessingUnitRunnableListener {
                                    String name, 
                                    String processingUnitClass, 
                                    ProcessingActionStatus processingActionStatus,
-                                   IProcessingProgress processingProgress,
+                                   IProcessingUnitProgress processingUnitProgress,
                                    IProcessingUnitRuntimeTimeMeasurement runtimeTimeMeasurment,
                                    IProcessingUnitContext processingUnitContext);
 }

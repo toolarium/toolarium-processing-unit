@@ -51,14 +51,29 @@ public interface IProcessingUnit {
 
     
     /**
-     * Process unit: This method will be called until the {@link IProcessStatus#hasNext} returns false.
+     * Estimate the number of units to process. It will be called once after {@link #initialize(List, IProcessingUnitContext)}.
+     * It set the the number of units to process in the object {@link IProcessingUnitProgress}. In case there are more elements
+     * to process than estimated, the progress will adapted.
+     * In case of a {@link #resumeProcessing(IProcessingUnitPersistence, IProcessingUnitContext)}
+     * it will not be called again.
+     * 
+     * @param processingUnitContext the processing context.
+     * @return returns the number of units to process
+     * @throws ProcessingException Throws this exception in case of initialization failures.
+     */
+    long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException;
+    
+    
+    /**
+     * Process unit: This method will be called until the {@link IProcessingUnitStatus#hasNext} returns false.
      * Important: this method have to process the sequential or in a small block size.
      *
+     * @param processingProgress the processing progress
      * @param processingUnitContext the processing unit context.
      * @return the process status
      * @throws ProcessingException In case of any failures occurs.
      */
-    IProcessStatus processUnit(IProcessingUnitContext processingUnitContext)
+    IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext)
         throws ProcessingException;
 
 
@@ -86,26 +101,24 @@ public interface IProcessingUnit {
 
     
     /**
-     * Suspends the processing: The processing is able to persist its state with the help of the {@link IProcessingPersistence} object.
-     * On a resume this instance of the {@link IProcessingPersistence} will be returned (see method below). 
+     * Suspends the processing: The processing is able to persist its state with the help of the {@link IProcessingUnitPersistence} object.
+     * On a resume this instance of the {@link IProcessingUnitPersistence} will be returned (see method below). 
      *
      * @return the processing persistence which contains all information to resume processing later (see resumeProcessing).
      * @throws ProcessingException Throws this exception in case of while suspend the processing any failures occurs.
      */
-    IProcessingPersistence suspendProcessing()
+    IProcessingUnitPersistence suspendProcessing()
         throws ProcessingException;
 
 
     /**
-     * After suspending a processing unit can be resumed. The parameter list of the initialization is passed as well the {@link IProcessingPersistence}
+     * After suspending a processing unit can be resumed. The parameter list of the initialization is passed as well the {@link IProcessingUnitPersistence}
      * which was returned by the suspendProcessing method.
      *
-     * @param parameterList the starting parameters
-     * @param processingProgress the last processing progress before suspending.
      * @param processingPersistence the processing persistence to resume after suspending.
      * @param processingUnitContext the processing unit context
      * @throws ProcessingException Throws this exception in case of while resume the processing any failures occurs.
      */
-    void resumeProcessing(List<Parameter> parameterList, IProcessingProgress processingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext)
+    void resumeProcessing(IProcessingUnitPersistence processingPersistence, IProcessingUnitContext processingUnitContext)
         throws ProcessingException;
 }

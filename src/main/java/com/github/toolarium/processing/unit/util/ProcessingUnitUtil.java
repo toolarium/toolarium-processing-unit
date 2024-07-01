@@ -7,15 +7,15 @@ package com.github.toolarium.processing.unit.util;
 
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
 import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
-import com.github.toolarium.processing.unit.IProcessingPersistence;
-import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
-import com.github.toolarium.processing.unit.runtime.runnable.ProcessingPersistenceContainer;
+import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitPersistenceContainer;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +115,7 @@ public final class ProcessingUnitUtil {
     public String toString(String id, 
                            String name, 
                            String processingUnitClass,
-                           IProcessingProgress processingProgress, 
+                           IProcessingUnitProgress processingProgress, 
                            ProcessingActionStatus processingActionStatus,
                            ProcessingRuntimeStatus processingRuntimeStatus) {
         return toString(id, name, processingUnitClass, null, null, processingProgress, processingActionStatus, processingRuntimeStatus, null, null, null, null);
@@ -137,7 +137,7 @@ public final class ProcessingUnitUtil {
     public String toString(String id, 
                            String name, 
                            String processingUnitClass,
-                           IProcessingProgress processingProgress, 
+                           IProcessingUnitProgress processingProgress, 
                            ProcessingActionStatus processingActionStatus,
                            ProcessingRuntimeStatus processingRuntimeStatus,
                            List<String> messages) {
@@ -162,7 +162,7 @@ public final class ProcessingUnitUtil {
     public String toString(String id, 
                            String name, 
                            String processingUnitClass,
-                           IProcessingProgress processingProgress, 
+                           IProcessingUnitProgress processingProgress, 
                            ProcessingActionStatus processingActionStatus,
                            ProcessingRuntimeStatus processingRuntimeStatus,
                            List<String> messages,
@@ -193,7 +193,7 @@ public final class ProcessingUnitUtil {
                            String processingUnitClass,
                            List<Parameter> parameters,
                            IProcessingUnitContext processingUnitContext,
-                           IProcessingProgress processingProgress, 
+                           IProcessingUnitProgress processingProgress, 
                            ProcessingActionStatus processingActionStatus,
                            ProcessingRuntimeStatus processingRuntimeStatus,
                            List<String> messages,
@@ -225,13 +225,13 @@ public final class ProcessingUnitUtil {
                            String processingUnitClass,
                            List<Parameter> parameters,
                            IProcessingUnitContext processingUnitContext,
-                           IProcessingProgress processingProgress, 
+                           IProcessingUnitProgress processingProgress, 
                            ProcessingActionStatus processingActionStatus,
                            ProcessingRuntimeStatus processingRuntimeStatus,
                            List<String> messages,
                            IProcessingUnitRuntimeTimeMeasurement timeMeasurement, 
                            IBandwidthThrottling processingUnitThrottling,
-                           IProcessingPersistence processingPersistence) {
+                           IProcessingUnitPersistence processingPersistence) {
         return processingUnitProgressFormatter.toString(id, 
                                                         name, 
                                                         processingUnitClass,
@@ -254,14 +254,14 @@ public final class ProcessingUnitUtil {
      * @return the string re-presenation
      */
     public String toString(byte[] persistedState) {
-        ProcessingPersistenceContainer processingPersistenceContainer = ProcessingPersistenceContainer.toProcessingPersistenceContainer(persistedState);
+        ProcessingUnitPersistenceContainer processingPersistenceContainer = ProcessingUnitPersistenceContainer.toProcessingPersistenceContainer(persistedState);
         return processingUnitProgressFormatter
                 .toString(processingPersistenceContainer.getId(),
                         processingPersistenceContainer.getName(),
                         processingPersistenceContainer.getProcessingUnitClass().getName(),
                         processingPersistenceContainer.getParameterList(),
                         processingPersistenceContainer.getProcessingUnitContext(),
-                        processingPersistenceContainer.getProcessingStatus().getProcessingProgress(),
+                        processingPersistenceContainer.getProcessingUnitProgress(),
                         ProcessingActionStatus.SUSPENDED,
                         processingPersistenceContainer.getProcessingRuntimeStatus(),
                         processingPersistenceContainer.getProcessingStatusMessageList(),

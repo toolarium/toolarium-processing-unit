@@ -1,11 +1,13 @@
 /*
- * ProcessingStatisticImpl.java
+ * ProcessingUnitStatistic.java
  *
  * Copyright by toolarium, all rights reserved.
  */
 package com.github.toolarium.processing.unit.runtime;
 
-import com.github.toolarium.processing.unit.IProcessingStatistic;
+import com.github.toolarium.common.statistic.StatisticCounter;
+import com.github.toolarium.common.util.RoundUtil;
+import com.github.toolarium.processing.unit.IProcessingUnitStatistic;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
@@ -16,20 +18,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
- * Implements {@link IProcessingStatistic}.
+ * Implements {@link IProcessingUnitStatistic}.
  *
  * @author patrick
  */
-public class ProcessingStatistic implements IProcessingStatistic, Serializable {
+public class ProcessingUnitStatistic implements IProcessingUnitStatistic, Serializable {
     private static final long serialVersionUID = -5135299892419950527L;
-    private Map<String, Double> statisticData;
+    private Map<String, StatisticCounter> statisticData;
 
 
     /**
      * Constructor
      */
-    public ProcessingStatistic() {
-        statisticData = new ConcurrentHashMap<String, Double>();
+    public ProcessingUnitStatistic() {
+        statisticData = new ConcurrentHashMap<String, StatisticCounter>();
     }
 
 
@@ -38,16 +40,19 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
      * 
      * @param processingStatistic the processing statistic
      */
-    public ProcessingStatistic(IProcessingStatistic processingStatistic) {
-        statisticData = new ConcurrentHashMap<String, Double>();
-        for (String key : processingStatistic.keySet()) {
-            put(key, processingStatistic.get(key));
+    public ProcessingUnitStatistic(IProcessingUnitStatistic processingStatistic) {
+        statisticData = new ConcurrentHashMap<String, StatisticCounter>();
+        
+        if (processingStatistic != null) {
+            for (String key : processingStatistic.keySet()) {
+                put(key, processingStatistic.get(key));
+            }
         }
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingStatistic#keySet()
+     * @see com.github.toolarium.processing.unit.IProcessingUnitStatistic#keySet()
      */
     @Override
     public Set<String> keySet() {
@@ -56,13 +61,44 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
         return sortedKeys;
     }
 
-
+    
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingStatistic#get(java.lang.String)
+     * @see com.github.toolarium.processing.unit.IProcessingUnitStatistic#hasKey(java.lang.String)
      */
     @Override
-    public Double get(String key) {
+    public boolean hasKey(String key) {
+        return statisticData.containsKey(key);
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.IProcessingUnitStatistic#get(java.lang.String)
+     */
+    @Override
+    public StatisticCounter get(String key) {
         return statisticData.get(key);
+    }
+
+    
+    /**
+     * Add a statistic counter
+     *
+     * @param key the key
+     * @param statisticCounterToAdd the statistic counter to add
+     */
+    public void add(String key, StatisticCounter statisticCounterToAdd) {
+        if (key == null || key.isBlank() || statisticCounterToAdd == null) {
+            return;
+        }
+        
+        StatisticCounter statisticCounter = statisticData.get(key);
+        if (statisticCounter == null) {
+            statisticCounter = new StatisticCounter();
+            statisticData.put(key, statisticCounter);
+        }
+        
+        statisticCounter.add(statisticCounterToAdd);
+        statisticData.put(key, statisticCounter);
     }
 
 
@@ -73,13 +109,13 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
      * @param value the statistic value
      * @return the previous set statistic value; otherwise null
      */
-    public Double put(String key, Double value) {
+    public StatisticCounter put(String key, StatisticCounter value) {
         return statisticData.put(key, value);
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingStatistic#isEmpty()
+     * @see com.github.toolarium.processing.unit.IProcessingUnitStatistic#isEmpty()
      */
     @Override
     public boolean isEmpty() {
@@ -113,7 +149,7 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
             return false;
         }
         
-        ProcessingStatistic other = (ProcessingStatistic) obj;
+        ProcessingUnitStatistic other = (ProcessingUnitStatistic) obj;
         return Objects.equals(statisticData, other.statisticData);
     }
 
@@ -137,7 +173,7 @@ public class ProcessingStatistic implements IProcessingStatistic, Serializable {
     
                 result.append(key);
                 result.append("=");
-                result.append(statisticData.get(key));
+                result.append(RoundUtil.getInstance().round(statisticData.get(key).getSum(), 2));
             }
         }
         

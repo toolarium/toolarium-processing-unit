@@ -7,14 +7,14 @@ package com.github.toolarium.processing.unit.framework;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.github.toolarium.processing.unit.IProcessStatus;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
+import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.ParameterDefinitionBuilder;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.Parameter;
@@ -38,7 +38,9 @@ import org.junit.jupiter.api.Test;
  * @author patrick
  */
 public class ProcessingFrameworkTest {
-    private static final String HEADER = "ProcessStatus [processingProgress=ProcessingProgressImpl "; 
+    private static final String PROCESSED_ONE_SUCCSESSFUL_UNIT = "[hasNext=true, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, "
+                                                                 + "processingUnitStatistic=null])] | ";
+    private static final String HEADER = "ProcessingUnitStatus "; 
     private static final String VALUE1 = "value1";
     private static final String VALUE2 = "value2";
     private static final String VALUE3 = "value3";
@@ -59,15 +61,14 @@ public class ProcessingFrameworkTest {
         assertEquals(processRunner.run(ProcessingUnitStringTest.class, parameterList), 4);
 
         assertEquals((processRunner.getProcesingUnit()).getResult(),
-                 "[a(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=1, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[b(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=2, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[c(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=3, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=false])]");
-        
+                 "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[c(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, processingUnitStatistic=null])]");
+                                            
         assertNotNull(processRunner.getId());
         assertNull(processRunner.getName());
         assertEquals(ProcessingActionStatus.ENDED, processRunner.getProcessingActionStatus());
-        assertFalse(processRunner.getProcessStatus().hasNext());
         assertEquals(ProcessingRuntimeStatus.SUCCESSFUL, processRunner.getProcessingRuntimeStatus());
         assertEquals("[]", "" + processRunner.getStatusMessageList());
         assertTrue(processRunner.getTimeMeasurement().getStartTimestamp().toEpochMilli() <= processRunner.getTimeMeasurement().getStartTimestamp().toEpochMilli());
@@ -90,13 +91,13 @@ public class ProcessingFrameworkTest {
         assertEquals(processRunner.runWithSuspendAndResume(ProcessingUnitStringTest.class, parameterList, randomSuspendIdx, 100L, 3), 4);
 
         assertEquals((processRunner.getProcesingUnit()).getResult(),
-                 "[a(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=1, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[b(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=2, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[c(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=3, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=false])]");
+                 "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[c(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, processingUnitStatistic=null])]");
     }
     
-
+    
     
     /**
      * Simple test case with warnings
@@ -110,10 +111,10 @@ public class ProcessingFrameworkTest {
         assertEquals(processRunner.run(ProcessingUnitStringTest.class, parameterList), 4);
         
         assertEquals((processRunner.getProcesingUnit()).getResult(),
-                 "[a(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=1, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[b(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=2, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=3, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=Empty data, processingStatistic=[]], hasNext=true])] | "
-               + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=null, processingStatistic=[]], hasNext=false])]");
+                 "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[(" + HEADER + "[hasNext=true, numberOfSuccessfulUnits=null, numberOfFailedUnits=1, numberOfUnprocessedUnits=null, processingRuntimeStatus=WARN, statusMessage=Empty data, processingUnitStatistic=null])] | "
+               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, processingUnitStatistic=null])]");
     }
 
     
@@ -132,13 +133,13 @@ public class ProcessingFrameworkTest {
         assertEquals(processRunner.runWithSuspendAndResume(ProcessingUnitStringTest.class, parameterList, randomSuspendIdx, 100L, 3), 4);
 
         assertEquals((processRunner.getProcesingUnit()).getResult(),
-                 "[a(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=1, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[b(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=2, numberOfFailedUnits=0, processingRuntimeStatus=SUCCESSFUL, processingStatusMessage=null, processingStatistic=[]], hasNext=true])] | "
-               + "[(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=3, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=Empty data, processingStatistic=[]], hasNext=true])] | "
-               + "[d(" + HEADER + "[numberOfUnitsToProcess=4, numberOfProcessedUnits=4, numberOfFailedUnits=1, processingRuntimeStatus=WARN, processingStatusMessage=null, processingStatistic=[]], hasNext=false])]");
+                 "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
+               + "[(" + HEADER + "[hasNext=true, numberOfSuccessfulUnits=null, numberOfFailedUnits=1, numberOfUnprocessedUnits=null, processingRuntimeStatus=WARN, statusMessage=Empty data, processingUnitStatistic=null])] | "
+               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, processingUnitStatistic=null])]");
     }
     
-    
+
     /**
      * Test missing mandatory parameters
      */
@@ -178,16 +179,16 @@ public class ProcessingFrameworkTest {
          * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
          */
         @Override
-        public IProcessStatus processUnit(IProcessingUnitContext processingUnitContext) {
+        public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) {
             return null;
         }
 
 
         /**
-         * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#countNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+         * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
          */
         @Override
-        protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException {
+        public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException {
             return 0;
         }
     }

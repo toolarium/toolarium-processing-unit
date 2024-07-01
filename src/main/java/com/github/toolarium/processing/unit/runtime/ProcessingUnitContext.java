@@ -72,7 +72,16 @@ public class ProcessingUnitContext implements IProcessingUnitContext, Serializab
         return context.put(key, value);
     }
     
+    
+    /**
+     * @see com.github.toolarium.processing.unit.IProcessingUnitContext#hasKey(java.lang.String)
+     */
+    @Override
+    public boolean hasKey(String key) {
+        return context.containsKey(key);
+    }
 
+    
     /**
      * @see com.github.toolarium.processing.unit.IProcessingUnitContext#remove(java.lang.String)
      */

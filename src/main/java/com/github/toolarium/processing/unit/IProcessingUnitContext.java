@@ -35,6 +35,15 @@ public interface IProcessingUnitContext {
     
     
     /**
+     * Test if a key is defined or not
+     *
+     * @param key the key
+     * @return true if it exist
+     */
+    boolean hasKey(String key);
+    
+    
+    /**
      * Removes a key in the context and return the removed value.
      * In case the key don't exist it returns null.
      *

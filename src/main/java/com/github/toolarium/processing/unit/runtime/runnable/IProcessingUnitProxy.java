@@ -5,9 +5,10 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable;
 
-import com.github.toolarium.processing.unit.IProcessStatus;
-import com.github.toolarium.processing.unit.IProcessingPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnit;
+import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
+import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import java.util.List;
@@ -20,7 +21,6 @@ import java.util.List;
  * @author patrick
  */
 public interface IProcessingUnitProxy {
-    
     
     /**
      * Get the runnable id
@@ -47,11 +47,11 @@ public interface IProcessingUnitProxy {
     
     
     /**
-     * Gets the last process status
+     * Gets the processing unit progress
      *
-     * @return the last process status
+     * @return the processing unit progress
      */
-    IProcessStatus getProcessStatus();
+    IProcessingUnitProgress getProcessingUnitProgress();
 
     
     /**
@@ -63,7 +63,7 @@ public interface IProcessingUnitProxy {
 
     
     /**
-     * Process unit: This method will be called until the {@link IProcessStatus#hasNext} returns false
+     * Process unit: This method will be called until the {@link IProcessingUnitStatus#hasNext} returns false
      * or an exception occurs: RuntimeException will abort; ValidationException or ProcessingException depends
      * on the value returned by the method abortProcessing.
      * Important: this method have to process the sequential or in a small block size.
@@ -74,8 +74,8 @@ public interface IProcessingUnitProxy {
 
 
     /**
-     * Suspends the processing: The processing is able to persist its state with the help of the {@link IProcessingPersistence} object.
-     * On a resume this instance of the {@link IProcessingPersistence} will be returned (see method below). 
+     * Suspends the processing: The processing is able to persist its state with the help of the {@link IProcessingUnitPersistence} object.
+     * On a resume this instance of the {@link IProcessingUnitPersistence} will be returned (see method below). 
      *
      * @return the processing persistence which contains all information to resume processing later (see resumeProcessing).
      * @throws ProcessingException Throws this exception in case of while suspend the processing any failures occurs.

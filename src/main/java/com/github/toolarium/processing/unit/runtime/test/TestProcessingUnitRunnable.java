@@ -6,9 +6,9 @@
 package com.github.toolarium.processing.unit.runtime.test;
 
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
-import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
@@ -118,11 +118,11 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
      */
     @Override
     protected boolean afterProcessUnit(boolean continueProcessing) {
-        if (suspendAfterCycles != null && suspendAfterCycles > 1 && (getProcessingUnitProxy().getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits() % suspendAfterCycles == 0) /*&& suspendCounter < maxNumberOfSuspends*/) {
+        if (suspendAfterCycles != null && suspendAfterCycles > 1 && (getProcessingUnitProxy().getProcessingUnitProgress().getNumberOfProcessedUnits() % suspendAfterCycles == 0) /*&& suspendCounter < maxNumberOfSuspends*/) {
             suspendProcessing();
         }
         
-        if (numberOfCyclesBeforeStop != null && numberOfCyclesBeforeStop > 0 && numberOfCyclesBeforeStop <= getProcessingUnitProxy().getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits()) {
+        if (numberOfCyclesBeforeStop != null && numberOfCyclesBeforeStop > 0 && numberOfCyclesBeforeStop <= getProcessingUnitProxy().getProcessingUnitProgress().getNumberOfProcessedUnits()) {
             return false;
         }
         
@@ -139,7 +139,7 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
 
         /**
          * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener#notifyProcessingUnitState(java.lang.String, java.lang.String, java.lang.String, 
-         *      com.github.toolarium.processing.unit.dto.ProcessingActionStatus, com.github.toolarium.processing.unit.IProcessingProgress, com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement, 
+         *      com.github.toolarium.processing.unit.dto.ProcessingActionStatus, com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement, 
          *      com.github.toolarium.processing.unit.IProcessingUnitContext)
          */
         @Override
@@ -147,7 +147,7 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
                                               final String name, 
                                               final String processingUnitClass,
                                               final ProcessingActionStatus processingActionStatus, 
-                                              final IProcessingProgress processingProgress,
+                                              final IProcessingUnitProgress processingProgress,
                                               final IProcessingUnitRuntimeTimeMeasurement runtimeTimeMeasurment,
                                               final IProcessingUnitContext processingUnitContext) {
             if (LOG.isDebugEnabled()) {

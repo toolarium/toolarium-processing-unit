@@ -6,18 +6,15 @@
 package com.github.toolarium.processing.unit.framework;
 
 
-import com.github.toolarium.processing.unit.IProcessStatus;
-import com.github.toolarium.processing.unit.IProcessingPersistence;
-import com.github.toolarium.processing.unit.IProcessingProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
+import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
+import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.ParameterDefinitionBuilder;
+import com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
-import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
-import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
-import com.github.toolarium.processing.unit.runtime.ProcessStatus;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
@@ -44,10 +41,10 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#countNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
+    public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
         this.queue = new LinkedBlockingQueue<String>(getParameterRuntime().getParameterValueList(DATA_FEED_PARAMTER).getValueAsStringList());
         return this.queue.size();
     }
@@ -57,29 +54,32 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    public IProcessStatus processUnit(IProcessingUnitContext processingUnitContext) {
-        ProcessStatus status = super.getProcessStatus();
+    public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) {
+        ProcessingUnitStatusBuilder processingUnitStatusBuilder = new ProcessingUnitStatusBuilder(); 
+
         String val = queue.poll();
         result += "[" + val;
         
-        status.setHasNext(true);
         if (val == null || queue.size() <= 0) {
-            status.setHasNext(false);
-        } 
+            processingUnitStatusBuilder.hasEnded();
+        } else {
+            processingUnitStatusBuilder.hasNext();
+        }
         
         if (val.isEmpty()) {
-            getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
-            getProcessingProgress().setStatusMessage("Empty data");
-            getProcessingProgress().increaseNumberOfFailedUnits();
+            processingUnitStatusBuilder.warn("Empty data");
+            processingUnitStatusBuilder.processingUnitFailed();
+        } else {
+            processingUnitStatusBuilder.processedSuccessful();
         }
-        getProcessingProgress().increaseNumberOfProcessedUnits();
 
-        result += "(" + status + ")]";
-        if (status.hasNext()) {
+        IProcessingUnitStatus processingUnitStatus = processingUnitStatusBuilder.build();
+        result += "(" + processingUnitStatus + ")]";
+        if (processingUnitStatus.hasNext()) {
             result += " | ";
         }
 
-        return status;
+        return processingUnitStatus;
     }
 
     
@@ -87,21 +87,18 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#suspendProcessing()
      */
     @Override
-    public IProcessingPersistence suspendProcessing() throws ProcessingException {
+    public IProcessingUnitPersistence suspendProcessing() throws ProcessingException {
         return new ProcessingPersistenceImpl(queue, result);
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(java.util.List, com.github.toolarium.processing.unit.IProcessingProgress, 
-     * com.github.toolarium.processing.unit.IProcessingPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {
-        super.initialize(parameterList, processingUnitContext);
+    public void resumeProcessing(IProcessingUnitPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {
         this.queue = ((ProcessingPersistenceImpl)processingPersistence).getQueue();
         this.result = ((ProcessingPersistenceImpl)processingPersistence).getResult();
-        getProcessingProgress().init(resumeProcessingProgress);
     }
 
 
@@ -120,7 +117,7 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
      *
      * @author patrick
      */
-    static class ProcessingPersistenceImpl implements IProcessingPersistence {
+    static class ProcessingPersistenceImpl implements IProcessingUnitPersistence {
         private static final long serialVersionUID = -3769111865952304752L;
         private LinkedBlockingQueue<String> queue;
         private String result;

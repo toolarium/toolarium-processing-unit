@@ -55,10 +55,7 @@ The implementation is simpler to use the abstract class (see the sample below).
 ```java
 public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
-    public static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
-            new ParameterDefinition("inputFilename", ParameterValueType.STRING,
-                                    ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
-                                    ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
+    public static final  ParameterDefinition INPUT_FILENAME_PARAMETER = new ParameterDefinitionBuilder().name("inputFilename").isMandatory().description("The filename incl. path to read in a file.").build();
 
     
     /**
@@ -70,10 +67,10 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
     
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#countNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
+    public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
         // check how many entries we have to process, e.g. counting database records to process
         // it will be called just once, the first time before start processing
         // this number will be set in getProcessingProgress().setNumberOfUnitsToProcess(...) 
@@ -85,26 +82,26 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    public IProcessStatus processUnit(IProcessingUnitContext processingUnitContext) throws ProcessingException {
-        
+    public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) throws ProcessingException {
+        ProcessingUnitStatusBuilder processingUnitStatusBuilder = new ProcessingUnitStatusBuilder(); 
+
         // This is the main part where the processing takes place
-        
-        // During a processing step status message can be returned, a status SUCCESSFUL, WARN or ERROR can be set
-        //getProcessingProgress().setStatusMessage("Warning sample");
-        //getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
 
-        // Support of additional statistic:
-        //getProcessingProgress().addStatistic("counter", 1d);
+        // In case of successful processing
+        processingUnitStatusBuilder.processedSuccessful();
+        
+        // other wise if it was failed
+        //processingUnitStatusBuilder.processingUnitFailed();
 
-        // Increase the number of processed units
-        getProcessingProgress().increaseNumberOfProcessedUnits();
+        // During a processing step status message can be returned, a status SUCCESSFUL, WARN or ERROR. Additional a message can be set
+        //processingUnitStatusBuilder.warn("Warning sample");
+        //processingUnitStatusBuilder.error("Error sample");
+        //processingUnitStatusBuilder.message("Error sample");
+
+        // Support of statistic:
+        //processingUnitStatusBuilder.statistic("counter", 1);
         
-        // If it was failed you can increase the number of failed units
-        //getProcessingProgress().increaseNumberOfFailedUnits();
-        
-        // It is called as long as getProcessStatus().setHasNext is set to false.
-        getProcessStatus().setHasNext(getProcessingProgress().getNumberOfUnprocessedUnits() > 0);
-        return getProcessStatus();
+        return processingUnitStatusBuilder.hasNext(processingProgress).build();
     }
 
     
@@ -121,16 +118,18 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
 
 ### ProcessingUnit Sample with own persistence
 ```java
-public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUnitImpl {
+public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUnitPersistenceImpl<ProcessingUnitSampleWithOwnPersistence.SamplePersistence> {
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
-    public static final  ParameterDefinition INPUT_FILENAME_PARAMETER = 
-            new ParameterDefinition("inputFilename", ParameterValueType.STRING,
-                                    ParameterDefinition.NO_DEFAULT_PARAMETER, ParameterDefinition.NOT_OPTIONAL, 1,
-                                    ParameterDefinition.EMPTY_VALUE_NOT_ALLOWED, "The filename incl. path to read in a file.");
+    public static final ParameterDefinition INPUT_FILENAME_PARAMETER = new ParameterDefinitionBuilder().name("inputFilename").isMandatory().description("The filename incl. path to read in a file.").build();
     
-    // our self defined persistence
-    private SamplePersistence persistence;
-
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitPersistenceImpl#newPersistenceInstance()
+     */
+    @Override
+    protected SamplePersistence newPersistenceInstance() {
+        return new SamplePersistence();
+    }
+    
     
     /**
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#initializeParameterDefinition()
@@ -141,10 +140,10 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
     
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#countNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    protected long countNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
+    public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
         // check how many entries we have to process, e.g. counting database records to process
         // it will be called just once, the first time before start processing
         // this number will be set in getProcessingProgress().setNumberOfUnitsToProcess(...) 
@@ -156,26 +155,29 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
      */
     @Override
-    public IProcessStatus processUnit(IProcessingUnitContext processingUnitContext) throws ProcessingException {
-        
+    public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) throws ProcessingException {
+        ProcessingUnitStatusBuilder processingUnitStatusBuilder = new ProcessingUnitStatusBuilder(); 
+
         // This is the main part where the processing takes place
-        
-        // During a processing step status message can be returned, a status SUCCESSFUL, WARN or ERROR can be set
-        //getProcessingProgress().setStatusMessage("Warning sample");
-        //getProcessingProgress().setProcessingRuntimeStatus(ProcessingRuntimeStatus.WARN);
 
-        // Support of additional statistic:
-        //getProcessingProgress().addStatistic("counter", 1d);
+        // In case of successful processing
+        processingUnitStatusBuilder.processedSuccessful();
+        
+        // other wise if it was failed
+        //processingUnitStatusBuilder.processingUnitFailed();
 
-        // Increase the number of processed units
-        getProcessingProgress().increaseNumberOfProcessedUnits();
+        // During a processing step status message can be returned, a status SUCCESSFUL, WARN or ERROR. Additional a message can be set
+        //processingUnitStatusBuilder.warn("Warning sample");
+        //processingUnitStatusBuilder.error("Error sample");
+        //processingUnitStatusBuilder.message("Error sample");
+
+        // Support of statistic:
+        //processingUnitStatusBuilder.statistic("counter", 1);
         
-        // If it was failed you can increase the number of failed units
-        //getProcessingProgress().increaseNumberOfFailedUnits();
+        getProcessingPersistence().setCounter(getProcessingPersistence().getCounter() + 1);
+        getProcessingPersistence().setText("Counter" + getProcessingPersistence().getCounter());
         
-        // It is called as long as getProcessStatus().setHasNext is set to false.
-        getProcessStatus().setHasNext(getProcessingProgress().getNumberOfUnprocessedUnits() > 0);
-        return getProcessStatus();
+        return processingUnitStatusBuilder.hasNext(processingProgress).build();
     }
 
     
@@ -190,37 +192,11 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
     
     
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#suspendProcessing()
-     */
-    @Override
-    public IProcessingPersistence suspendProcessing() throws ProcessingException {
-        return persistence; // in case of a suspend of the processing the self defined persistence we return.
-    }
-
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(java.util.List, com.github.toolarium.processing.unit.IProcessingProgress, 
-     *      com.github.toolarium.processing.unit.IProcessingPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
-     */
-    @Override
-    public void resumeProcessing(List<Parameter> parameterList, IProcessingProgress resumeProcessingProgress, IProcessingPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {        
-        // initialize the parameters
-        super.initialize(parameterList, processingUnitContext); 
-        
-        // set the processing persistence
-        persistence = (SamplePersistence)processingPersistence;
-
-        // initialize previous state
-        getProcessingProgress().init(resumeProcessingProgress);
-    }
-    
-    
-    /**
      * Define sample an own persistence 
      * 
      * @author patrick
      */
-    class SamplePersistence implements IProcessingPersistence {
+    static class SamplePersistence implements IProcessingUnitPersistence {
         private static final long serialVersionUID = -178680376384580300L;
         private String text;
         private int counter;
@@ -261,6 +237,15 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
          */
         public void setCounter(int counter) {
             this.counter = counter;
+        }
+
+        
+        /**
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return "SamplePersistence [text=" + text + ", counter=" + counter + "]";
         }
     }
 }

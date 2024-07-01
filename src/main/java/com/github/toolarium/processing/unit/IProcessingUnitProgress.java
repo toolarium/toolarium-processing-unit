@@ -9,11 +9,11 @@ import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 
 
 /**
- * Defines the processing progress.
+ * Defines the processing unit progress.
  *
  * @author patrick
  */
-public interface IProcessingProgress {
+public interface IProcessingUnitProgress {
 
     /**
      * Get the number of units to process in total.
@@ -56,7 +56,7 @@ public interface IProcessingProgress {
 
 
     /**
-     * The processing runtime status which covers the overall status
+     * The overall processing runtime status.
      *
      * @return the processing status type.
      */
@@ -64,23 +64,9 @@ public interface IProcessingProgress {
 
 
     /**
-     * Returns the current processing status message
-     *
-     * @return the current processing status message
+     * Get the processing unit statistic
+     * 
+     * @return the processing unit statistic
      */
-    String getProcessingStatusMessage();
-
-    
-    /**
-     * Reset the processing status message. This will be called before the processUnit call
-     */
-    void resetProcessingStatusMessage();
-
-    
-    /**
-     * The processing statistic.
-     *
-     * @return the processing statistic.
-     */
-    IProcessingStatistic getProcesingStatistic();
+    IProcessingUnitStatistic getProcesingUnitStatistic();
 }

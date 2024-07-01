@@ -46,20 +46,20 @@ public final class ProcessingUnitTestCaseSample {
         assertEquals(processRunner.run(MyDataProcessingUnit.class, parameterList), TOTAL_UNITS);
 
         assertEquals(processRunner.getSuspendCounter(), 0);
-        assertNotNull(processRunner.getProcessStatus());
+        assertNotNull(processRunner.getProcessingUnitProgress());
         assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());
         assertTrue((processRunner.getProcesingUnit()).getOnSuccessStatus());
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
-        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[counter=3.0, PROCEEDING=130.0, SHA-1=26.0, SHA-256=26.0]");
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessingUnitProgress().getProcesingUnitStatistic(), "[counter=3.0, PROCEEDING=130.0, SHA-1=26.0, SHA-256=26.0]");
         assertNotNull(processRunner.getStatusMessageList());
         assertNotNull(processRunner.getTimeMeasurement().getStartTimestamp());
         assertNotNull(processRunner.getTimeMeasurement().getStopTimestamp());
         assertTrue(processRunner.getTimeMeasurement().getDuration() >= 0);        
     }
 
-    
+
     /**
      * Simple test case with correct
      */
@@ -74,13 +74,13 @@ public final class ProcessingUnitTestCaseSample {
         assertEquals(processRunner.processingUnitContext(processingUnitContext).run(MyDataProcessingUnit.class, parameterList), TOTAL_UNITS);
 
         assertEquals(processRunner.getSuspendCounter(), 0);
-        assertNotNull(processRunner.getProcessStatus());
+        assertNotNull(processRunner.getProcessingUnitProgress());
         assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());
         assertTrue((processRunner.getProcesingUnit()).getOnSuccessStatus());
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
-        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[counter=3.0, PROCEEDING=130.0, SHA-1=26.0, SHA-256=26.0]");
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessingUnitProgress().getProcesingUnitStatistic(), "[counter=3.0, PROCEEDING=130.0, SHA-1=26.0, SHA-256=26.0]");
         assertNotNull(processRunner.getStatusMessageList());
         assertNotNull(processRunner.getTimeMeasurement().getStartTimestamp());
         assertNotNull(processRunner.getTimeMeasurement().getStopTimestamp());
@@ -102,13 +102,13 @@ public final class ProcessingUnitTestCaseSample {
         assertEquals(processRunner.run(MyDataProcessingUnit.class, parameterList), TOTAL_UNITS);
 
         assertEquals(processRunner.getSuspendCounter(), 0);
-        assertNotNull(processRunner.getProcessStatus());
+        assertNotNull(processRunner.getProcessingUnitProgress());
         assertFalse(processRunner.getProcesingUnit().getOnStopStatus());
         assertTrue(processRunner.getProcesingUnit().getOnSuccessStatus());
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
-        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[counter=22.0, MD5=26.0, PROCEEDING=130.0, SHA-1=26.0]");
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessingUnitProgress().getProcesingUnitStatistic(), "[counter=22.0, MD5=26.0, PROCEEDING=130.0, SHA-1=26.0]");
     }
 
 
@@ -125,13 +125,13 @@ public final class ProcessingUnitTestCaseSample {
 
         //assertTrue(processRunner.getSuspendCounter() > (TOTAL_UNITS / randomSuspendIdx - 2));
         //assertTrue(processRunner.getSuspendCounter() < (TOTAL_UNITS / randomSuspendIdx) + 1);
-        assertNotNull(processRunner.getProcessStatus());
+        assertNotNull(processRunner.getProcessingUnitProgress());
         assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());
         assertTrue((processRunner.getProcesingUnit()).getOnSuccessStatus());
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
-        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[counter=3.0, PROCEEDING=130.0, SHA-1=26.0, SHA-256=26.0]");
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessingUnitProgress().getProcesingUnitStatistic(), "[counter=3.0, PROCEEDING=130.0, SHA-1=26.0, SHA-256=26.0]");
         
         assertNotNull(processRunner.getStatusMessageList());
         assertNotNull(processRunner.getTimeMeasurement().getStartTimestamp());
@@ -152,13 +152,13 @@ public final class ProcessingUnitTestCaseSample {
 
         //assertTrue(processRunner.getSuspendCounter() > (TOTAL_UNITS / randomSuspendIdx - 2));
         //assertTrue(processRunner.getSuspendCounter() < (TOTAL_UNITS / randomSuspendIdx) + 1);
-        assertNotNull(processRunner.getProcessStatus());
+        assertNotNull(processRunner.getProcessingUnitProgress());
         assertTrue((processRunner.getProcesingUnit()).getOnStopStatus());
         assertFalse((processRunner.getProcesingUnit()).getOnSuccessStatus());
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), 3);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
-        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[PROCEEDING=15.0, SHA-1=3.0, SHA-256=3.0]");
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 3);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessingUnitProgress().getProcesingUnitStatistic(), "[PROCEEDING=15.0, SHA-1=3.0, SHA-256=3.0]");
     }
 
     
@@ -179,13 +179,13 @@ public final class ProcessingUnitTestCaseSample {
         avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getSleepStatisticCounter().getAverage());
         assertTrue(avg >= 80 && avg <= 90, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
 
-        assertNotNull(processRunner.getProcessStatus());
+        assertNotNull(processRunner.getProcessingUnitProgress());
         assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());
         assertTrue((processRunner.getProcesingUnit()).getOnSuccessStatus());
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), totalUnits);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), totalUnits);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
-        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[counter=3.0, PROCEEDING=500.0, SHA-1=100.0, SHA-256=100.0]");
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), totalUnits);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), totalUnits);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessingUnitProgress().getProcesingUnitStatistic(), "[counter=3.0, PROCEEDING=500.0, SHA-1=100.0, SHA-256=100.0]");
     }
 
     
@@ -207,13 +207,13 @@ public final class ProcessingUnitTestCaseSample {
         avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getSleepStatisticCounter().getAverage());
         assertTrue(avg >= 60 && avg <= 90, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
 
-        assertNotNull(processRunner.getProcessStatus());
+        assertNotNull(processRunner.getProcessingUnitProgress());
         assertFalse((processRunner.getProcesingUnit()).getOnStopStatus());
         assertTrue((processRunner.getProcesingUnit()).getOnSuccessStatus());
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), totalUnits);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), totalUnits);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
-        assertEquals("" + processRunner.getProcessStatus().getProcessingProgress().getProcesingStatistic(), "[counter=3.0, PROCEEDING=500.0, SHA-1=100.0, SHA-256=100.0]");
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), totalUnits);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), totalUnits);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
+        assertEquals("" + processRunner.getProcessingUnitProgress().getProcesingUnitStatistic(), "[counter=3.0, PROCEEDING=500.0, SHA-1=100.0, SHA-256=100.0]");
     }
 
     
@@ -229,10 +229,10 @@ public final class ProcessingUnitTestCaseSample {
         TestProcessingUnitRunner<ProcessingUnitSampleWithOwnPersistence> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithSuspendAndResume(ProcessingUnitSampleWithOwnPersistence.class, parameterList, randomSuspendIdx, 3L, 5, 10L), 10);
         
-        assertNotNull(processRunner.getProcessStatus());
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfUnitsToProcess(), 10);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfProcessedUnits(), 10);
-        assertEquals(processRunner.getProcessStatus().getProcessingProgress().getNumberOfFailedUnits(), 0);
+        assertNotNull(processRunner.getProcessingUnitProgress());
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), 10);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 10);
+        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
     }
 
 

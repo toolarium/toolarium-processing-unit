@@ -1,5 +1,5 @@
 /*
- * IProcessingPersistence.java
+ * IProcessingUnitPersistence.java
  *
  * Copyright by toolarium, all rights reserved.
  */
@@ -13,5 +13,5 @@ import java.io.Serializable;
  *
  * @author patrick
  */
-public interface IProcessingPersistence extends Serializable {
+public interface IProcessingUnitPersistence extends Serializable {
 }
