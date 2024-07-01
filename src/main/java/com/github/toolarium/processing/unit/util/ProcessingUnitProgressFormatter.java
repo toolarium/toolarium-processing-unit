@@ -71,7 +71,10 @@ public class ProcessingUnitProgressFormatter {
                            IBandwidthThrottling processingUnitThrottling,
                            IProcessingUnitPersistence processingPersistence) {
         StringBuilder builder = new StringBuilder();
-        builder.append(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass)).append(": ").append(processingActionStatus);
+        builder.append(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass));
+        if (processingActionStatus != null) {
+            builder.append(": ").append(processingActionStatus);
+        }
         builder.append(prepareProgressNumbers(startTag, processingProgress, true));
         if (processingProgress != null) {
             builder.append(" -> ").append(processingRuntimeStatus);
@@ -329,21 +332,5 @@ public class ProcessingUnitProgressFormatter {
      */
     public String getStartTag() {
         return startTag;
-    }
-
-    
-    /**
-     * Get the time difference formatter
-     * 
-     * @return the time difference formatter
-     */
-    protected TimeDifferenceFormatter getTimeDifferenceFormatter() {
-        TimeDifferenceFormatter formatter = timeDifferenceFormatter.get();
-        if (formatter == null) {
-            formatter = new TimeDifferenceFormatter();
-            timeDifferenceFormatter.set(formatter);
-        }
-        
-        return formatter;
     }
 }

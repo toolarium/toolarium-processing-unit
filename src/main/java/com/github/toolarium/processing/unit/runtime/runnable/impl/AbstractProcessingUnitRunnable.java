@@ -162,7 +162,11 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      */
     @Override
     public ProcessingRuntimeStatus getProcessingRuntimeStatus() {
-        return processingUnitProxy.getProcessingRuntimeStatus();
+        if (processingUnitProxy != null) {
+            return processingUnitProxy.getProcessingRuntimeStatus();
+        }
+        
+        return null;
     }
 
 
@@ -171,7 +175,11 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      */
     @Override
     public List<String> getStatusMessageList() {
-        return processingUnitProxy.getStatusMessageList();
+        if (processingUnitProxy != null) {
+            return processingUnitProxy.getStatusMessageList();
+        }
+        
+        return null;
     }
 
 
@@ -187,7 +195,11 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
              */
             @Override
             public Instant getStartTimestamp() {
-                return processingUnitProxy.getStartTimestamp();
+                if (processingUnitProxy != null) {
+                    return processingUnitProxy.getStartTimestamp();
+                }
+                
+                return null;
             }
 
             
