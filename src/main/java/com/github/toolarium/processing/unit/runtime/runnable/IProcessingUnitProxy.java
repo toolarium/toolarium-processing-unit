@@ -72,6 +72,18 @@ public interface IProcessingUnitProxy {
      */
     boolean processUnit();
 
+    
+    /**
+     * This method is called on ending after a successful end (status ending) before the resources are released. 
+     */
+    void onEnding();
+
+
+    /**
+     * This method is called in case of an abort (status aborting) before the resources are released.
+     */
+    void onAborting();
+
 
     /**
      * Suspends the processing: The processing is able to persist its state with the help of the {@link IProcessingUnitPersistence} object.

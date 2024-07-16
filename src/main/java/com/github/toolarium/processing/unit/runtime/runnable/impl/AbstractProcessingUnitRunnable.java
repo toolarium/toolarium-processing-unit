@@ -15,6 +15,7 @@ import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
+import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitProxy;
@@ -43,6 +44,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     private Instant stopTimestamp;
     private Long duration;
     private TimeDifferenceFormatter timeDifferenceFormatter; 
+    private IEmptyProcessingUnitHandler emptyProcessingUnitHandler;
 
     
     /**
@@ -53,6 +55,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      * @param processingUnitClass the processing unit class
      * @param parameterList the parameter list
      * @param processingUnitContext the processing context.
+     * @param emptyProcessingUnitHandler the empty processing unit handler or null
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
@@ -60,7 +63,8 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
                                           final String name, 
                                           final Class<? extends IProcessingUnit> processingUnitClass,
                                           final List<Parameter> parameterList, 
-                                          final IProcessingUnitContext processingUnitContext) {
+                                          final IProcessingUnitContext processingUnitContext,
+                                          final IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
         if (id != null && !id.isBlank()) {
             this.id = id;
         } else {
@@ -74,7 +78,8 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.processingUnitRunnableListener = null;
         this.stopTimestamp = null;
         this.duration = null;
-        timeDifferenceFormatter = new TimeDifferenceFormatter();
+        this.timeDifferenceFormatter = new TimeDifferenceFormatter();
+        this.emptyProcessingUnitHandler = emptyProcessingUnitHandler;
     }
 
     
@@ -82,12 +87,14 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      * Constructor
      *
      * @param suspendedState the suspended state
+     * @param processingUnitRunnableListener the processing unit runnable listener
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
-    public AbstractProcessingUnitRunnable(final byte[] suspendedState) {
-        ProcessingUnitProxy processingUnitProxy = ProcessingUnitProxy.resume(suspendedState);
-        setProcessingUnitProxy(processingUnitProxy);
+    public AbstractProcessingUnitRunnable(final byte[] suspendedState, IProcessingUnitRunnableListener processingUnitRunnableListener) {
+
+        // initialize the processingUnitProxy
+        setProcessingUnitProxy(ProcessingUnitProxy.resume(suspendedState));
         
         this.id = processingUnitProxy.getId();
         this.name = processingUnitProxy.getName();
@@ -96,7 +103,12 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.processingUnitContext = processingUnitProxy.getProcessingUnitContext();
         this.stopTimestamp = null;
         this.duration = null;
-        timeDifferenceFormatter = new TimeDifferenceFormatter();
+        this.timeDifferenceFormatter = new TimeDifferenceFormatter();
+        this.emptyProcessingUnitHandler = processingUnitProxy.getEmptyProcessingUnitHandler();
+
+        // resume
+        setProcessingUnitRunnableListener(processingUnitRunnableListener);
+        setProcessingActionStatus(ProcessingActionStatus.RESUMING);
     }
 
 
@@ -133,14 +145,26 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      * @param processingActionStatus the processing action status
      */
     protected void setProcessingActionStatus(ProcessingActionStatus processingActionStatus) {
+        ProcessingActionStatus previousProcessingActionStatus = this.processingActionStatus;
         this.processingActionStatus = processingActionStatus;
         
         if (ProcessingActionStatus.ENDED.equals(processingActionStatus) || ProcessingActionStatus.ENDED.equals(processingActionStatus)) {
             duration = getTimeMeasurement().getDuration();
             stopTimestamp = Instant.now();
+            
+            if (getProcessingUnitProxy().getEmptyProcessingUnitHandler() != null) {
+                long emptyProcessingUnitHandlerDuration = getProcessingUnitProxy().getEmptyProcessingUnitHandler().getDuration();
+                if (emptyProcessingUnitHandlerDuration > 0) {
+                    duration -= emptyProcessingUnitHandlerDuration;
+                }
+            }
+            
+            if (duration < 0) {
+                duration = 0L;
+            }
         }
         
-        notifyProcessingUnitState(processingActionStatus);
+        notifyProcessingUnitState(previousProcessingActionStatus, processingActionStatus);
     }
 
     
@@ -249,16 +273,15 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         };
     }
 
-    
-    /**
-     * Get the parameter list
-     *
-     * @return the parameter list
-     */
-    protected  List<Parameter> getParameterList() {
-        return parameterList;
-    }
 
+    /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#getParameterList()
+     */
+    @Override
+    public  List<Parameter> getParameterList() {
+        return parameterList;
+    }   
+    
     
     /**
      * Get the processing unit context
@@ -277,6 +300,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      */
     protected ProcessingUnitProxy createProcessingUnitProxy() {
         processingUnitProxy = ProcessingUnitProxy.init(id, name, processingUnitClass, parameterList, processingUnitContext /* new ProcessingUnitContext(processingUnitContext) */);
+        processingUnitProxy.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
         return processingUnitProxy;
     }
     
@@ -325,15 +349,20 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     /**
      * Notify processing unit action status
      *
+     * @param previousProcessingActionStatus the previous processing action status
      * @param processingActionStatus the processing action status
      */
-    protected void notifyProcessingUnitState(final ProcessingActionStatus processingActionStatus) {
+    protected void notifyProcessingUnitState(final ProcessingActionStatus previousProcessingActionStatus, final ProcessingActionStatus processingActionStatus) {
         if (processingUnitRunnableListener == null) {
             return;
         }
         
         try {
-            processingUnitRunnableListener.notifyProcessingUnitState(getId(), getName(), processingUnitClass.getName(), processingActionStatus, getProcessingUnitProgress(), getTimeMeasurement(), getProcessingUnitContext());
+            String className = "";
+            if (processingUnitClass != null) {
+                className = processingUnitClass.getName();
+            }
+            processingUnitRunnableListener.notifyProcessingUnitState(getId(), getName(), className, previousProcessingActionStatus, processingActionStatus, getProcessingUnitProgress(), getTimeMeasurement(), getProcessingUnitContext());
         } catch (RuntimeException e) {
             LOG.warn("Could not notify the processing unit state to the processing unit runnable listener: " + e.getMessage(), e);
         }

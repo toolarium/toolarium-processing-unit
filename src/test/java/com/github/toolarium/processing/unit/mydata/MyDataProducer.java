@@ -84,4 +84,13 @@ final class MyDataProducer implements IProcessingUnitPersistence {
     public int getSize() {
         return this.queue.size();
     }
+
+    
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "MyDataProducer [queue=" + queue + "]";
+    }
 }

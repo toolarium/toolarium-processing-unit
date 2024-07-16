@@ -5,14 +5,18 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable;
 
+import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
+import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
+import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 import com.github.toolarium.processing.unit.runtime.ProcessingUnitProgress;
+import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,6 +47,7 @@ public class ProcessingUnitPersistenceContainer implements Serializable {
     private Instant startTimestamp;
     private long duration;
     private Long maxNumberOfProcessingUnitCallsPerSecond;
+    private IEmptyProcessingUnitHandler emptyProcessingUnitHandler;
     
     
     /**
@@ -60,6 +65,7 @@ public class ProcessingUnitPersistenceContainer implements Serializable {
      * @param startTimestamp the start time stamp
      * @param duration the actual duration in milliseconds
      * @param maxNumberOfProcessingUnitCallsPerSecond the max number of processing unit calls per seconds
+     * @param emptyProcessingUnitHandler the empty processing unit handler
      */
     public ProcessingUnitPersistenceContainer(String id, // CHECKSTYLE IGNORE THIS LINE
                                               String name,
@@ -72,7 +78,8 @@ public class ProcessingUnitPersistenceContainer implements Serializable {
                                               List<String> processStatusMessageList,
                                               Instant startTimestamp,
                                               long duration,
-                                              Long maxNumberOfProcessingUnitCallsPerSecond) {
+                                              Long maxNumberOfProcessingUnitCallsPerSecond,
+                                              IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
         this.id = id;
         this.name = name;
         this.processingUnitClass = processingUnitClass;
@@ -85,6 +92,7 @@ public class ProcessingUnitPersistenceContainer implements Serializable {
         this.startTimestamp = startTimestamp;
         this.duration = duration;
         this.maxNumberOfProcessingUnitCallsPerSecond = maxNumberOfProcessingUnitCallsPerSecond;
+        this.emptyProcessingUnitHandler = emptyProcessingUnitHandler;
     }
 
     
@@ -206,7 +214,17 @@ public class ProcessingUnitPersistenceContainer implements Serializable {
     public Long getMaxNumberOfProcessingUnitCallsPerSecond() {
         return maxNumberOfProcessingUnitCallsPerSecond;
     }
+
     
+    /**
+     * Get the empty processing unit handler
+     *
+     * @return the empty pprocessing unit handler
+     */
+    public IEmptyProcessingUnitHandler getEmptyProcessingUnitHandler() {
+        return emptyProcessingUnitHandler;
+    }
+
     
     /**
      * Convert the object into a byte array
@@ -253,9 +271,9 @@ public class ProcessingUnitPersistenceContainer implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(duration, id, name, parameterList, processingUnitProgress, processStatusMessageList,
-                processingPersistence, processingRuntimeStatus, processingUnitClass, processingUnitContext,
-                startTimestamp, maxNumberOfProcessingUnitCallsPerSecond);
+        return Objects.hash(duration, emptyProcessingUnitHandler, id, maxNumberOfProcessingUnitCallsPerSecond, name,
+                parameterList, processStatusMessageList, processingPersistence, processingRuntimeStatus,
+                processingUnitClass, processingUnitContext, processingUnitProgress, startTimestamp);
     }
 
 
@@ -277,15 +295,70 @@ public class ProcessingUnitPersistenceContainer implements Serializable {
         }
         
         ProcessingUnitPersistenceContainer other = (ProcessingUnitPersistenceContainer) obj;
-        return duration == other.duration && Objects.equals(id, other.id) && Objects.equals(name, other.name)
-                && Objects.equals(parameterList, other.parameterList)
-                && Objects.equals(processingUnitProgress, other.processingUnitProgress)
+        return duration == other.duration
+                && Objects.equals(emptyProcessingUnitHandler, other.emptyProcessingUnitHandler)
+                && Objects.equals(id, other.id)
+                && Objects.equals(maxNumberOfProcessingUnitCallsPerSecond,
+                        other.maxNumberOfProcessingUnitCallsPerSecond)
+                && Objects.equals(name, other.name) && Objects.equals(parameterList, other.parameterList)
                 && Objects.equals(processStatusMessageList, other.processStatusMessageList)
                 && Objects.equals(processingPersistence, other.processingPersistence)
                 && processingRuntimeStatus == other.processingRuntimeStatus
                 && Objects.equals(processingUnitClass, other.processingUnitClass)
                 && Objects.equals(processingUnitContext, other.processingUnitContext)
-                && Objects.equals(startTimestamp, other.startTimestamp)
-                && Objects.equals(maxNumberOfProcessingUnitCallsPerSecond, other.maxNumberOfProcessingUnitCallsPerSecond);
+                && Objects.equals(processingUnitProgress, other.processingUnitProgress)
+                && Objects.equals(startTimestamp, other.startTimestamp);
+    }
+
+    
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return ProcessingUnitUtil.getInstance().toString(getId(), 
+                getName(), 
+                getProcessingUnitClass().getName(), 
+                getParameterList(), 
+                getProcessingUnitContext(),
+                getProcessingUnitProgress(), 
+                ProcessingActionStatus.SUSPENDED, 
+                getProcessingRuntimeStatus(),
+                getProcessingStatusMessageList(), new IProcessingUnitRuntimeTimeMeasurement() {
+                    /**
+                     * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getStopTimestamp()
+                     */
+                    @Override
+                    public Instant getStopTimestamp() {
+                        return null;
+                    }
+
+                    /**
+                     * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getStartTimestamp()
+                     */
+                    @Override
+                    public Instant getStartTimestamp() {
+                        return startTimestamp;
+                    }
+
+                    /**
+                     * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getDurationAsString()
+                     */
+                    @Override
+                    public String getDurationAsString() {
+                        final TimeDifferenceFormatter timeDifferenceFormatter = new TimeDifferenceFormatter();
+                        return timeDifferenceFormatter.formatAsString(getDuration());
+                    }
+
+                    /**
+                     * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getDuration()
+                     */
+                    @Override
+                    public long getDuration() {
+                        return duration;
+                    }
+                }, 
+                null, 
+                getProcessingPersistence());
     }
 }

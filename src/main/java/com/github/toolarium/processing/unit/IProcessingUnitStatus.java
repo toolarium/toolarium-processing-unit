@@ -6,6 +6,7 @@
 package com.github.toolarium.processing.unit;
 
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
+import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
 
 
 /**
@@ -14,6 +15,7 @@ import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
  * 
  * <p>In general the expectation is to have one record, either successful or failed. If both are null or zero then it will be
  * interpreted as {@link #hasNext()} equals false!   
+ * This behavior can be defined by the {@link IEmptyProcessingUnitHandler}.
  * 
  * @author patrick
  */
@@ -28,15 +30,15 @@ public interface IProcessingUnitStatus {
 
     
     /**
-     * Gets the number of successful units.
-     *
+     * Gets the number of successful units that were processed in the last run.
+     * 
      * @return the number of successful units or null.
      */
     Long getNumberOfSuccessfulUnits();
 
 
     /**
-     * Gets the number of failed units processed in this run.
+     * Gets the number of failed units processed that were failed in the last run.
      *
      * @return the number of failed units or null.
      */
@@ -44,7 +46,7 @@ public interface IProcessingUnitStatus {
     
     
     /**
-     * Optional the number of unprocessed units can be returned.
+     * Optionally, the number of all unprocessed units can be returned.
      *
      * @return the number of unprocessed units.
      */
@@ -52,7 +54,8 @@ public interface IProcessingUnitStatus {
 
 
     /**
-     * The processing runtime status for this run. If it's null then it will be interpreted as successful.
+     * The processing runtime status for this run. If it's null then it will be interpreted as 
+     * successful in the last run.
      *
      * @return the processing runtime status or null
      */
@@ -60,17 +63,18 @@ public interface IProcessingUnitStatus {
 
 
     /**
-     * A return message can be passed. In case it's null then no status message is available.
+     * A return message can be passed back. In case it's null then no status message is available 
+     * in the last run.
      *
      * @return a status message or null
      */
     String getStatusMessage();
-
+    
     
     /**
-     * Get the processing unit statistic just a the last call.
+     * Get the processing unit statistic of the last call.
      *
      * @return the processing unit statistic of last call or null.
      */
-    IProcessingUnitStatistic getProcessingUnitStatistic();
+    IProcessingUnitStatistic getProcessingUnitStatistic();    
 }

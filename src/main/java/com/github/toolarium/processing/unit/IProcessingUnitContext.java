@@ -62,7 +62,7 @@ public interface IProcessingUnitContext {
     
     
     /**
-     * Check if the statistic if empty
+     * Check if the content if empty
      *
      * @return true if it is empty
      */

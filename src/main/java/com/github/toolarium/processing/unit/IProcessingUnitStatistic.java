@@ -15,7 +15,6 @@ import java.util.Set;
  * @author patrick
  */
 public interface IProcessingUnitStatistic {
-
     
     /**
      * Returns the statistic key set
@@ -41,7 +40,7 @@ public interface IProcessingUnitStatistic {
      * @return the value if it was set; otherwise null
      */
     StatisticCounter get(String key);
-    
+
     
     /**
      * Check if the statistic if empty

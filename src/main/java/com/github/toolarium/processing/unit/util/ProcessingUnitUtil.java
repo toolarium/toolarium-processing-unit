@@ -6,7 +6,6 @@
 package com.github.toolarium.processing.unit.util;
 
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
-import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
@@ -16,7 +15,6 @@ import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitPersistenceContainer;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -107,7 +105,7 @@ public final class ProcessingUnitUtil {
      * @param id the id
      * @param name the name
      * @param processingUnitClass the processing unit class
-     * @param processingProgress the progress
+     * @param processingProgress the progressing unit progress
      * @param processingActionStatus the action status
      * @param processingRuntimeStatus the runtime status
      * @return the formatted message
@@ -128,7 +126,7 @@ public final class ProcessingUnitUtil {
      * @param id the id
      * @param name the name
      * @param processingUnitClass the processing unit class
-     * @param processingProgress the progress
+     * @param processingProgress the progressing unit progress
      * @param processingActionStatus the action status
      * @param processingRuntimeStatus the runtime status
      * @param messages the messages
@@ -151,7 +149,7 @@ public final class ProcessingUnitUtil {
      * @param id the id
      * @param name the name
      * @param processingUnitClass the processing unit class
-     * @param processingProgress the progress
+     * @param processingProgress the progressing unit progress
      * @param processingActionStatus the action status
      * @param processingRuntimeStatus the runtime status
      * @param messages the messages
@@ -180,7 +178,7 @@ public final class ProcessingUnitUtil {
      * @param processingUnitClass the processing unit class
      * @param parameters the parameters
      * @param processingUnitContext the processing unit context
-     * @param processingProgress the progress
+     * @param processingProgress the progressing unit progress
      * @param processingActionStatus the action status
      * @param processingRuntimeStatus the runtime status
      * @param messages the messages
@@ -211,7 +209,7 @@ public final class ProcessingUnitUtil {
      * @param processingUnitClass the processing unit class
      * @param parameters the parameters
      * @param processingUnitContext the processing unit context
-     * @param processingProgress the progress
+     * @param processingProgress the progressing unit progress
      * @param processingActionStatus the action status
      * @param processingRuntimeStatus the runtime status
      * @param messages the messages
@@ -255,52 +253,11 @@ public final class ProcessingUnitUtil {
      */
     public String toString(byte[] persistedState) {
         ProcessingUnitPersistenceContainer processingPersistenceContainer = ProcessingUnitPersistenceContainer.toProcessingPersistenceContainer(persistedState);
-        return processingUnitProgressFormatter
-                .toString(processingPersistenceContainer.getId(),
-                        processingPersistenceContainer.getName(),
-                        processingPersistenceContainer.getProcessingUnitClass().getName(),
-                        processingPersistenceContainer.getParameterList(),
-                        processingPersistenceContainer.getProcessingUnitContext(),
-                        processingPersistenceContainer.getProcessingUnitProgress(),
-                        ProcessingActionStatus.SUSPENDED,
-                        processingPersistenceContainer.getProcessingRuntimeStatus(),
-                        processingPersistenceContainer.getProcessingStatusMessageList(),
-                        new IProcessingUnitRuntimeTimeMeasurement() {
-                            /**
-                             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getStopTimestamp()
-                             */
-                            @Override
-                            public Instant getStopTimestamp() {
-                                return null;
-                            }
-
-                            /**
-                             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getStartTimestamp()
-                             */
-                            @Override
-                            public Instant getStartTimestamp() {
-                                return processingPersistenceContainer.getStartTimestamp();
-                            }
-
-                            /**
-                             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getDurationAsString()
-                             */
-                            @Override
-                            public String getDurationAsString() {
-                                final TimeDifferenceFormatter timeDifferenceFormatter = new TimeDifferenceFormatter();
-                                return timeDifferenceFormatter.formatAsString(getDuration());
-                            }
-
-                            /**
-                             * @see com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement#getDuration()
-                             */
-                            @Override
-                            public long getDuration() {
-                                return processingPersistenceContainer.getDuration();
-                            }
-                        }, 
-                        null,
-                        processingPersistenceContainer.getProcessingPersistence());
+        if (processingPersistenceContainer != null) {
+            return processingPersistenceContainer.toString();
+        }
+        
+        return "n/a";
     }
      
     

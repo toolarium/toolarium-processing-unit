@@ -6,7 +6,6 @@
 package com.github.toolarium.processing.unit.mydata;
 
 import com.github.toolarium.common.util.RandomGenerator;
-import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
@@ -28,8 +27,8 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
     public static final String PROCEEDING_KEY = "PROCEEDING";
     public static final double PROCEEDING_BASE_VALUE = 5d;
     private MyDataProducer dataProducer;
-    private boolean onStop;
-    private boolean onSuccess;
+    private boolean onEnding;
+    private boolean onAborting;
 
 
     /**
@@ -37,8 +36,8 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
      */
     @Override
     protected void initializeParameterDefinition() {
-        onStop = false;
-        onSuccess = false;
+        onEnding = false;
+        onAborting = false;
         getParameterRuntime().addParameterDefinition(NUMBER_OF_TESTDATA_RECORDS);
         getParameterRuntime().addParameterDefinition(FILENAME_PARAMETER);
         getParameterRuntime().addParameterDefinition(DEFAULTVALUE_TEST_PARAMETER);
@@ -64,22 +63,21 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess()
      */
     @Override
-    public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException {
+    public long estimateNumberOfUnitsToProcess() throws ProcessingException {
         dataProducer = new MyDataProducer();
         dataProducer.init(getParameterRuntime().getParameterValueList(NUMBER_OF_TESTDATA_RECORDS).getValueAsInteger());
-        return dataProducer.getSize();
+        return getProcessingUnitProgress().setNumberOfUnitsToProcess(dataProducer.getSize());
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder)
      */
     @Override
-    public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) {
-        ProcessingUnitStatusBuilder processingUnitStatusBuilder = new ProcessingUnitStatusBuilder(); 
+    public IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) {
         
         String fileName = "fileName";
         if (getParameterRuntime().existParameter(FILENAME_PARAMETER)) {
@@ -109,8 +107,8 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
             processingUnitStatusBuilder.processedSuccessful();
         }
 
-        if (!processingUnitContext.isEmpty()) {
-            processingUnitContext.set("myId", RandomGenerator.getInstance().createUUID());
+        if (!getProcessingUnitContext().isEmpty()) {
+            getProcessingUnitContext().set("myId", RandomGenerator.getInstance().createUUID());
         }
         
         processingUnitStatusBuilder.statistic(PROCEEDING_KEY, PROCEEDING_BASE_VALUE);
@@ -145,51 +143,51 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.IProcessingUnitPersistence)
      */
     @Override
-    public void resumeProcessing(IProcessingUnitPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {
+    public void resumeProcessing(IProcessingUnitProgress processingUnitProgress, IProcessingUnitPersistence processingPersistence) throws ProcessingException {
+        super.resumeProcessing(processingUnitProgress, processingPersistence);
+        
         // set the processing persistence
         dataProducer = (MyDataProducer)processingPersistence;
     }
 
     
     /**
-     * Gets the on stop status
-     *
-     * @return the status
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#onEnding()
      */
-    public boolean getOnStopStatus() {
-        return onStop;
+    @Override
+    public void onEnding() {
+        onEnding = true;
     }
 
     
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#onStop()
-     */
-    @Override
-    public void onStop() {
-        onStop = true;
-    }
-
-
-
-
-    /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#onSuccess()
-     */
-    @Override
-    public void onSuccess() {
-        onSuccess = true;
-    }
-
-
-    /**
-     * Gets the on success status
+     * Gets the on ending status
      *
      * @return the status
      */
-    public boolean getOnSuccessStatus() {
-        return onSuccess;
+    public boolean getOnEndingStatus() {
+        return onEnding;
+    }
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#onAborting()
+     */
+    @Override
+    public void onAborting() {
+        onAborting = true;
+    }
+
+
+    /**
+     * Gets the on aborting status
+     *
+     * @return the status
+     */
+    public boolean getOnAbortingStatus() {
+        return onAborting;
     }
 }

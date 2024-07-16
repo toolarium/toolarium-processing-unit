@@ -6,8 +6,8 @@
 package com.github.toolarium.processing.unit.base;
 
 import com.github.toolarium.processing.unit.IProcessingUnit;
-import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
+import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 
 
@@ -51,11 +51,13 @@ public abstract class AbstractProcessingUnitPersistenceImpl<T extends IProcessin
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingUnit#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.IProcessingUnitPersistence)
      */
     @SuppressWarnings("unchecked")
     @Override
-    public void resumeProcessing(IProcessingUnitPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {        
+    public void resumeProcessing(IProcessingUnitProgress processingUnitProgress, IProcessingUnitPersistence processingPersistence) throws ProcessingException {
+        super.resumeProcessing(processingUnitProgress, processingPersistence);
+        
         // set the processing persistence
         persistence = (T)processingPersistence;
     }

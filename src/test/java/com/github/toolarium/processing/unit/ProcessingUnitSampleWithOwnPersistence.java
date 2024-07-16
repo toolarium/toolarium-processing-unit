@@ -19,6 +19,7 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
     /** INPUT_FILENAME: input filename parameter. It is not optional. */
     public static final ParameterDefinition INPUT_FILENAME_PARAMETER = new ParameterDefinitionBuilder().name("inputFilename").isMandatory().description("The filename incl. path to read in a file.").build();
     
+    
     /**
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitPersistenceImpl#newPersistenceInstance()
      */
@@ -37,23 +38,19 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
     
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess()
      */
     @Override
-    public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
-        // check how many entries we have to process, e.g. counting database records to process
-        // it will be called just once, the first time before start processing
-        // this number will be set in getProcessingProgress().setNumberOfUnitsToProcess(...) 
-        return 10;
+    public long estimateNumberOfUnitsToProcess() {
+        return getProcessingUnitProgress().setNumberOfUnitsToProcess(10);
     }
     
-    
+
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder)
      */
     @Override
-    public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) throws ProcessingException {
-        ProcessingUnitStatusBuilder processingUnitStatusBuilder = new ProcessingUnitStatusBuilder(); 
+    public IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) throws ProcessingException {
 
         // This is the main part where the processing takes place
 
@@ -74,7 +71,7 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
         getProcessingPersistence().setCounter(getProcessingPersistence().getCounter() + 1);
         getProcessingPersistence().setText("Counter" + getProcessingPersistence().getCounter());
         
-        return processingUnitStatusBuilder.hasNext(processingProgress).build();
+        return processingUnitStatusBuilder.hasNext().build();
     }
 
     
@@ -98,6 +95,14 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
         private String text;
         private int counter;
         
+        
+        /**
+         * Constructor for SamplePersistence
+         */
+        SamplePersistence() {
+        }
+        
+        
         /**
          * Get text
          *
@@ -106,6 +111,7 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
         public String getText() {
             return text;
         }
+        
         
         /**
          * Set text

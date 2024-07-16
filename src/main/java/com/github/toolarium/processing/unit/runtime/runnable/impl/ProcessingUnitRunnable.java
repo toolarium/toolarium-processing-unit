@@ -13,6 +13,7 @@ import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
+import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
@@ -34,6 +35,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
     private byte[] suspendedState = null;
     private IBandwidthThrottling processingUnitThrottling;
     private volatile boolean processingUnitThrottlingInitLogged;
+    private volatile boolean isInterrupted;
 
     
     /**
@@ -45,6 +47,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      * @param parameterList the parameter list
      * @param processingUnitContext the processing context.
      * @param processingUnitRunnableListener the processing unit runnable listener
+     * @param emptyProcessingUnitHandler the empty processing unit handler or null
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
@@ -53,10 +56,12 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                                   Class<? extends IProcessingUnit> processingUnitClass, 
                                   List<Parameter> parameterList, 
                                   IProcessingUnitContext processingUnitContext,
-                                  IProcessingUnitRunnableListener processingUnitRunnableListener) {
-        super(id, name, processingUnitClass, parameterList, processingUnitContext);
-        processingUnitThrottling = null;
-        processingUnitThrottlingInitLogged = false;
+                                  IProcessingUnitRunnableListener processingUnitRunnableListener,
+                                  IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
+        super(id, name, processingUnitClass, parameterList, processingUnitContext, emptyProcessingUnitHandler);
+        this.processingUnitThrottling = null;
+        this.processingUnitThrottlingInitLogged = false;
+        this.isInterrupted = false;
         
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
         setProcessingActionStatus(ProcessingActionStatus.STARTING);
@@ -72,29 +77,9 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
     public ProcessingUnitRunnable(byte[] suspendedState, IProcessingUnitRunnableListener processingUnitRunnableListener) {
-        super(suspendedState);
+        super(suspendedState, processingUnitRunnableListener);
         processingUnitThrottlingInitLogged = false;
-        
-        // resume
-        setProcessingUnitRunnableListener(processingUnitRunnableListener);
-        setProcessingActionStatus(ProcessingActionStatus.RESUMING);
-        ProcessingUnitProxy processingUnitProxy = ProcessingUnitProxy.resume(suspendedState);
-        setProcessingUnitProxy(processingUnitProxy);        
-        setProcessingUnitThrottling(processingUnitProxy.getMaxNumberOfProcessingUnitCallsPerSecond());
-    }
-
-    /**
-     * Create processing unit proxy
-     * 
-     * @return the processing unit proxy
-     */
-    protected ProcessingUnitProxy createProcessingUnitProxy() {
-        ProcessingUnitProxy processingUnitProxy = super.createProcessingUnitProxy();
-        if (processingUnitThrottling != null) {
-            processingUnitProxy.setMaxNumberOfProcessingUnitCallsPerSecond(processingUnitThrottling.getBandwidth());
-        }
-        
-        return processingUnitProxy;
+        setProcessingUnitThrottling(getProcessingUnitProxy().getMaxNumberOfProcessingUnitCallsPerSecond());
     }
 
     
@@ -143,7 +128,6 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      */
     @Override
     public void run() {
-        // && !Thread.currentThread().isInterrupted()
         final String processingInfo;
         
         try {
@@ -152,17 +136,17 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                     throw new ProcessingException("Could not initialize processing!", true);
                 }
                 processingInfo = getProcessingUnitProxy().toString(); 
-                LOG.info("Resumed processing unit " + processingInfo);                
+                LOG.info(processingInfo + " Resumed processing unit");                
             } else {
                 IProcessingUnitProxy processingUnitProxy = createProcessingUnitProxy();
                 if (processingUnitProxy == null) {
                     throw new ProcessingException("Could not initialize processing!", true);
                 }
                 processingInfo = processingUnitProxy.toString();
-                LOG.info("Started processing unit " + processingInfo);
+                LOG.info(processingInfo + " Started processing unit");
             }
 
-            boolean continueProcessing = true;
+            boolean continueProcessing = !isThreadInterrupted();
             boolean exceptionOccured = false;
             while (continueProcessing && !suspend) {
                 if (!ProcessingActionStatus.RUNNING.equals(getProcessingActionStatus())) {
@@ -171,6 +155,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                 
                 try { 
                     continueProcessing = getProcessingUnitProxy().processUnit();
+                    continueProcessing = continueProcessing && !isThreadInterrupted();
                 } catch (RuntimeException e) {
                     continueProcessing = false;
                     exceptionOccured = true;
@@ -204,91 +189,50 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                 if (exceptionOccured || (!continueProcessing && (getProcessingUnitProgress().getNumberOfUnprocessedUnits() > 0))) {
                     setProcessingActionStatus(ProcessingActionStatus.ABORTING);
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Aborting processing unit " + processingInfo);
+                        LOG.debug(processingInfo + " Aborting processing unit");
                     }
-                    getProcessingUnitProxy().getProcessingUnit().onStop();
+                    getProcessingUnitProxy().onAborting();
                     setProcessingActionStatus(ProcessingActionStatus.ABORTED);
                     
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(toString());
                     }
-                    LOG.info("Aborted processing unit " + processingInfo);
+                    LOG.info(processingInfo + " Aborted processing unit");
                 } else {
                     setProcessingActionStatus(ProcessingActionStatus.ENDING);                
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Ending processing unit " + processingInfo);
+                        LOG.debug(processingInfo + " Ending processing unit");
                     }
-                    getProcessingUnitProxy().getProcessingUnit().onSuccess();
+                    getProcessingUnitProxy().onEnding();
                     setProcessingActionStatus(ProcessingActionStatus.ENDED);
                     
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(toString());
                     }
-                    LOG.info("Ended processing unit " + processingInfo);
+                    LOG.info(processingInfo + " Ended processing unit");
                 }
             }
         } finally {
             // release
             if (getProcessingUnitProxy() != null) {
+                if (isInterrupted) {
+                    LOG.info(getProcessingUnitProxy().toString() + " Processing unit thread #" + Thread.currentThread().threadId() + " interrupted!");
+                } else {
+                    LOG.debug(getProcessingUnitProxy().toString() + " Processing unit thread #" + Thread.currentThread().threadId() + " ended.");
+                }
+                
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Release resource of processing unit " + getProcessingUnitProxy().toString() + ": " + getProcessingActionStatus());
+                    LOG.debug(getProcessingUnitProxy().toString() + " Release resource of processing unit: " + getProcessingActionStatus());
                 }
                 
                 try {
                     getProcessingUnitProxy().releaseResource();
                 } catch (ProcessingException e) {
-                    LOG.debug("Could not release resource of processing unit " + getProcessingUnitProxy().toString() + ": " + e.getMessage(), e);
-                    LOG.warn("Could not release resource of processing unit " + getProcessingUnitProxy().toString() + ": " + e.getMessage());
+                    LOG.debug(getProcessingUnitProxy().toString() + " Could not release resource of processing unit: " + e.getMessage(), e);
+                    LOG.warn(getProcessingUnitProxy().toString() + " Could not release resource of processing unit: " + e.getMessage());
                 }
             }
         }
-    }
-
-    
-    /**
-     * Throttling the processing if its defined and needed
-     */
-    protected void throttlingProcessing() {
-        try {
-            if (processingUnitThrottling == null) {
-                if (!processingUnitThrottlingInitLogged) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has no throttling delay.");
-                    }
-                }
-                return;
-            }
-    
-            if (!processingUnitThrottlingInitLogged) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " has throttling update interval: " + processingUnitThrottling.getUpdateInterval() + ".");
-                }
-            }
-    
-            long start = System.currentTimeMillis();
-            processingUnitThrottling.bandwidthCheck();
-    
-            long time = System.currentTimeMillis() - start;
-            if (time > processingUnitThrottling.getUpdateInterval()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " waited for " + getTimeDifferenceFormatter().formatAsString(time));
-                }
-            }
-        } finally {
-            if (!processingUnitThrottlingInitLogged) {
-                processingUnitThrottlingInitLogged = true;
-            }
-        }
-    }
-
-    
-    /**
-     * Get the processing unit throttling
-     *
-     * @return the processing unit throttling
-     */
-    protected IBandwidthThrottling getProcessingUnitThrottling() {
-        return processingUnitThrottling;
     }
 
 
@@ -308,5 +252,77 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                                                          getStatusMessageList(), 
                                                          getTimeMeasurement(), 
                                                          getProcessingUnitThrottling());
+    }
+
+    
+    /**
+     * Create processing unit proxy
+     * 
+     * @return the processing unit proxy
+     */
+    protected ProcessingUnitProxy createProcessingUnitProxy() {
+        ProcessingUnitProxy processingUnitProxy = super.createProcessingUnitProxy();
+        if (processingUnitThrottling != null) {
+            processingUnitProxy.setMaxNumberOfProcessingUnitCallsPerSecond(processingUnitThrottling.getBandwidth());
+        }
+        
+        return processingUnitProxy;
+    }
+
+    
+    /**
+     * Throttling the processing if its defined and needed
+     */
+    protected void throttlingProcessing() {
+        try {
+            if (processingUnitThrottling == null) {
+                if (!processingUnitThrottlingInitLogged) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " Has no throttling delay.");
+                    }
+                }
+                return;
+            }
+    
+            if (!processingUnitThrottlingInitLogged) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " Has throttling update interval: " + processingUnitThrottling.getUpdateInterval() + ".");
+                }
+            }
+    
+            long start = System.currentTimeMillis();
+            processingUnitThrottling.bandwidthCheck();
+    
+            long time = System.currentTimeMillis() - start;
+            if (time > processingUnitThrottling.getUpdateInterval()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " Waited for " + getTimeDifferenceFormatter().formatAsString(time));
+                }
+            }
+        } finally {
+            if (!processingUnitThrottlingInitLogged) {
+                processingUnitThrottlingInitLogged = true;
+            }
+        }
+    }
+
+    
+    /**
+     * Get the processing unit throttling
+     *
+     * @return the processing unit throttling
+     */
+    protected IBandwidthThrottling getProcessingUnitThrottling() {
+        return processingUnitThrottling;
+    }
+
+    
+    /**
+     * Check if it is interrupted
+     *
+     * @return true if it is interrupted
+     */
+    protected boolean isThreadInterrupted() {
+        return Thread.currentThread().isInterrupted() || isInterrupted;
     }
 }

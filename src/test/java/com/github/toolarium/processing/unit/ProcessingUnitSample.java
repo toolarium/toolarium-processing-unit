@@ -29,24 +29,19 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
     
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess()
      */
     @Override
-    public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
-        // check how many entries we have to process, e.g. counting database records to process
-        // it will be called just once, the first time before start processing
-        // this number will be set in getProcessingProgress().setNumberOfUnitsToProcess(...) 
-        return 10;
+    public long estimateNumberOfUnitsToProcess() {
+        return getProcessingUnitProgress().setNumberOfUnitsToProcess(10);
     }
     
-    
+
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder)
      */
     @Override
-    public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) throws ProcessingException {
-        ProcessingUnitStatusBuilder processingUnitStatusBuilder = new ProcessingUnitStatusBuilder(); 
-
+    public IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) throws ProcessingException {
         // This is the main part where the processing takes place
 
         // In case of successful processing
@@ -63,7 +58,7 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
         // Support of statistic:
         //processingUnitStatusBuilder.statistic("counter", 1);
         
-        return processingUnitStatusBuilder.hasNext(processingProgress).build();
+        return processingUnitStatusBuilder.hasNext().build();
     }
 
     

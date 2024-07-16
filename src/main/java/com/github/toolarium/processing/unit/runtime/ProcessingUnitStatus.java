@@ -7,7 +7,6 @@ package com.github.toolarium.processing.unit.runtime;
 
 
 import com.github.toolarium.common.statistic.StatisticCounter;
-import com.github.toolarium.processing.unit.IProcessingUnitStatistic;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import java.io.Serializable;
@@ -214,7 +213,7 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
      * @see com.github.toolarium.processing.unit.IProcessingUnitStatus#getProcessingUnitStatistic()
      */
     @Override
-    public IProcessingUnitStatistic getProcessingUnitStatistic() {
+    public ProcessingUnitStatistic getProcessingUnitStatistic() {
         return processingUnitStatistic;
     }
     
@@ -230,13 +229,7 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
             return;
         }
         
-        if (processingUnitStatistic == null) {
-            processingUnitStatistic = new ProcessingUnitStatistic();
-        }
-        
-        StatisticCounter statisticCounter = getStatisticCounter(key);
-        statisticCounter.add(value);
-        processingUnitStatistic.put(key, statisticCounter);
+        getStatisticCounter(key).add(value);
     }
 
     
@@ -251,9 +244,22 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
             return;
         }
         
-        StatisticCounter statisticCounter = getStatisticCounter(key);
-        statisticCounter.add(value);
-        processingUnitStatistic.put(key, statisticCounter);
+        getStatisticCounter(key).add(value);
+    }
+
+    
+    /**
+     * Add statistic
+     *
+     * @param key the key / name of the statistic
+     * @param statisticCounter statistic counter
+     */
+    public void addStatistic(String key, StatisticCounter statisticCounter) {
+        if (key == null || key.isBlank() || statisticCounter == null) {
+            return;
+        }
+        
+        getStatisticCounter(key).add(statisticCounter);
     }
 
     
@@ -272,13 +278,7 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
             processingUnitStatistic = new ProcessingUnitStatistic();
         }
         
-        StatisticCounter statisticCounter = processingUnitStatistic.get(key);
-        if (statisticCounter == null) {
-            statisticCounter = new StatisticCounter();
-            processingUnitStatistic.add(key, statisticCounter);
-        }
-
-        return statisticCounter;
+        return processingUnitStatistic.getOrAdd(key);
     }
 
     

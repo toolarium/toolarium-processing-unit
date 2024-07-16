@@ -6,7 +6,6 @@
 package com.github.toolarium.processing.unit.framework;
 
 
-import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
@@ -41,21 +40,20 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess()
      */
     @Override
-    public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
+    public long estimateNumberOfUnitsToProcess() {
         this.queue = new LinkedBlockingQueue<String>(getParameterRuntime().getParameterValueList(DATA_FEED_PARAMTER).getValueAsStringList());
-        return this.queue.size();
+        return getProcessingUnitProgress().setNumberOfUnitsToProcess(this.queue.size());
     }
 
-    
+
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder)
      */
     @Override
-    public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) {
-        ProcessingUnitStatusBuilder processingUnitStatusBuilder = new ProcessingUnitStatusBuilder(); 
+    public IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) {
 
         String val = queue.poll();
         result += "[" + val;
@@ -93,10 +91,11 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.IProcessingUnitPersistence)
      */
     @Override
-    public void resumeProcessing(IProcessingUnitPersistence processingPersistence, IProcessingUnitContext processingUnitContext) throws ProcessingException {
+    public void resumeProcessing(IProcessingUnitProgress processingUnitProgress, IProcessingUnitPersistence processingPersistence) throws ProcessingException {
+        super.resumeProcessing(processingUnitProgress, processingPersistence);
         this.queue = ((ProcessingPersistenceImpl)processingPersistence).getQueue();
         this.result = ((ProcessingPersistenceImpl)processingPersistence).getResult();
     }

@@ -10,7 +10,6 @@ import com.github.toolarium.common.util.RoundUtil;
 import com.github.toolarium.common.util.ThreadUtil;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
-import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.ParameterDefinitionBuilder;
 import com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder;
@@ -60,7 +59,7 @@ public class TestProcessingUnit extends AbstractProcessingUnitPersistenceImpl<Te
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitPersistenceImpl#newPersistenceInstance()
      */
     @Override
-    protected TestPersistence newPersistenceInstance() {
+    protected TestPersistence newPersistenceInstance() {        
         return new TestPersistence();
     }
     
@@ -97,24 +96,24 @@ public class TestProcessingUnit extends AbstractProcessingUnitPersistenceImpl<Te
         if (getParameterRuntime().getParameterValueList(THROW_VALIDATION_EXCEPTION_IN_VALIDATION_PARAMTER).getValueAsBoolean()) {
             throw new ValidationException("Test validation exception in validation.");
         }
-        
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess()
      */
     @Override
-    public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) {
-        return getParameterRuntime().getParameterValueList(NUMBER_OF_UNITS_TO_PROCESS_PARAMETER).getValueAsLong();
+    public long estimateNumberOfUnitsToProcess() {
+        getProcessingPersistence().setToProcess(getParameterRuntime().getParameterValueList(NUMBER_OF_UNITS_TO_PROCESS_PARAMETER).getValueAsLong());
+        return getProcessingPersistence().getToProcess(); 
     }
     
 
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit()
      */
     @Override
-    public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) throws ProcessingException {
+    public IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) throws ProcessingException {
 
         // simulate some doing
         ThreadUtil.getInstance().sleep(getParameterRuntime().getParameterValueList(SLEEP_TIME_BY_A_PROCESSING_PARAMTER).getValueAsLong());
@@ -122,20 +121,29 @@ public class TestProcessingUnit extends AbstractProcessingUnitPersistenceImpl<Te
         // store in persistence
         if (getProcessingPersistence().getRecordId() == null) {
             getProcessingPersistence().setRecordId(UUID.randomUUID().toString());
-            processingUnitContext.set("recordId", getProcessingPersistence().getRecordId());
+            getProcessingUnitContext().set("recordId", getProcessingPersistence().getRecordId());
         }
         getProcessingPersistence().setNumber(RandomGenerator.getInstance().getLongRandom());
-        
+
+        long percentageNumbers = RoundUtil.getInstance().roundToLong(getProcessingPersistence().getToProcess() * 0.1);
+        final boolean allTenPercentageProcessed = (percentageNumbers == 0) 
+                                                  || (getProcessingPersistence().getToProcess() <= 0) 
+                                                  || (percentageNumbers > 0 
+                                                        && getProcessingPersistence().getProcessed() > 0 
+                                                        && getProcessingPersistence().getToProcess() > 0 
+                                                        && (getProcessingPersistence().getProcessed() % percentageNumbers) == 0);
+
         // In case of successful processing
-        ProcessingUnitStatusBuilder processingUnitStatusBuilder = new ProcessingUnitStatusBuilder(); 
         processingUnitStatusBuilder.processedSuccessful();
+        getProcessingPersistence().processed();
         
         // randomly fail units
         final int percentageToFail = getParameterRuntime().getParameterValueList(PERCENTAGE_NUMBER_OF_UNITS_TO_FAIL_PARAMTER).getValueAsInteger();
-        if (processingProgress.getNumberOfProcessedUnits() > 0) {
-            final long num = RoundUtil.getInstance().roundToInt(processingProgress.getNumberOfProcessedUnits() / 100.0 * percentageToFail);
-            if (num < processingProgress.getNumberOfFailedUnits() && RandomGenerator.getInstance().getBooleanRandom()) {
+        if (getProcessingPersistence().getProcessed() > 0) {
+            final long num = RoundUtil.getInstance().roundToInt(getProcessingPersistence().getProcessed() / 100.0 * percentageToFail);
+            if (num < getProcessingPersistence().getFailed() && RandomGenerator.getInstance().getBooleanRandom()) {
                 processingUnitStatusBuilder.processingUnitFailed();
+                getProcessingPersistence().failed();
             }
         }
         
@@ -148,10 +156,6 @@ public class TestProcessingUnit extends AbstractProcessingUnitPersistenceImpl<Te
             }
         }
 
-        long toProcess = processingProgress.getNumberOfUnitsToProcess();
-        long processed = processingProgress.getNumberOfProcessedUnits();
-        long percentageNumbers = RoundUtil.getInstance().roundToLong(toProcess * 0.1);
-        boolean allTenPercentageProcessed = (percentageNumbers == 0) || toProcess <= 0 || (percentageNumbers > 0 && processed > 0 && toProcess > 0 && (processed % percentageNumbers) == 0);
         if (allTenPercentageProcessed)  {
             if (getParameterRuntime().getParameterValueList(THROW_RUNTIME_EXCEPTION_PARAMTER).getValueAsBoolean()) {
                 throw new RuntimeException("Test runtime exception in processing.");
@@ -168,7 +172,7 @@ public class TestProcessingUnit extends AbstractProcessingUnitPersistenceImpl<Te
             }
         }
         
-        return processingUnitStatusBuilder.hasNext(processingProgress).build();
+        return processingUnitStatusBuilder.hasNext(getProcessingPersistence().getToProcess() > getProcessingPersistence().getProcessed()).build();
     }
 
 
@@ -179,10 +183,69 @@ public class TestProcessingUnit extends AbstractProcessingUnitPersistenceImpl<Te
      */
     static class TestPersistence implements IProcessingUnitPersistence {
         private static final long serialVersionUID = -178680376384580300L;
+        private long toProcess = 0;
+        private long processed = 0;
+        private long failed = 0;
+
         private String recordId;
         private long number;
+
+
+        /**
+         * Get the number to process
+         *
+         * @return the number to process
+         */
+        long getToProcess() {
+            return toProcess;
+        }
+
+        
+        /**
+         * Set the number to process
+         * @param toProcess the number to process
+         */
+        public void setToProcess(long toProcess) {
+            this.toProcess = toProcess;
+        }
+
+        
+        /**
+         * Get the number of processed unit
+         *
+         * @return the number of processed unit
+         */
+        long getProcessed() {
+            return processed;
+        }
+
+        
+        /**
+         * Get the number of failed processed unit
+         *
+         * @return the number of failed processed unit
+         */
+        long getFailed() {
+            return failed;
+        }
+
+        
+        /**
+         * Mark as processed
+         */
+        void processed() {
+            processed++;
+        }
         
         
+        /**
+         * Mark as failed
+         */
+        public void failed() {
+            failed++;
+        }
+
+
         /**
          * Get the record id
          *

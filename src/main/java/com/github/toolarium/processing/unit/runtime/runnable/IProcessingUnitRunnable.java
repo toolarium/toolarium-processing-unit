@@ -6,6 +6,7 @@
 package com.github.toolarium.processing.unit.runtime.runnable;
 
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
+import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
@@ -36,6 +37,14 @@ public interface IProcessingUnitRunnable {
 
     
     /**
+     * Get the processing parameter list.
+     *
+     * @return the processing parameter list
+     */
+    List<Parameter> getParameterList();
+
+    
+    /**
      * Get the processing action status
      * 
      * @return the processing action status
@@ -46,10 +55,10 @@ public interface IProcessingUnitRunnable {
     /**
      * Get the processing unit progress
      *
-     * @return the process status
+     * @return the process unit progress
      */
     IProcessingUnitProgress getProcessingUnitProgress();
-    
+
     
     /**
      * Get the processing runtime status

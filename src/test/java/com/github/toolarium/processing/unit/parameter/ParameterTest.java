@@ -8,10 +8,9 @@ package com.github.toolarium.processing.unit.parameter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.github.toolarium.processing.unit.IProcessingUnitContext;
-import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.ParameterDefinitionBuilder;
+import com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
@@ -70,20 +69,20 @@ public class ParameterTest {
 
 
         /**
-         * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess(com.github.toolarium.processing.unit.IProcessingUnitContext)
+         * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#estimateNumberOfUnitsToProcess()
          */
         @Override
-        public long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException {
+        public long estimateNumberOfUnitsToProcess() throws ProcessingException {
             return 0;
         }
 
 
         /**
-         * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.IProcessingUnitContext)
+         * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#processUnit(com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder)
          */
         @Override
-        public IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) throws ProcessingException {
-            return null;
+        public IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) throws ProcessingException {
+            return processingUnitStatusBuilder.build();
         }
     }
 }

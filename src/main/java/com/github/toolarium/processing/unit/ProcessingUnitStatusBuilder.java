@@ -5,7 +5,9 @@
  */
 package com.github.toolarium.processing.unit;
 
+import com.github.toolarium.common.statistic.StatisticCounter;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
+import com.github.toolarium.processing.unit.runtime.ProcessingUnitProgress;
 import com.github.toolarium.processing.unit.runtime.ProcessingUnitStatus;
 
 
@@ -15,14 +17,26 @@ import com.github.toolarium.processing.unit.runtime.ProcessingUnitStatus;
  * @author patrick
  */
 public class ProcessingUnitStatusBuilder {
+    private ProcessingUnitProgress processingUnitProgress;
     private ProcessingUnitStatus processingUnitStatus;
-    
     
     /**
      * Constructor for ProcessingUnitStatusBuilder
      */
     public ProcessingUnitStatusBuilder() {
-        processingUnitStatus = new ProcessingUnitStatus();
+        this.processingUnitProgress = new ProcessingUnitProgress();
+        this.processingUnitStatus = new ProcessingUnitStatus();
+    }
+
+    
+    /**
+     * Constructor for ProcessingUnitStatusBuilder
+     *
+     * @param processingUnitProgress the processing unit progress
+     */
+    public ProcessingUnitStatusBuilder(ProcessingUnitProgress processingUnitProgress) {
+        this.processingUnitProgress = processingUnitProgress;
+        this.processingUnitStatus = new ProcessingUnitStatus();
     }
 
     
@@ -32,7 +46,7 @@ public class ProcessingUnitStatusBuilder {
      * @return this instance
      */
     public ProcessingUnitStatusBuilder hasNext() {
-        processingUnitStatus.setHasNext(true);
+        this.processingUnitStatus.setHasNext(processingUnitProgress.getNumberOfUnprocessedUnits() > 1);
         return this;
     }
 
@@ -40,11 +54,11 @@ public class ProcessingUnitStatusBuilder {
     /**
      * Verify if there are unprocessed processing units
      *
-     * @param processingUnitProgress the processing unit progress
+     * @param hasNext true if there are more units to process; otherwise false
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder hasNext(IProcessingUnitProgress processingUnitProgress) {
-        processingUnitStatus.setHasNext(processingUnitProgress.getNumberOfUnprocessedUnits() > 1);
+    public ProcessingUnitStatusBuilder hasNext(boolean hasNext) {
+        this.processingUnitStatus.setHasNext(hasNext);
         return this;
     }
 
@@ -55,7 +69,7 @@ public class ProcessingUnitStatusBuilder {
      * @return this instance
      */
     public ProcessingUnitStatusBuilder hasEnded() {
-        processingUnitStatus.setHasNext(false);
+        this.processingUnitStatus.setHasNext(false);
         return this;
     }
 
@@ -205,6 +219,19 @@ public class ProcessingUnitStatusBuilder {
         return this;
     }
 
+    
+    /**
+     * Add a statistic value 
+     *
+     * @param key the statistic key
+     * @param statisticCounter the statistic counter to add
+     * @return this instance
+     */
+    public ProcessingUnitStatusBuilder statistic(String key, StatisticCounter statisticCounter) {
+        processingUnitStatus.addStatistic(key, statisticCounter);
+        return this;
+    }
+
 
     /**
      * Build the processing unit status
@@ -212,6 +239,7 @@ public class ProcessingUnitStatusBuilder {
      * @return the processing unit status
      */
     public IProcessingUnitStatus build() {
+        processingUnitProgress.addProcessingUnitStatus(processingUnitStatus);
         return processingUnitStatus;
     }
 

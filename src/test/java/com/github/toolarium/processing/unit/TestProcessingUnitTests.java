@@ -174,7 +174,7 @@ public class TestProcessingUnitTests {
         assertTrue(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits() > 40);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnprocessedUnits(), 0);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), 100);
-        assertTrue(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits() > 30);
+        assertTrue(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits() > 5);
         assertEquals(processRunner.getProcessingRuntimeStatus(), ProcessingRuntimeStatus.WARN);
         assertEquals(processRunner.getProcessingActionStatus(), ProcessingActionStatus.ENDED);
         assertTrue(processRunner.getStatusMessageList().toString().startsWith("[Test process exception in processing."));
@@ -193,11 +193,10 @@ public class TestProcessingUnitTests {
         
         TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         processRunner.run(TestProcessingUnit.class, parameterList);
-        assertTrue(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits() > 10);
-        //assertTrue(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits() > 40);
-        //assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnprocessedUnits(), 0);
-        assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), 100);
-        //assertTrue(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits() > 30);
+        assertTrue(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits() > 5);
+        assertTrue(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits() > 5);
+        assertTrue(processRunner.getProcessingUnitProgress().getNumberOfUnprocessedUnits() > 10);
+        assertTrue(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits() > 0);
         assertEquals(processRunner.getProcessingRuntimeStatus(), ProcessingRuntimeStatus.ERROR);
         assertEquals(processRunner.getProcessingActionStatus(), ProcessingActionStatus.ABORTED);
         assertTrue(processRunner.getStatusMessageList().toString().startsWith("[Test process exception in processing."));

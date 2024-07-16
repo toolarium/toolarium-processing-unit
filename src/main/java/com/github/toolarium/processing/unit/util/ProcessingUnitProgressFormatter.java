@@ -49,7 +49,7 @@ public class ProcessingUnitProgressFormatter {
      * @param processingUnitClass the processing unit class
      * @param parameters the parameters
      * @param processingUnitContext the processing unit context
-     * @param processingProgress the progress
+     * @param processingProgress the processing unit progress
      * @param processingActionStatus the action status
      * @param processingRuntimeStatus the runtime status
      * @param messages the messages
@@ -73,7 +73,7 @@ public class ProcessingUnitProgressFormatter {
         StringBuilder builder = new StringBuilder();
         builder.append(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass));
         if (processingActionStatus != null) {
-            builder.append(": ").append(processingActionStatus);
+            builder.append(" Status ").append(processingActionStatus);
         }
         builder.append(prepareProgressNumbers(startTag, processingProgress, true));
         if (processingProgress != null) {
@@ -85,8 +85,8 @@ public class ProcessingUnitProgressFormatter {
         builder.append(prepareTimeMeasurement(startTag, timeMeasurement));
         builder.append(prepareMessages(startTag, messages));
         
-        if (processingProgress != null) {
-            builder.append(prepareStatistic(startTag, processingProgress.getProcesingUnitStatistic()));
+        if (processingProgress.getProcessingUnitStatistic() != null) {
+            builder.append(prepareStatistic(startTag, processingProgress.getProcessingUnitStatistic()));
         }
         
         builder.append(prepareBandwidthThrottling(startTag, processingUnitThrottling));

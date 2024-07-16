@@ -56,6 +56,14 @@ public interface IProcessingUnitProgress {
 
 
     /**
+     * Get the progress in percentage
+     *
+     * @return the progress
+     */
+    int getProgress();
+    
+
+    /**
      * The overall processing runtime status.
      *
      * @return the processing status type.
@@ -68,5 +76,5 @@ public interface IProcessingUnitProgress {
      * 
      * @return the processing unit statistic
      */
-    IProcessingUnitStatistic getProcesingUnitStatistic();
+    IProcessingUnitStatistic getProcessingUnitStatistic();
 }

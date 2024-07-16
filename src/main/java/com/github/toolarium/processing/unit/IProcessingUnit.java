@@ -39,7 +39,8 @@ public interface IProcessingUnit {
     
     
     /**
-     * Initializes the processing unit. This will called as first to initialize the processing unit.
+     * Initializes the processing unit. This will called as first to initialize the processing unit. It is also used
+     * when processing is interrupted and resumed. 
      * 
      * @param parameterList the parameter list to run the processing.
      * @param processingUnitContext the processing context.
@@ -49,7 +50,7 @@ public interface IProcessingUnit {
     void initialize(List<Parameter> parameterList, IProcessingUnitContext processingUnitContext)
         throws ValidationException, ProcessingException;
 
-    
+        
     /**
      * Estimate the number of units to process. It will be called once after {@link #initialize(List, IProcessingUnitContext)}.
      * It set the the number of units to process in the object {@link IProcessingUnitProgress}. In case there are more elements
@@ -57,38 +58,35 @@ public interface IProcessingUnit {
      * In case of a {@link #resumeProcessing(IProcessingUnitPersistence, IProcessingUnitContext)}
      * it will not be called again.
      * 
-     * @param processingUnitContext the processing context.
      * @return returns the number of units to process
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
-    long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException;
+    long estimateNumberOfUnitsToProcess() throws ProcessingException;
     
     
     /**
      * Process unit: This method will be called until the {@link IProcessingUnitStatus#hasNext} returns false.
      * Important: this method have to process the sequential or in a small block size.
      *
-     * @param processingProgress the processing progress
-     * @param processingUnitContext the processing unit context.
-     * @return the process status
+     * @return the process unit status
      * @throws ProcessingException In case of any failures occurs.
      */
-    IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext)
+    IProcessingUnitStatus processUnit()
         throws ProcessingException;
-
-
-    /**
-     * This method will be called after a success end.
-     */
-    void onSuccess();
-
-
-    /**
-     * This method will be called in case on a stop before.
-     */
-    void onStop();
-
     
+
+    /**
+     * This method is called on ending after a successful end (status ending) before the resources are released. 
+     */
+    void onEnding();
+
+
+    /**
+     * This method is called in case of an abort (status aborting) before the resources are released.
+     */
+    void onAborting();
+    
+
     /**
      * Release resources will be called to release all internal referenced resources after a processing success, error 
      * or by a <code>suspendProcessing</code> (see method below). It will be called after <code>onSuccess</code> 
@@ -103,6 +101,7 @@ public interface IProcessingUnit {
     /**
      * Suspends the processing: The processing is able to persist its state with the help of the {@link IProcessingUnitPersistence} object.
      * On a resume this instance of the {@link IProcessingUnitPersistence} will be returned (see method below). 
+     * The {@link IProcessingUnitPersistence} don't need to contain any parameters or additional statuses. They are covered by the framework.
      *
      * @return the processing persistence which contains all information to resume processing later (see resumeProcessing).
      * @throws ProcessingException Throws this exception in case of while suspend the processing any failures occurs.
@@ -113,12 +112,12 @@ public interface IProcessingUnit {
 
     /**
      * After suspending a processing unit can be resumed. The parameter list of the initialization is passed as well the {@link IProcessingUnitPersistence}
-     * which was returned by the suspendProcessing method.
+     * which was returned by the suspendProcessing method. The main purpose of this call is to set the processing persistence.
      *
+     * @param processingUnitProgress the processing unit progress of the processing unit before suspending.
      * @param processingPersistence the processing persistence to resume after suspending.
-     * @param processingUnitContext the processing unit context
      * @throws ProcessingException Throws this exception in case of while resume the processing any failures occurs.
      */
-    void resumeProcessing(IProcessingUnitPersistence processingPersistence, IProcessingUnitContext processingUnitContext)
+    void resumeProcessing(IProcessingUnitProgress processingUnitProgress, IProcessingUnitPersistence processingPersistence)
         throws ProcessingException;
 }

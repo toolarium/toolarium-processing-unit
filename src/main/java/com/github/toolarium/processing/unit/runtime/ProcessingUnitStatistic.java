@@ -45,7 +45,7 @@ public class ProcessingUnitStatistic implements IProcessingUnitStatistic, Serial
         
         if (processingStatistic != null) {
             for (String key : processingStatistic.keySet()) {
-                put(key, processingStatistic.get(key));
+                put(key, processingStatistic.get(key).clone());
             }
         }
     }
@@ -81,24 +81,81 @@ public class ProcessingUnitStatistic implements IProcessingUnitStatistic, Serial
 
     
     /**
+     * Get or add a statistic counter
+     *
+     * @param key the key
+     * @return the statistic counter
+     * @throws IllegalArgumentException In case of an invalid key
+     */
+    public StatisticCounter getOrAdd(String key) {
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Invalid key!");
+        }
+
+        if (hasKey(key)) {
+            return statisticData.get(key);
+        }
+        
+        synchronized (statisticData) {
+            StatisticCounter statisticCounter = statisticData.get(key);
+            if (statisticCounter == null) {
+                statisticCounter = new StatisticCounter();
+                statisticData.put(key, statisticCounter);
+            }
+
+            return statisticCounter;
+        }
+    }
+
+    
+    /**
+     * Add a value to the statistic counter
+     *
+     * @param key the key / name of the statistic
+     * @param value the value to add
+     * @return this instance
+     */
+    public ProcessingUnitStatistic add(String key, Long value) {
+        if (value == null) {
+            return this;
+        }
+        
+        getOrAdd(key).add(value);
+        return this;
+    }
+
+
+    /**
+     * Add a value to the statistic counter
+     *
+     * @param key the key / name of the statistic
+     * @param value the value to add
+     * @return this instance
+     */
+    public ProcessingUnitStatistic add(String key, Double value) {
+        if (value == null) {
+            return this;
+        }
+        
+        getOrAdd(key).add(value);
+        return this;
+    }
+
+    
+    /**
      * Add a statistic counter
      *
      * @param key the key
      * @param statisticCounterToAdd the statistic counter to add
+     * @return this instance
      */
-    public void add(String key, StatisticCounter statisticCounterToAdd) {
-        if (key == null || key.isBlank() || statisticCounterToAdd == null) {
-            return;
+    public ProcessingUnitStatistic add(String key, final StatisticCounter statisticCounterToAdd) {
+        if (statisticCounterToAdd == null) {
+            return this;
         }
-        
-        StatisticCounter statisticCounter = statisticData.get(key);
-        if (statisticCounter == null) {
-            statisticCounter = new StatisticCounter();
-            statisticData.put(key, statisticCounter);
-        }
-        
-        statisticCounter.add(statisticCounterToAdd);
-        statisticData.put(key, statisticCounter);
+
+        getOrAdd(key).add(statisticCounterToAdd);
+        return this;
     }
 
 
@@ -109,7 +166,7 @@ public class ProcessingUnitStatistic implements IProcessingUnitStatistic, Serial
      * @param value the statistic value
      * @return the previous set statistic value; otherwise null
      */
-    public StatisticCounter put(String key, StatisticCounter value) {
+    public StatisticCounter put(String key, final StatisticCounter value) {
         return statisticData.put(key, value);
     }
 
@@ -142,7 +199,7 @@ public class ProcessingUnitStatistic implements IProcessingUnitStatistic, Serial
         }
         
         if (obj == null) {
-            return false;           
+            return false;
         }
         
         if (getClass() != obj.getClass()) {
@@ -159,7 +216,7 @@ public class ProcessingUnitStatistic implements IProcessingUnitStatistic, Serial
      */
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder("ProcessingUnitStatistic ");
         result.append("[");
         
         if (!isEmpty()) {

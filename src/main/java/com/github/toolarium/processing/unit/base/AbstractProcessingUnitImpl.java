@@ -10,12 +10,15 @@ import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
+import com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.IParameterRuntime;
+import com.github.toolarium.processing.unit.runtime.IProcessingUnitUpdateProgress;
 import com.github.toolarium.processing.unit.runtime.ParameterRuntime;
+import com.github.toolarium.processing.unit.runtime.ProcessingUnitProgress;
 import java.util.List;
 
 
@@ -26,6 +29,8 @@ import java.util.List;
  */
 public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
     private IParameterRuntime parameterRuntime;
+    private IProcessingUnitContext processingUnitContext;
+    private ProcessingUnitProgress processingUnitProgress;
     
     
     /**
@@ -33,7 +38,9 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
      */
     protected AbstractProcessingUnitImpl() {
         parameterRuntime = new ParameterRuntime();
-    
+        processingUnitContext = null;
+        processingUnitProgress = new ProcessingUnitProgress();
+        
         // intialize the parameter definition
         initializeParameterDefinition();
     }
@@ -74,31 +81,54 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
      */
     @Override
     public void initialize(List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) throws ValidationException, ProcessingException {
+        this.processingUnitContext = processingUnitContext;
         getParameterRuntime().setParameterList(parameterList, processingUnitContext);
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingUnit#processUnit(com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.IProcessingUnit#estimateNumberOfUnitsToProcess()
      */
     @Override
-    public abstract IProcessingUnitStatus processUnit(IProcessingUnitProgress processingProgress, IProcessingUnitContext processingUnitContext) throws ProcessingException;
+    public long estimateNumberOfUnitsToProcess() throws ProcessingException {
+        return getProcessingUnitProgress().getNumberOfUnitsToProcess();
+    }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingUnit#onSuccess()
+     * @see com.github.toolarium.processing.unit.IProcessingUnit#processUnit()
      */
     @Override
-    public void onSuccess() {
+    public IProcessingUnitStatus processUnit() throws ProcessingException {
+        return processUnit(new ProcessingUnitStatusBuilder(processingUnitProgress));
+    }
+
+    
+    /**
+     * Process unit: This method will be called until the {@link IProcessingUnitStatus#hasNext} returns false.
+     * Important: this method have to process the sequential or in a small block size.
+     *
+     * @param processingUnitStatusBuilder the processing unit status builder
+     * @return the process unit status
+     * @throws ProcessingException In case of any failures occurs.
+     */
+    public abstract IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) throws ProcessingException;
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.IProcessingUnit#onEnding()
+     */
+    @Override
+    public void onEnding() {
         // NOP
     }
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingUnit#onStop()
+     * @see com.github.toolarium.processing.unit.IProcessingUnit#onAborting()
      */
     @Override
-    public void onStop() {
+    public void onAborting() {
         // NOP
     }
     
@@ -122,24 +152,14 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingUnit#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitPersistence, com.github.toolarium.processing.unit.IProcessingUnitContext)
+     * @see com.github.toolarium.processing.unit.IProcessingUnit#resumeProcessing(com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.IProcessingUnitPersistence)
      */
     @Override
-    public void resumeProcessing(IProcessingUnitPersistence processingPersistence, IProcessingUnitContext processingUnitContext) 
-            throws ProcessingException {
+    public void resumeProcessing(IProcessingUnitProgress processingUnitProgress, IProcessingUnitPersistence processingPersistence) throws ProcessingException {
+        this.processingUnitProgress = new ProcessingUnitProgress(processingUnitProgress);
     }
 
     
-    /**
-     * Estimate the number of units to process. It will be called once in the process of initialization.
-     * 
-     * @param processingUnitContext the processing context.
-     * @return returns the number of units to process
-     * @throws ProcessingException Throws this exception in case of initialization failures.
-     */
-    public abstract long estimateNumberOfUnitsToProcess(IProcessingUnitContext processingUnitContext) throws ProcessingException;
-
-
     /**
      * Get the parameter runtime information.
      *
@@ -147,5 +167,25 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
      */
     protected IParameterRuntime getParameterRuntime() {
         return parameterRuntime;
+    }
+    
+    
+    /**
+     * Get the process context 
+     *
+     * @return the process context
+     */
+    protected IProcessingUnitContext getProcessingUnitContext() {
+        return processingUnitContext;
+    }
+
+
+    /**
+     * Get the processing unit progress 
+     *
+     * @return the processing unit progress
+     */
+    protected IProcessingUnitUpdateProgress getProcessingUnitProgress() {
+        return processingUnitProgress;
     }
 }

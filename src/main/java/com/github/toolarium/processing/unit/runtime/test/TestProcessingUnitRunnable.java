@@ -12,6 +12,7 @@ import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
+import com.github.toolarium.processing.unit.runtime.runnable.EmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnable;
@@ -39,7 +40,7 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
      * @param processingUnitContext the processing unit context
      */
     protected TestProcessingUnitRunnable(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) {
-        super(null, null, processingUnitClass, parameterList, processingUnitContext, new LogProcessingUnitRunnableListener());
+        super(null, null, processingUnitClass, parameterList, processingUnitContext, new LogProcessingUnitRunnableListener(), new EmptyProcessingUnitHandler());
         this.suspendAfterCycles = null;
         this.numberOfCyclesBeforeStop = null;
     }
@@ -90,19 +91,6 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
         return null;
     }
     
-    
-    /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.impl.AbstractProcessingUnitRunnable#getParameterList()
-     */
-    @Override
-    public List<Parameter> getParameterList() {
-        if (getProcessingUnitProxy() != null) {
-            return getProcessingUnitProxy().getParameterList();
-        }
-        
-        return null;
-    }
-
 
     /**
      * @see com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnable#getProcessingUnitThrottling()
@@ -138,20 +126,28 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
     static class LogProcessingUnitRunnableListener implements IProcessingUnitRunnableListener {
 
         /**
-         * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener#notifyProcessingUnitState(java.lang.String, java.lang.String, java.lang.String, 
-         *      com.github.toolarium.processing.unit.dto.ProcessingActionStatus, com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement, 
-         *      com.github.toolarium.processing.unit.IProcessingUnitContext)
+         * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener#notifyProcessingUnitState(java.lang.String, 
+         *      java.lang.String, java.lang.String, com.github.toolarium.processing.unit.dto.ProcessingActionStatus, com.github.toolarium.processing.unit.dto.ProcessingActionStatus, 
+         *      com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement, com.github.toolarium.processing.unit.IProcessingUnitContext)
          */
         @Override
         public void notifyProcessingUnitState(final String id, 
                                               final String name, 
                                               final String processingUnitClass,
+                                              final ProcessingActionStatus previousProcessingActionStatus,
                                               final ProcessingActionStatus processingActionStatus, 
                                               final IProcessingUnitProgress processingProgress,
                                               final IProcessingUnitRuntimeTimeMeasurement runtimeTimeMeasurment,
                                               final IProcessingUnitContext processingUnitContext) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass) + " status: " + processingActionStatus);
+                String message = "";
+                if (previousProcessingActionStatus != null) {
+                    message = "from " + previousProcessingActionStatus + " -> " + processingActionStatus;
+                } else {
+                    message = "to " + processingActionStatus;
+                }
+                
+                LOG.debug(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass) + " Status changed " + message);
             }
         }
     }
