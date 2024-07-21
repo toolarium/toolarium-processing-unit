@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable;
 
+import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import java.io.Serializable;
 
@@ -22,11 +23,12 @@ public interface IEmptyProcessingUnitHandler extends Serializable {
      *
      * @param id the id 
      * @param name the name
+     * @param processingUnitClass the processing unit class
      * @param threadId the thread id
      * @param processingUnitProgress the processing unit progress
      * @return true to continue or false to abort processing
      */
-    boolean handle(String id, String name, long threadId, IProcessingUnitProgress processingUnitProgress);
+    boolean handle(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress);
     
     
     /**

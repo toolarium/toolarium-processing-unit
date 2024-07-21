@@ -38,10 +38,7 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#initializeParameterDefinition()
      */
     public void initializeParameterDefinition() {
-        System.err.println("2===>"+getParameterRuntime().hashCode());
-
         getParameterRuntime().addParameterDefinition(NUMBER_OF_WORDS); // register parameters
-        System.err.println("2===>"+getParameterRuntime().getParameterValueList(NUMBER_OF_WORDS));
     }
 
     

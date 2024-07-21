@@ -33,7 +33,9 @@ public class ProcessingUnitInstanceManager implements IProcessingUnitInstanceMan
         
         final String processing = ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass);
         try {
-            LOG.info(processing + " Initialize new processing unit instance [" + processingUnitClass + "].");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(processing + " Initialize new processing unit instance [" + processingUnitClass + "].");
+            }
             return ClassInstanceUtil.getInstance().newInstance(processingUnitClass);
         } catch (Exception t) {
             throw new ValidationException("Could not initialize " + processing + ": " + t.getMessage(), t);
@@ -55,7 +57,9 @@ public class ProcessingUnitInstanceManager implements IProcessingUnitInstanceMan
             IProcessingUnit processingUnit;
             
             if (ProcessingUnitUtil.getInstance().isParallelProcessingUnit(processingUnitClass)) {
-                LOG.info(processing + " Initialize new parallel processing unit instance.");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(processing + " Initialize new parallel processing unit instance.");
+                }
                 processingUnit = new ParallelProcessingUnit(id, name, processingUnitClass);
             } else {
                 processingUnit = createProcessingUnitInstance(id, name, processingUnitClass);
@@ -79,7 +83,9 @@ public class ProcessingUnitInstanceManager implements IProcessingUnitInstanceMan
         
         final String processing = ProcessingUnitUtil.getInstance().toString(id, name, processingUnit.getClass().getName());
         try {
-            LOG.info(processing + " Release resource of processing unit instance.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(processing + " Release resource of processing unit instance.");
+            }
             processingUnit.releaseResource();
         } catch (Exception ex) {
             LOG.warn("Could not release resource from " + processing + ": " + ex.getMessage(), ex);

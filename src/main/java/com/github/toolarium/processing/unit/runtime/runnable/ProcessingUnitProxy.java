@@ -312,7 +312,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             // in case there was an empty run...
             if (continueProcessing && processedUnits <= 0) {
                 if (emptyProcessingUnitHandler != null) {
-                    continueProcessing = emptyProcessingUnitHandler.handle(id, name, Thread.currentThread().threadId(), processingUnitProgress);
+                    continueProcessing = emptyProcessingUnitHandler.handle(id, name, processingUnitClass, Thread.currentThread().threadId(), processingUnitProgress);
                 } else {
                     continueProcessing = false;
                 }

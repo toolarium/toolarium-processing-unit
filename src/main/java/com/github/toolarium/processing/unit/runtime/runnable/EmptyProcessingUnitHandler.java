@@ -6,6 +6,7 @@
 package com.github.toolarium.processing.unit.runtime.runnable;
 
 import com.github.toolarium.common.util.ThreadUtil;
+import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
@@ -82,18 +83,18 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler#handle(java.lang.String, java.lang.String, long, com.github.toolarium.processing.unit.IProcessingUnitProgress)
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler#handle(java.lang.String, java.lang.String, java.lang.Class, long, com.github.toolarium.processing.unit.IProcessingUnitProgress)
      */
     @Override
-    public boolean handle(String id, String name, long threadId, IProcessingUnitProgress processingUnitProgress) {
+    public boolean handle(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug(ProcessingUnitUtil.getInstance().toString(id, name, (String)null) + " Detected empty processing unit run (no progress)");
+            LOG.debug(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass) + " Detected empty processing unit run (no progress)");
         }
         
         numberOfEmptyProcessingUnitRuns++;
         
         boolean continueProcessing = false;
-        if (getMaxNumberOfEmptyProcessingUnits() != null && numberOfEmptyProcessingUnitRuns < getMaxNumberOfEmptyProcessingUnits()) {
+        if (getMaxNumberOfEmptyProcessingUnits() == null || numberOfEmptyProcessingUnitRuns < getMaxNumberOfEmptyProcessingUnits()) {
             continueProcessing = true;
             
             if (getSleepTimeAfterEmptyProcessingUnit() != null && getSleepTimeAfterEmptyProcessingUnit() > 0) {
@@ -102,7 +103,7 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
                 duration += System.currentTimeMillis() - start;
             }
         } else {
-            LOG.info(ProcessingUnitUtil.getInstance().toString(id, name, (String)null) + " Detected empty processing unit run (max " + getMaxNumberOfEmptyProcessingUnits() + " reached, aborting)");
+            LOG.info(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass) + " Detected empty processing unit run (max " + getMaxNumberOfEmptyProcessingUnits() + " reached, aborting)");
             continueProcessing = false;
         }
         

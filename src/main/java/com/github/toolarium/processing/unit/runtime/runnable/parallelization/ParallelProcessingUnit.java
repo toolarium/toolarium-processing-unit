@@ -81,6 +81,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     private static final Logger LOG = LoggerFactory.getLogger(ParallelProcessingUnit.class);
     private String id;
     private String name;
+    private String processInfo;
     private Class<? extends IProcessingUnit> processingUnitClass;
     private List<IProcessingUnit> processingUnitList;
     private List<Parameter> processingUnitParameterList;
@@ -105,6 +106,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     public ParallelProcessingUnit(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) {
         this.id = id;
         this.name = name;
+        this.processInfo = ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass); 
         this.processingUnitClass = processingUnitClass;
         this.processingUnitList = null;
         this.processingUnitParameterList = null;
@@ -242,7 +244,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
                 try {
                     processingUnit.onEnding();
                 } catch (RuntimeException e) {
-                    LOG.warn("Could not call onEnding: " + e.getMessage(), e);
+                    LOG.warn(processInfo + " Could not call onEnding: " + e.getMessage(), e);
                 }
             }
         }
@@ -263,7 +265,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
                 try {
                     processingUnit.onAborting();
                 } catch (RuntimeException e) {
-                    LOG.warn("Could not call onAborting: " + e.getMessage(), e);
+                    LOG.warn(processInfo + " Could not call onAborting: " + e.getMessage(), e);
                 }
             }
         }
@@ -293,7 +295,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
             try {
                 objectKockManager.releaseResource();
             } catch (RuntimeException e) {
-                LOG.warn("Could not release resource object lock manager: " + e.getMessage(), e);
+                LOG.warn(processInfo + " Could not release resource object lock manager: " + e.getMessage(), e);
             }
         }
     }
@@ -306,7 +308,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     public IProcessingUnitPersistence suspendProcessing() throws ProcessingException {
         waitForThreadPoolTerminated();
 
-        LOG.info("Start suspend processing units...");
+        LOG.info(processInfo + " Start suspend processing units...");
         for (IProcessingUnit processingUnit : processingUnitList) {
             getProcessingPersistence().addProcessingUnitPersistence(processingUnit.suspendProcessing());
         }
@@ -326,7 +328,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     public void resumeProcessing(IProcessingUnitProgress processingUnitProgress, IProcessingUnitPersistence processingPersistence) throws ProcessingException {
         super.resumeProcessing(processingUnitProgress, processingPersistence);
 
-        LOG.info("Resume all procesing units...");
+        LOG.info(processInfo + " Resume all procesing units...");
         
         if (getProcessingPersistence().getProcessingUnitPersistenceList().size() != processingUnitList.size()) {
             throw new ProcessingException("Can not resume processing unit because of different size: " 
@@ -343,7 +345,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
 
         int i = 0;
         for (IProcessingUnitPersistence processingUnitPersistence : getProcessingPersistence().getProcessingUnitPersistenceList()) {
-            LOG.info("Resume processing unit parallelization thread #" + i + "...");
+            LOG.info(processInfo + " Resume processing unit parallelization thread #" + i + "...");
             processingUnitList.get(i++).resumeProcessing(processingUnitProgress, processingUnitPersistence);
         }
         
@@ -387,7 +389,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      */
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        LOG.error("Uncaught exception in thread (id=" + t.threadId() + ", name=" + t.getName() + "): " + e.getMessage(), e);
+        LOG.error(processInfo + " Uncaught exception in thread (id=" + t.threadId() + ", name=" + t.getName() + "): " + e.getMessage(), e);
         runnerThreadExceptionQueue.offer(e);
     }
     
@@ -484,14 +486,14 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      * Wait for thread pool terminated.
      */
     protected void waitForThreadPoolTerminated() {
-        LOG.info("Interrupt all procesing unit threads...");
+        LOG.info(processInfo + " Interrupt all procesing unit threads...");
         isInterrupted = true;
 
         while (!isThreadPoolTerminated()) {
-            LOG.debug("Wait on threads...");
+            LOG.debug(processInfo + " Wait on threads...");
             ThreadUtil.getInstance().sleep(500L);
         }
-        LOG.info("All threads stopped.");
+        LOG.info(processInfo + " All threads stopped.");
     }
 
     
@@ -506,7 +508,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
 
         if (objectKockManager != null) {
             lastPercentage = percentage;
-            LOG.info("Object lock statistic (progress " + percentage + "%):\n"
+            LOG.info(processInfo + " Object lock statistic (progress " + percentage + "%):\n"
                      + "   lock size average                    : " + prepareAverage(objectKockManager.getLockStatistic()) + "\n"
                      + "   already locked hit size average      : " + prepareAverage(objectKockManager.getIgnoreLockStatistic()) + "\n"
                      + "   blocked to unlocked hit size average : " + prepareAverage(objectKockManager.getUnlockStatistic()) + "\n"
@@ -591,11 +593,17 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     /**
      * Create instance name
      *
-     * @param idx the index
+     * @param instanceId the instance id
      * @return the prepared instance name
      */
     private String createInstanceName(String instanceId) {
-        return new StringBuilder().append(name).append("-#").append(instanceId).toString();
+        StringBuilder builder = new StringBuilder();
+        if (name != null && !name.isBlank()) {
+            builder.append(name).append("-");
+        }
+        
+        builder.append("#").append(instanceId);
+        return builder.toString();
     }
     
 
@@ -641,7 +649,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
          */
         @Override
         public void run() {
-            LOG.info("Start processing unit parallelization thread #" + number + "...");
+            LOG.info(processInfo + " Start processing unit parallelization thread #" + number + "...");
 
             IProcessingUnitStatus processStatus = processingUnit.processUnit();
             processStatusQueue.offer(processStatus);
@@ -660,9 +668,9 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
             }
 
             if (isInterrupted()) {
-                LOG.info("Processing unit parallelization thread #" + number + "  interrupted!");
+                LOG.info(processInfo + "Processing unit parallelization thread #" + number + "  interrupted!");
             } else {
-                LOG.info("Processing unit parallelization thread #" + number + " ended.");
+                LOG.info(processInfo + "Processing unit parallelization thread #" + number + " ended.");
             }
         }
 

@@ -275,10 +275,10 @@ public final class ProcessingUnitUtil {
      */
     public String toString(String id, String name, String processingUnitClass) {
         StringBuilder processing = new StringBuilder().append("Processing ");
-        if (name != null && !name.isBlank()) {
-            processing.append("[").append(name).append("]").append(" - ");
-        }
         processing.append("ID:").append(id);
+        if (name != null && !name.isBlank()) {
+            processing.append(" [").append(name).append("]").append(" -");
+        }
         
         if (processingUnitClass != null) {
             processing.append(" ").append(shortenClassReferenceAsString(processingUnitClass));
