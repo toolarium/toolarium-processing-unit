@@ -12,7 +12,6 @@ import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
-import com.github.toolarium.processing.unit.runtime.runnable.EmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
 import com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitRunnable;
@@ -40,7 +39,7 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
      * @param processingUnitContext the processing unit context
      */
     protected TestProcessingUnitRunnable(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, IProcessingUnitContext processingUnitContext) {
-        super(null, null, processingUnitClass, parameterList, processingUnitContext, new LogProcessingUnitRunnableListener(), new EmptyProcessingUnitHandler());
+        super(null, null, processingUnitClass, parameterList, processingUnitContext, new LogProcessingUnitRunnableListener());
         this.suspendAfterCycles = null;
         this.numberOfCyclesBeforeStop = null;
     }

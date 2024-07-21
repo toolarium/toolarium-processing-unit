@@ -98,7 +98,7 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
             processingUnitStatusBuilder.statistic(COUNTER_PARAMETER.getKey(), getParameterRuntime().getParameterValueList(COUNTER_PARAMETER).getValueAsDouble());
             processingUnitStatusBuilder.statistic(DEFAULTVALUE_TEST_PARAMETER.getKey(), getParameterRuntime().getParameterValueList(DEFAULTVALUE_TEST_PARAMETER).getValueAsDouble());
         } else {
-            processingUnitStatusBuilder.hasNext();
+            processingUnitStatusBuilder.hasNextIfHasUnprocessedUnits();
         }
         
         if (result != null && result.isEmpty()) {

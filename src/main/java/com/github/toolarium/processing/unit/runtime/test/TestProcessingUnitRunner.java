@@ -18,6 +18,7 @@ import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 import com.github.toolarium.processing.unit.runtime.ProcessingUnitContext;
+import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.io.Serializable;
 import java.util.List;
@@ -30,7 +31,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author patrick
  */
-public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Serializable {
+public class TestProcessingUnitRunner implements Serializable {
     private static final long serialVersionUID = 7297801281265114031L;
     private static final Logger LOG = LoggerFactory.getLogger(TestProcessingUnitRunner.class);
     private TestProcessingUnitRunnable processingUnitRunnable;
@@ -180,7 +181,7 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      * @param processingContext the processing context
      * @return this instance
      */
-    public TestProcessingUnitRunner<T> processingUnitContext(IProcessingUnitContext processingContext) {
+    public TestProcessingUnitRunner processingUnitContext(IProcessingUnitContext processingContext) {
         this.processingContext = processingContext;
         return this;
     }
@@ -273,11 +274,12 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
     /**
      * Get the processing unit.
      * IMPORTANT: Only to verify some results
-     *
+     * 
+     * @param <T> the processing unit type
      * @return the processing unit
      */
     @SuppressWarnings("unchecked")
-    public T getProcesingUnit() {
+    public <T extends IProcessingUnit> T getProcesingUnit() {
         if (processingUnitRunnable != null) {
             return (T)processingUnitRunnable.getProcessingUnit();
         }
@@ -303,6 +305,26 @@ public class TestProcessingUnitRunner<T extends IProcessingUnit> implements Seri
      */
     public IBandwidthThrottling getProcessingUnitThrottling() {
         return processingUnitRunnable.getProcessingUnitThrottling();
+    }
+
+    
+    /** 
+     * Get the empty processing unit handler
+     *
+     * @return the empty processing unit handler
+     */
+    public IEmptyProcessingUnitHandler getEmptyProcessingUnitHandler() {
+        return processingUnitRunnable.getEmptyProcessingUnitHandler();
+    }
+
+    
+    /**
+     * Set the empty processing unit handler
+     *
+     * @param emptyProcessingUnitHandler the empty processing unit handler
+     */
+    public void setEmptyProcessingUnitHandler(IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
+        this.processingUnitRunnable.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
     }
 
 

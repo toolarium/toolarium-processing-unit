@@ -42,13 +42,13 @@ public final class ProcessingUnitTestCaseSample {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter("keyNames", "name1", "name2"));
 
-        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.run(MyDataProcessingUnit.class, parameterList), TOTAL_UNITS);
 
         assertEquals(processRunner.getSuspendCounter(), 0);
         assertNotNull(processRunner.getProcessingUnitProgress());
-        assertFalse((processRunner.getProcesingUnit()).getOnAbortingStatus());
-        assertTrue((processRunner.getProcesingUnit()).getOnEndingStatus());
+        assertFalse((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnAbortingStatus());
+        assertTrue((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnEndingStatus());
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
@@ -70,13 +70,13 @@ public final class ProcessingUnitTestCaseSample {
 
         IProcessingUnitContext processingUnitContext = new ProcessingUnitContext();
         processingUnitContext.set("myInputKey", "1234");
-        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.processingUnitContext(processingUnitContext).run(MyDataProcessingUnit.class, parameterList), TOTAL_UNITS);
 
         assertEquals(processRunner.getSuspendCounter(), 0);
         assertNotNull(processRunner.getProcessingUnitProgress());
-        assertFalse((processRunner.getProcesingUnit()).getOnAbortingStatus());
-        assertTrue((processRunner.getProcesingUnit()).getOnEndingStatus());
+        assertFalse((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnAbortingStatus());
+        assertTrue((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnEndingStatus());
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
@@ -98,13 +98,13 @@ public final class ProcessingUnitTestCaseSample {
         parameterList.add(new Parameter("defaultValueTest"));
         parameterList.add(new Parameter("hashNames", "MD5", "SHA-1"));
 
-        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.run(MyDataProcessingUnit.class, parameterList), TOTAL_UNITS);
 
         assertEquals(processRunner.getSuspendCounter(), 0);
         assertNotNull(processRunner.getProcessingUnitProgress());
-        assertFalse(processRunner.getProcesingUnit().getOnAbortingStatus());
-        assertTrue(processRunner.getProcesingUnit().getOnEndingStatus());
+        assertFalse(((MyDataProcessingUnit)processRunner.getProcesingUnit()).getOnAbortingStatus());
+        assertTrue(((MyDataProcessingUnit)processRunner.getProcesingUnit()).getOnEndingStatus());
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
@@ -120,14 +120,14 @@ public final class ProcessingUnitTestCaseSample {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         long randomSuspendIdx = new Random().nextInt(10 - 5 + 1) + 1;
         
-        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithSuspendAndResume(MyDataProcessingUnit.class, parameterList, randomSuspendIdx, 100L, 3), TOTAL_UNITS);
 
         //assertTrue(processRunner.getSuspendCounter() > (TOTAL_UNITS / randomSuspendIdx - 2));
         //assertTrue(processRunner.getSuspendCounter() < (TOTAL_UNITS / randomSuspendIdx) + 1);
         assertNotNull(processRunner.getProcessingUnitProgress());
-        assertFalse((processRunner.getProcesingUnit()).getOnAbortingStatus());
-        assertTrue((processRunner.getProcesingUnit()).getOnEndingStatus());
+        assertFalse((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnAbortingStatus());
+        assertTrue((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnEndingStatus());
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
@@ -147,14 +147,14 @@ public final class ProcessingUnitTestCaseSample {
     public void testProcessingUnitOnStop() {
         List<Parameter> parameterList = new ArrayList<Parameter>();
 
-        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runAndAbort(MyDataProcessingUnit.class, parameterList, 3), 3);
 
         //assertTrue(processRunner.getSuspendCounter() > (TOTAL_UNITS / randomSuspendIdx - 2));
         //assertTrue(processRunner.getSuspendCounter() < (TOTAL_UNITS / randomSuspendIdx) + 1);
         assertNotNull(processRunner.getProcessingUnitProgress());
-        assertTrue((processRunner.getProcesingUnit()).getOnAbortingStatus());
-        assertFalse((processRunner.getProcesingUnit()).getOnEndingStatus());
+        assertTrue((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnAbortingStatus());
+        assertFalse((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnEndingStatus());
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), TOTAL_UNITS);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 3);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
@@ -171,7 +171,7 @@ public final class ProcessingUnitTestCaseSample {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(MyDataProcessingUnitConstants.NUMBER_OF_TESTDATA_RECORDS.getKey(), "" + totalUnits));
 
-        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithThrottling(MyDataProcessingUnit.class, parameterList, 10L), totalUnits);
         
         int avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter().getAverage());
@@ -180,8 +180,8 @@ public final class ProcessingUnitTestCaseSample {
         assertTrue(avg >= 80 && avg <= 90, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
 
         assertNotNull(processRunner.getProcessingUnitProgress());
-        assertFalse((processRunner.getProcesingUnit()).getOnAbortingStatus());
-        assertTrue((processRunner.getProcesingUnit()).getOnEndingStatus());
+        assertFalse((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnAbortingStatus());
+        assertTrue((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnEndingStatus());
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), totalUnits);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), totalUnits);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
@@ -199,7 +199,7 @@ public final class ProcessingUnitTestCaseSample {
         parameterList.add(new Parameter(MyDataProcessingUnitConstants.NUMBER_OF_TESTDATA_RECORDS.getKey(), "" + totalUnits));
 
         long randomSuspendIdx = new Random().nextInt(10 - 5 + 1) + 1;
-        TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithSuspendAndResume(MyDataProcessingUnit.class, parameterList, randomSuspendIdx, 100L, 5, 10L), totalUnits);
         
         int avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter().getAverage());
@@ -208,8 +208,8 @@ public final class ProcessingUnitTestCaseSample {
         assertTrue(avg >= 60 && avg <= 90, "" + processRunner.getProcessingUnitThrottling().getSleepStatisticCounter());
 
         assertNotNull(processRunner.getProcessingUnitProgress());
-        assertFalse((processRunner.getProcesingUnit()).getOnAbortingStatus());
-        assertTrue((processRunner.getProcesingUnit()).getOnEndingStatus());
+        assertFalse((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnAbortingStatus());
+        assertTrue((((MyDataProcessingUnit)processRunner.getProcesingUnit())).getOnEndingStatus());
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfUnitsToProcess(), totalUnits);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), totalUnits);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfFailedUnits(), 0);
@@ -226,7 +226,7 @@ public final class ProcessingUnitTestCaseSample {
         parameterList.add(new Parameter(ProcessingUnitSampleWithOwnPersistence.INPUT_FILENAME_PARAMETER.getKey(), "file"));
 
         long randomSuspendIdx = new Random().nextInt(10 - 5 + 1) + 1;
-        TestProcessingUnitRunner<ProcessingUnitSampleWithOwnPersistence> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithSuspendAndResume(ProcessingUnitSampleWithOwnPersistence.class, parameterList, randomSuspendIdx, 3L, 5, 10L), 10);
         
         assertNotNull(processRunner.getProcessingUnitProgress());
@@ -246,7 +246,7 @@ public final class ProcessingUnitTestCaseSample {
         parameterList.add(new Parameter(MyDataProcessingUnitConstants.COUNTER_PARAMETER.getKey(), "-1"));
         
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            TestProcessingUnitRunner<MyDataProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+            TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
             processRunner.run(MyDataProcessingUnit.class, parameterList);
         });
 
@@ -264,7 +264,7 @@ public final class ProcessingUnitTestCaseSample {
         parameterList.add(new Parameter(ProcessingUnitSample.INPUT_FILENAME_PARAMETER.getKey(), "myFilename"));
         
         // Get a process runner and run the unit test
-        TestProcessingUnitRunner<ProcessingUnitSample> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertTrue(processRunner.run(ProcessingUnitSample.class, parameterList) > 1);
     }
 
@@ -279,7 +279,7 @@ public final class ProcessingUnitTestCaseSample {
         parameterList.add(new Parameter(ProcessingUnitSampleWithOwnPersistence.INPUT_FILENAME_PARAMETER.getKey(), "myFilename"));
         
         // Get a process runner and run the unit test
-        TestProcessingUnitRunner<ProcessingUnitSampleWithOwnPersistence> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.run(ProcessingUnitSampleWithOwnPersistence.class, parameterList), 10);
     }
 }

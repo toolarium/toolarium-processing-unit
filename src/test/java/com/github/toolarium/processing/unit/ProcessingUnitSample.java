@@ -58,7 +58,7 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
         // Support of statistic:
         //processingUnitStatusBuilder.statistic("counter", 1);
         
-        return processingUnitStatusBuilder.hasNext().build();
+        return processingUnitStatusBuilder.hasNextIfHasUnprocessedUnits().build();
     }
 
     

@@ -55,7 +55,6 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      * @param processingUnitClass the processing unit class
      * @param parameterList the parameter list
      * @param processingUnitContext the processing context.
-     * @param emptyProcessingUnitHandler the empty processing unit handler or null
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
@@ -63,8 +62,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
                                           final String name, 
                                           final Class<? extends IProcessingUnit> processingUnitClass,
                                           final List<Parameter> parameterList, 
-                                          final IProcessingUnitContext processingUnitContext,
-                                          final IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
+                                          final IProcessingUnitContext processingUnitContext) {
         if (id != null && !id.isBlank()) {
             this.id = id;
         } else {
@@ -79,7 +77,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.stopTimestamp = null;
         this.duration = null;
         this.timeDifferenceFormatter = new TimeDifferenceFormatter();
-        this.emptyProcessingUnitHandler = emptyProcessingUnitHandler;
+        this.emptyProcessingUnitHandler = null;
     }
 
     
@@ -283,6 +281,26 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     }   
     
     
+    /** 
+     * Get the empty processing unit handler
+     *
+     * @return the empty processing unit handler
+     */
+    public IEmptyProcessingUnitHandler getEmptyProcessingUnitHandler() {
+        return processingUnitProxy.getEmptyProcessingUnitHandler();
+    }
+
+    
+    /**
+     * Set the empty processing unit handler
+     *
+     * @param emptyProcessingUnitHandler the empty processing unit handler
+     */
+    public void setEmptyProcessingUnitHandler(IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
+        processingUnitProxy.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
+    }
+
+    
     /**
      * Get the processing unit context
      *
@@ -300,7 +318,11 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      */
     protected ProcessingUnitProxy createProcessingUnitProxy() {
         processingUnitProxy = ProcessingUnitProxy.init(id, name, processingUnitClass, parameterList, processingUnitContext /* new ProcessingUnitContext(processingUnitContext) */);
-        processingUnitProxy.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
+        
+        if (emptyProcessingUnitHandler != null) {
+            processingUnitProxy.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
+        }
+        
         return processingUnitProxy;
     }
     

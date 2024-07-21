@@ -61,7 +61,7 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
         if (val == null || queue.size() <= 0) {
             processingUnitStatusBuilder.hasEnded();
         } else {
-            processingUnitStatusBuilder.hasNext();
+            processingUnitStatusBuilder.hasNextIfHasUnprocessedUnits();
         }
         
         if (val.isEmpty()) {

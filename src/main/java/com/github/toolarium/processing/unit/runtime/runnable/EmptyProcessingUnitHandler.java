@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
     private static final long serialVersionUID = 506266867959666390L;
     private static final Logger LOG = LoggerFactory.getLogger(EmptyProcessingUnitHandler.class);
-    private long maxNumberOfEmptyProcessingUnits;
-    private long emptyProceessingUnitSleepTime;
+    private Long maxNumberOfEmptyProcessingUnits;
+    private Long emptyProceessingUnitSleepTime;
     private long numberOfEmptyProcessingUnitRuns;
     private long duration;
     
@@ -31,7 +31,7 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
      * Constructor for EmptyProcessingUnitHandler
      */
     public EmptyProcessingUnitHandler() {
-        maxNumberOfEmptyProcessingUnits = 10;
+        maxNumberOfEmptyProcessingUnits = 10L;
         emptyProceessingUnitSleepTime = 500L;
         numberOfEmptyProcessingUnitRuns = 0L;
         duration = 0L;
@@ -46,7 +46,7 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
      * 
      * @return the max. number of processing unit runs with no progress
      */
-    public long getMaxNumberOfEmptyProcessingUnits() {
+    public Long getMaxNumberOfEmptyProcessingUnits() {
         return maxNumberOfEmptyProcessingUnits;
     }
 
@@ -56,7 +56,7 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
      *
      * @param maxNumberOfEmptyProcessingUnits the max number of processing unit runs with no progress before it aborts
      */
-    public void setMaxNumberOfEmptyProcessingUnits(long maxNumberOfEmptyProcessingUnits) {
+    public void setMaxNumberOfEmptyProcessingUnits(Long maxNumberOfEmptyProcessingUnits) {
         this.maxNumberOfEmptyProcessingUnits = maxNumberOfEmptyProcessingUnits;
     }
 
@@ -66,7 +66,7 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
      * 
      * @return the sleep time in milliseconds
      */
-    public long getSleepTimeAfterEmptyProcessingUnit() {
+    public Long getSleepTimeAfterEmptyProcessingUnit() {
         return emptyProceessingUnitSleepTime;
     }
 
@@ -76,7 +76,7 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
      *
      * @param emptyProceessingUnitSleepTime the sleep time in milliseconds
      */
-    public void setSleepTimeAfterEmptyProcessingUnit(long emptyProceessingUnitSleepTime) {
+    public void setSleepTimeAfterEmptyProcessingUnit(Long emptyProceessingUnitSleepTime) {
         this.emptyProceessingUnitSleepTime = emptyProceessingUnitSleepTime;
     }
 
@@ -93,16 +93,16 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
         numberOfEmptyProcessingUnitRuns++;
         
         boolean continueProcessing = false;
-        if (numberOfEmptyProcessingUnitRuns < maxNumberOfEmptyProcessingUnits) {
+        if (getMaxNumberOfEmptyProcessingUnits() != null && numberOfEmptyProcessingUnitRuns < getMaxNumberOfEmptyProcessingUnits()) {
             continueProcessing = true;
             
-            if (emptyProceessingUnitSleepTime > 0) {
+            if (getSleepTimeAfterEmptyProcessingUnit() != null && getSleepTimeAfterEmptyProcessingUnit() > 0) {
                 long start = System.currentTimeMillis();
-                ThreadUtil.getInstance().sleep(emptyProceessingUnitSleepTime);
+                ThreadUtil.getInstance().sleep(getSleepTimeAfterEmptyProcessingUnit());
                 duration += System.currentTimeMillis() - start;
             }
         } else {
-            LOG.info(ProcessingUnitUtil.getInstance().toString(id, name, (String)null) + " Detected empty processing unit run (max " + maxNumberOfEmptyProcessingUnits + " reached, aborting)");
+            LOG.info(ProcessingUnitUtil.getInstance().toString(id, name, (String)null) + " Detected empty processing unit run (max " + getMaxNumberOfEmptyProcessingUnits() + " reached, aborting)");
             continueProcessing = false;
         }
         

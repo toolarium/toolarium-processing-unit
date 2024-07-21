@@ -41,7 +41,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.NUMBER_OF_UNITS_TO_PROCESS_PARAMETER.getKey(), "" + number));
         parameterList.add(new Parameter(TestProcessingUnit.SLEEP_TIME_BY_A_PROCESSING_PARAMTER.getKey(), ZERO));
         
-        TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.run(TestProcessingUnit.class, parameterList), number);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), number);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits(), number);
@@ -62,7 +62,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.THROW_RUNTIME_EXCEPTION_IN_VALIDATION_PARAMTER.getKey(), TRUE));
         
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+            TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
             processRunner.run(TestProcessingUnit.class, parameterList);
         });
         
@@ -81,7 +81,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.THROW_VALIDATION_EXCEPTION_IN_VALIDATION_PARAMTER.getKey(), TRUE));
         
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+            TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
             processRunner.run(TestProcessingUnit.class, parameterList);
         });
         
@@ -99,7 +99,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.SLEEP_TIME_BY_A_PROCESSING_PARAMTER.getKey(), ZERO));
         parameterList.add(new Parameter(TestProcessingUnit.THROW_RUNTIME_EXCEPTION_PARAMTER.getKey(), TRUE));
         
-        TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         processRunner.run(TestProcessingUnit.class, parameterList);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 0);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits(), 0);
@@ -122,7 +122,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.SLEEP_TIME_BY_A_PROCESSING_PARAMTER.getKey(), ZERO));
         parameterList.add(new Parameter(TestProcessingUnit.THROW_RUNTIME_EXCEPTION_PARAMTER.getKey(), TRUE));
         
-        TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         processRunner.run(TestProcessingUnit.class, parameterList);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 0);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits(), 0);
@@ -145,7 +145,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.SLEEP_TIME_BY_A_PROCESSING_PARAMTER.getKey(), ZERO));
         parameterList.add(new Parameter(TestProcessingUnit.THROW_RUNTIME_EXCEPTION_PARAMTER.getKey(), TRUE));
         
-        TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         processRunner.run(TestProcessingUnit.class, parameterList);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 10);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits(), 10);
@@ -168,7 +168,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.SLEEP_TIME_BY_A_PROCESSING_PARAMTER.getKey(), ZERO));
         parameterList.add(new Parameter(TestProcessingUnit.THROW_PROCESSING_EXCEPTION_PARAMTER.getKey(), TRUE));
         
-        TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         processRunner.run(TestProcessingUnit.class, parameterList);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 100);
         assertTrue(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits() > 40);
@@ -191,7 +191,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.SLEEP_TIME_BY_A_PROCESSING_PARAMTER.getKey(), ZERO));
         parameterList.add(new Parameter(TestProcessingUnit.THROW_PROCESSING_EXCEPTION_AND_ABORT_PARAMTER.getKey(), TRUE));
         
-        TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         processRunner.run(TestProcessingUnit.class, parameterList);
         assertTrue(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits() > 5);
         assertTrue(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits() > 5);
@@ -213,7 +213,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.SLEEP_TIME_BY_A_PROCESSING_PARAMTER.getKey(), ZERO));
         parameterList.add(new Parameter(TestProcessingUnit.END_AS_WARNING_PARAMTER.getKey(), TRUE));
         
-        TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         processRunner.run(TestProcessingUnit.class, parameterList);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 2);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits(), 2);
@@ -236,7 +236,7 @@ public class TestProcessingUnitTests {
         parameterList.add(new Parameter(TestProcessingUnit.SLEEP_TIME_BY_A_PROCESSING_PARAMTER.getKey(), ZERO));
         parameterList.add(new Parameter(TestProcessingUnit.END_AS_ERROR_PARAMTER.getKey(), TRUE));
         
-        TestProcessingUnitRunner<TestProcessingUnit> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         processRunner.run(TestProcessingUnit.class, parameterList);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfProcessedUnits(), 2);
         assertEquals(processRunner.getProcessingUnitProgress().getNumberOfSuccessfulUnits(), 2);

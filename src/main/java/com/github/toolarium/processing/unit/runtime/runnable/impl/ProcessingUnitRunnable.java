@@ -13,7 +13,6 @@ import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
-import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
@@ -47,7 +46,6 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      * @param parameterList the parameter list
      * @param processingUnitContext the processing context.
      * @param processingUnitRunnableListener the processing unit runnable listener
-     * @param emptyProcessingUnitHandler the empty processing unit handler or null
      * @throws ValidationException This will be throw in case the consistency check failures.
      * @throws ProcessingException Throws this exception in case of initialization failures.
      */
@@ -56,9 +54,8 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                                   Class<? extends IProcessingUnit> processingUnitClass, 
                                   List<Parameter> parameterList, 
                                   IProcessingUnitContext processingUnitContext,
-                                  IProcessingUnitRunnableListener processingUnitRunnableListener,
-                                  IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
-        super(id, name, processingUnitClass, parameterList, processingUnitContext, emptyProcessingUnitHandler);
+                                  IProcessingUnitRunnableListener processingUnitRunnableListener) {
+        super(id, name, processingUnitClass, parameterList, processingUnitContext);
         this.processingUnitThrottling = null;
         this.processingUnitThrottlingInitLogged = false;
         this.isInterrupted = false;

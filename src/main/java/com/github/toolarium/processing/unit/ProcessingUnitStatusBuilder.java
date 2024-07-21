@@ -41,13 +41,12 @@ public class ProcessingUnitStatusBuilder {
 
     
     /**
-     * Mark there are more units to process
+     * Get the current hasNext attribute value back.
      *
-     * @return this instance
+     * @return true if it has more element; otherwise it has ended.
      */
-    public ProcessingUnitStatusBuilder hasNext() {
-        this.processingUnitStatus.setHasNext(processingUnitProgress.getNumberOfUnprocessedUnits() > 1);
-        return this;
+    public boolean hasNext() {
+        return this.processingUnitStatus.hasNext();
     }
 
     
@@ -59,6 +58,28 @@ public class ProcessingUnitStatusBuilder {
      */
     public ProcessingUnitStatusBuilder hasNext(boolean hasNext) {
         this.processingUnitStatus.setHasNext(hasNext);
+        return this;
+    }
+
+    
+    /**
+     * Mark there are more units to process
+     *
+     * @return this instance
+     */
+    public ProcessingUnitStatusBuilder hasNextIfHasUnprocessedUnits() {
+        this.processingUnitStatus.setHasNext(processingUnitProgress.getNumberOfUnprocessedUnits() > 1);
+        return this;
+    }
+
+    
+    /**
+     * Mark there are more units to process
+     *
+     * @return this instance
+     */
+    public ProcessingUnitStatusBuilder hasMoreUnitsToProcess() {
+        this.processingUnitStatus.setHasNext(true);
         return this;
     }
 
@@ -80,7 +101,7 @@ public class ProcessingUnitStatusBuilder {
      * @return this instance
      */
     public ProcessingUnitStatusBuilder processedSuccessful() {
-        return numberOfSuccessfulUnits(1);
+        return numberOfSuccessfulUnits(1L);
     }
 
     
@@ -90,8 +111,8 @@ public class ProcessingUnitStatusBuilder {
      * @param numberOfSuccessfulUnits the number of successful units
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder numberOfSuccessfulUnits(long numberOfSuccessfulUnits) {
-        if (numberOfSuccessfulUnits > 0) {
+    public ProcessingUnitStatusBuilder numberOfSuccessfulUnits(Long numberOfSuccessfulUnits) {
+        if (numberOfSuccessfulUnits != null && numberOfSuccessfulUnits > 0) {
             processingUnitStatus.setNumberOfSuccessfulUnits(numberOfSuccessfulUnits);
         }
         
@@ -105,7 +126,7 @@ public class ProcessingUnitStatusBuilder {
      * @return this instance
      */
     public ProcessingUnitStatusBuilder processingUnitFailed() {
-        return numberOfFailedUnits(1);
+        return numberOfFailedUnits(1L);
     }
     
     
@@ -115,8 +136,8 @@ public class ProcessingUnitStatusBuilder {
      * @param numberOfFailedUnits the number of failed units
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder numberOfFailedUnits(long numberOfFailedUnits) {
-        if (numberOfFailedUnits > 0) {
+    public ProcessingUnitStatusBuilder numberOfFailedUnits(Long numberOfFailedUnits) {
+        if (numberOfFailedUnits != null && numberOfFailedUnits > 0) {
             processingUnitStatus.setNumberOfFailedUnits(numberOfFailedUnits);
         }
         return this;
@@ -129,8 +150,8 @@ public class ProcessingUnitStatusBuilder {
      * @param numberOfUnprocessedUnits the number of unprocessed units
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder numberOfUnprocessedUnits(long numberOfUnprocessedUnits) {
-        if (numberOfUnprocessedUnits >= 0) {
+    public ProcessingUnitStatusBuilder numberOfUnprocessedUnits(Long numberOfUnprocessedUnits) {
+        if (numberOfUnprocessedUnits != null && numberOfUnprocessedUnits >= 0) {
             processingUnitStatus.setNumberOfUnprocessedUnits(numberOfUnprocessedUnits);
         }
         

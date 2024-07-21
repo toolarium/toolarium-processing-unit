@@ -42,6 +42,14 @@ public abstract class AbstractProcessingUnitPersistenceImpl<T extends IProcessin
     
     
     /**
+     * Remove the persistence instance
+     */
+    protected void removePersistenceInstance() {
+        persistence = null;
+    }
+    
+    
+    /**
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#suspendProcessing()
      */
     @Override

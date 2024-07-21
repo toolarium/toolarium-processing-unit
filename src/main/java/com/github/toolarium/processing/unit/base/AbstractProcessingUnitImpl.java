@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.processing.unit.base;
 
+import com.github.toolarium.common.object.IObjectLockManager;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
@@ -31,6 +32,7 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
     private IParameterRuntime parameterRuntime;
     private IProcessingUnitContext processingUnitContext;
     private ProcessingUnitProgress processingUnitProgress;
+    private IObjectLockManager objectLockManager;
     
     
     /**
@@ -40,6 +42,7 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
         parameterRuntime = new ParameterRuntime();
         processingUnitContext = null;
         processingUnitProgress = new ProcessingUnitProgress();
+        objectLockManager = null;
         
         // intialize the parameter definition
         initializeParameterDefinition();
@@ -157,6 +160,26 @@ public abstract class AbstractProcessingUnitImpl implements IProcessingUnit {
     @Override
     public void resumeProcessing(IProcessingUnitProgress processingUnitProgress, IProcessingUnitPersistence processingPersistence) throws ProcessingException {
         this.processingUnitProgress = new ProcessingUnitProgress(processingUnitProgress);
+    }
+
+    
+    /**
+     * Gets the object lock manager
+     *
+     * @return the object lock manager
+     */
+    public IObjectLockManager getObjectLockManager() {
+        return objectLockManager;
+    }
+
+    
+    /**
+     * Sets the object lock manager
+     *
+     * @param objectLockManager the object lock manager
+     */
+    public void setObjectLockManager(IObjectLockManager objectLockManager) {
+        this.objectLockManager = objectLockManager;
     }
 
     

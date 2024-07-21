@@ -5,8 +5,6 @@
  */
 package com.github.toolarium.processing.unit.runtime.test;
 
-import com.github.toolarium.processing.unit.IProcessingUnit;
-
 /**
  * Factory to get a {@link TestProcessingUnitRunner}.
  *
@@ -45,10 +43,9 @@ public final class TestProcessingUnitRunnerFactory {
     /**
      * The processing unit runner.
      *
-     * @param <T> Tge processing unit type
      * @return the processing unit runner
      */
-    public <T extends IProcessingUnit> TestProcessingUnitRunner<T> getProcessingUnitRunner() {
-        return new TestProcessingUnitRunner<T>();
+    public TestProcessingUnitRunner getProcessingUnitRunner() {
+        return new TestProcessingUnitRunner();
     }
 }

@@ -124,7 +124,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(processing + " Initialize processing unit class");
             }
-            processingUnit = createProcessingUnitInstance(processingUnitClass);
+            processingUnit = ProcessingUnitUtil.getInstance().createProcessingUnitInstance(id, name, processingUnitClass);
             final Instant startTimestamp = Instant.now();
             
             // get parameter definition
@@ -164,21 +164,9 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                            startTimestamp, 
                                            0, 
                                            null,
-                                           new EmptyProcessingUnitHandler());
+                                           ProcessingUnitUtil.getInstance().getEmptyProcessingUnitHandler(processingUnit));
         } catch (RuntimeException e) {
-            if (processingUnit != null) {
-                try {
-                    // release resource
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(processing + " Release resource of processing unit instance", e);
-                    }
-                    processingUnit.releaseResource();
-                    processingUnit = null;
-                } catch (Exception ex) {
-                    LOG.warn(processing + " Could not release resource from processing unit instance: " + ex.getMessage(), ex);
-                }                
-            }
-            
+            ProcessingUnitUtil.getInstance().releaseResource(id, name, processingUnit);
             throw e;
         }
     }
@@ -199,16 +187,19 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
     public static ProcessingUnitProxy resume(byte[] persisted) throws ValidationException, ProcessingException {
         Class<? extends IProcessingUnit> processingUnitClass = null;
         IProcessingUnit processingUnit = null;
+        String id = null;
+        String name = null;
         
         try {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Resume processing unit instance...");
             }
-            
             ProcessingUnitPersistenceContainer resumeProcessingPersistence = ProcessingUnitPersistenceContainer.toProcessingPersistenceContainer(persisted);
             if (resumeProcessingPersistence == null || resumeProcessingPersistence.getProcessingUnitClass() == null) {
                 throw new ValidationException("Could not recover processing unit instance!");
             }
+            id = resumeProcessingPersistence.getId();
+            name = resumeProcessingPersistence.getName();
             
             final String processing = ProcessingUnitUtil.getInstance().toString(resumeProcessingPersistence.getId(), resumeProcessingPersistence.getName(), resumeProcessingPersistence.getProcessingUnitClass());
             processingUnitClass = resumeProcessingPersistence.getProcessingUnitClass();
@@ -217,7 +208,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             if (LOG.isDebugEnabled()) {
                 LOG.debug(processing + " Initialize processing unit class...");
             }
-            processingUnit = createProcessingUnitInstance(processingUnitClass);
+            processingUnit = ProcessingUnitUtil.getInstance().createProcessingUnitInstance(resumeProcessingPersistence.getId(), resumeProcessingPersistence.getName(), processingUnitClass);
 
             // check consistency
             if (LOG.isDebugEnabled()) {
@@ -237,8 +228,8 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                 LOG.debug(processing + " Successful resumed processing unit instance");
             }
             
-            return new ProcessingUnitProxy(resumeProcessingPersistence.getId(), 
-                                           resumeProcessingPersistence.getName(),
+            return new ProcessingUnitProxy(id, 
+                                           name,
                                            resumeProcessingPersistence.getProcessingUnitClass(), 
                                            processingUnit, 
                                            resumeProcessingPersistence.getParameterList(), 
@@ -251,19 +242,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                            resumeProcessingPersistence.getMaxNumberOfProcessingUnitCallsPerSecond(),
                                            resumeProcessingPersistence.getEmptyProcessingUnitHandler());
         } catch (RuntimeException e) {
-            if (processingUnit != null) {
-                try {
-                    // release resource
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Release resource of processing unit instance [" + processingUnitClass + "].");
-                    }
-                    processingUnit.releaseResource();
-                    processingUnit = null;
-                } catch (Exception ex) {
-                    LOG.warn("Could not release resource from processing unit instance [" + processingUnitClass + "]: " + ex.getMessage(), ex);
-                }                
-            }
-            
+            ProcessingUnitUtil.getInstance().releaseResource(id, name, processingUnit);
             throw e;
         }
     }
@@ -443,19 +422,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
         } catch (RuntimeException e) {
             throw e;
         } finally {
-            if (processingUnit != null) {
-                try {
-                    // release resource
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Release resource of processing unit instance [" + processingUnitClass + "].");
-                    }
-                    processingUnit.releaseResource();
-                    processingUnit = null;
-                } catch (Exception ex) {
-                    LOG.warn("Could not release resource from processing unit instance [" + processingUnitClass + "]: " + ex.getMessage(), ex);
-                }                
-            }
-            
+            ProcessingUnitUtil.getInstance().releaseResource(id, name, processingUnit);
             processingUnitClass = null;
             processingUnitProgress = null;
         }
@@ -468,9 +435,9 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
     @Override
     public void releaseResource() throws ProcessingException {
         try { 
-            getProcessingUnit().releaseResource();
-        } catch (ProcessingException e) {
-            // NOP
+            ProcessingUnitUtil.getInstance().releaseResource(id, name, getProcessingUnit());
+        } catch (ProcessingException ex) {
+            LOG.warn("Could not release resource from " + ProcessingUnitUtil.getInstance().toString(id, name, processingUnit.getClass().getName()) + ": " + ex.getMessage(), ex);
         }
     }
 
@@ -603,22 +570,6 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
     }
 
    
-    /**
-     * Create the processing unit implementation
-     *
-     * @param processingUnitClass the class
-     * @return the instance
-     * @throws ValidationException If the instance of the processing unit cannot be initialized correctly 
-     */
-    private static IProcessingUnit createProcessingUnitInstance(Class<? extends IProcessingUnit> processingUnitClass) throws ValidationException {
-        try {
-            return processingUnitClass.getDeclaredConstructor().newInstance();
-        } catch (Exception t) {
-            throw new ValidationException("Could not initialize " + processingUnitClass.getName() + ": " + t.getMessage(), t);
-        }
-    }
-
-    
     /**
      * Prepare string
      *

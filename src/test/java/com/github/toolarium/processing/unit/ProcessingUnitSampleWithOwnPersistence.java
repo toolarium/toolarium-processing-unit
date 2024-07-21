@@ -21,15 +21,6 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
     
     
     /**
-     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitPersistenceImpl#newPersistenceInstance()
-     */
-    @Override
-    protected SamplePersistence newPersistenceInstance() {
-        return new SamplePersistence();
-    }
-    
-    
-    /**
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#initializeParameterDefinition()
      */
     public void initializeParameterDefinition() {
@@ -71,7 +62,7 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
         getProcessingPersistence().setCounter(getProcessingPersistence().getCounter() + 1);
         getProcessingPersistence().setText("Counter" + getProcessingPersistence().getCounter());
         
-        return processingUnitStatusBuilder.hasNext().build();
+        return processingUnitStatusBuilder.hasNextIfHasUnprocessedUnits().build();
     }
 
     
@@ -83,6 +74,15 @@ public class ProcessingUnitSampleWithOwnPersistence extends AbstractProcessingUn
     public void releaseResource() throws ProcessingException {
     }
     */
+    
+    
+    /**
+     * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitPersistenceImpl#newPersistenceInstance()
+     */
+    @Override
+    protected SamplePersistence newPersistenceInstance() {
+        return new SamplePersistence();
+    }
     
     
     /**

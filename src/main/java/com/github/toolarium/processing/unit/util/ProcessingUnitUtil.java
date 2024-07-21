@@ -6,6 +6,7 @@
 package com.github.toolarium.processing.unit.util;
 
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
+import com.github.toolarium.common.util.ClassInstanceUtil;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
@@ -13,8 +14,16 @@ import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
+import com.github.toolarium.processing.unit.exception.ValidationException;
+import com.github.toolarium.processing.unit.parallelization.IParallelProcessingUnit;
+import com.github.toolarium.processing.unit.parallelization.IProcessingUnitObjectLockManagerSupport;
+import com.github.toolarium.processing.unit.runtime.IProcessingUnitInstanceManager;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
+import com.github.toolarium.processing.unit.runtime.ProcessingUnitInstanceManager;
+import com.github.toolarium.processing.unit.runtime.runnable.EmptyProcessingUnitHandler;
+import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitPersistenceContainer;
+import com.github.toolarium.processing.unit.runtime.runnable.parallelization.ParallelProcessingUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author patrick
  */
 public final class ProcessingUnitUtil {
+    private IProcessingUnitInstanceManager processingUnitInstanceManager;
     private Map<String, String> shortenClassReferenceMap;
     private ProcessingUnitProgressFormatter processingUnitProgressFormatter;
 
@@ -44,6 +54,7 @@ public final class ProcessingUnitUtil {
      * Constructor
      */
     private ProcessingUnitUtil() {
+        processingUnitInstanceManager = new ProcessingUnitInstanceManager();
         shortenClassReferenceMap = new ConcurrentHashMap<String, String>();
         processingUnitProgressFormatter = new ProcessingUnitProgressFormatter(" - ");
     }
@@ -58,6 +69,143 @@ public final class ProcessingUnitUtil {
         return HOLDER.INSTANCE;
     }
 
+    
+    /**
+     * Set the processing unit instance manager
+     *
+     * @param processingUnitInstanceManager the processing unit instance manager
+     */
+    public void setProcessingUnitInstanceManager(IProcessingUnitInstanceManager processingUnitInstanceManager) {
+        this.processingUnitInstanceManager = processingUnitInstanceManager;
+    }
+    
+    
+    /**
+     * Check if the processing unit class is available
+     *
+     * @param processingUnitClassname the class name
+     * @return true if it the processing unit is available
+     */
+    public boolean isProcessingUnitAvailable(String processingUnitClassname) {
+        return ClassInstanceUtil.getInstance().isClassAvailable(processingUnitClassname);
+    }
+
+    
+    /**
+     * Check if the processing unit class is available
+     *
+     * @param processingUnitClassname the class name
+     * @return true if it the processing unit is available
+     */
+    public boolean isProcessingUnit(String processingUnitClassname) {
+        return isProcessingUnitAvailable(processingUnitClassname) && ClassInstanceUtil.getInstance().implementsInterface(processingUnitClassname, IProcessingUnit.class);
+    }
+
+    
+    /**
+     * Check if the class is a parallel processing unit
+     *
+     * @param processingUnitClassname the class name
+     * @return true if it is a parallel processing unit
+     * @throws ClassNotFoundException In case the class could not be found
+     */
+    public boolean isParallelProcessingUnit(String processingUnitClassname) throws ClassNotFoundException {
+        return isProcessingUnit(processingUnitClassname) && ClassInstanceUtil.getInstance().implementsInterface(processingUnitClassname, IParallelProcessingUnit.class);
+    }
+
+    
+    /**
+     * Check if the class is a parallel processing unit
+     *
+     * @param processingUnitClass the class 
+     * @return true if it is a parallel processing unit
+     */
+    public boolean isParallelProcessingUnit(Class<? extends IProcessingUnit> processingUnitClass) {
+        return IParallelProcessingUnit.class.isAssignableFrom(processingUnitClass);
+    }
+
+    
+    /**
+     * Check if the class is a parallel processing unit
+     *
+     * @param processingUnit the processing unit instance 
+     * @return true if it is a parallel processing unit
+     */
+    public boolean isParallelProcessingUnit(IProcessingUnit processingUnit) {
+        return processingUnit instanceof ParallelProcessingUnit;
+    }
+
+    
+    /**
+     * Check if the instance has object lock manager support
+     *
+     * @param processingUnit the processing unit 
+     * @return true if it has support of unit object lock manager
+     */
+    public boolean hasProcessingUnitObjectLockManagerSupport(IProcessingUnit processingUnit) {
+        return processingUnit instanceof IProcessingUnitObjectLockManagerSupport;
+    }
+
+    
+    /**
+     * Create the processing unit implementation
+     *
+     * @param id the unique id of the processing
+     * @param name the name of the processing
+     * @param processingUnitClass the class
+     * @return the instance
+     * @throws ValidationException If the instance of the processing unit cannot be initialized correctly 
+     */
+    public IProcessingUnit createProcessingUnitInstance(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) throws ValidationException {
+        try {
+            IProcessingUnit processingUnit;
+            
+            if (isParallelProcessingUnit(processingUnitClass)) {
+                processingUnit = processingUnitInstanceManager.createParallelProcessingUnitInstance(id, name, processingUnitClass);
+            } else {
+                processingUnit = processingUnitInstanceManager.createProcessingUnitInstance(id, name, processingUnitClass);
+            }
+
+            return processingUnit;
+        } catch (Exception t) {
+            throw new ValidationException("Could not initialize " + processingUnitClass.getName() + ": " + t.getMessage(), t);
+        }
+    }
+
+
+    /**
+     * Release resource 
+     *
+     * @param id the unique id of the processing
+     * @param name the name of the processing
+     * @param processingUnit the processing unit
+     */
+    public void releaseResource(String id, String name, IProcessingUnit processingUnit) {
+        if (processingUnit == null) {
+            return;
+        }
+        
+        processingUnitInstanceManager.releaseResource(id, name, processingUnit);
+    }
+    
+
+    /**
+     * Get the empty processing unit handler
+     *
+     * @param processingUnit the processing unit
+     * @return the empty processing unit handler
+     */
+    public IEmptyProcessingUnitHandler getEmptyProcessingUnitHandler(IProcessingUnit processingUnit) {
+        IEmptyProcessingUnitHandler emptyProcessingUnitHandler;
+        if (ProcessingUnitUtil.getInstance().isParallelProcessingUnit(processingUnit)) {
+            emptyProcessingUnitHandler = ((ParallelProcessingUnit)processingUnit).getEmptyProcessingUnitHandler();
+        } else {
+            emptyProcessingUnitHandler = new EmptyProcessingUnitHandler();
+        }
+        
+        return emptyProcessingUnitHandler;
+    }
+    
     
     /**
      * Prepare processing log message

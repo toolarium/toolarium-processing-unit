@@ -56,10 +56,10 @@ public class ProcessingFrameworkTest {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(ProcessingUnitStringTest.DATA_FEED, "a", "b", "c", "d"));
 
-        TestProcessingUnitRunner<ProcessingUnitStringTest> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.run(ProcessingUnitStringTest.class, parameterList), 4);
 
-        assertEquals((processRunner.getProcesingUnit()).getResult(),
+        assertEquals((((ProcessingUnitStringTest)processRunner.getProcesingUnit())).getResult(),
                  "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[c(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
@@ -86,10 +86,10 @@ public class ProcessingFrameworkTest {
         Random random = new Random();
         long randomSuspendIdx = random.nextInt(10 - 5 + 1) + 1;
 
-        TestProcessingUnitRunner<ProcessingUnitStringTest> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithSuspendAndResume(ProcessingUnitStringTest.class, parameterList, randomSuspendIdx, 100L, 3), 4);
 
-        assertEquals((processRunner.getProcesingUnit()).getResult(),
+        assertEquals((((ProcessingUnitStringTest)processRunner.getProcesingUnit())).getResult(),
                  "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[c(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
@@ -106,10 +106,10 @@ public class ProcessingFrameworkTest {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(ProcessingUnitStringTest.DATA_FEED, "a", "b", "", "d"));
 
-        TestProcessingUnitRunner<ProcessingUnitStringTest> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.run(ProcessingUnitStringTest.class, parameterList), 4);
         
-        assertEquals((processRunner.getProcesingUnit()).getResult(),
+        assertEquals((((ProcessingUnitStringTest)processRunner.getProcesingUnit())).getResult(),
                  "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[(" + HEADER + "[hasNext=true, numberOfSuccessfulUnits=null, numberOfFailedUnits=1, numberOfUnprocessedUnits=null, processingRuntimeStatus=WARN, statusMessage=Empty data, processingUnitStatistic=null])] | "
@@ -128,10 +128,10 @@ public class ProcessingFrameworkTest {
         Random random = new Random();
         long randomSuspendIdx = random.nextInt(10 - 5 + 1) + 1;
 
-        TestProcessingUnitRunner<ProcessingUnitStringTest> processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
+        TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithSuspendAndResume(ProcessingUnitStringTest.class, parameterList, randomSuspendIdx, 100L, 3), 4);
 
-        assertEquals((processRunner.getProcesingUnit()).getResult(),
+        assertEquals((((ProcessingUnitStringTest)processRunner.getProcesingUnit())).getResult(),
                  "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[(" + HEADER + "[hasNext=true, numberOfSuccessfulUnits=null, numberOfFailedUnits=1, numberOfUnprocessedUnits=null, processingRuntimeStatus=WARN, statusMessage=Empty data, processingUnitStatistic=null])] | "
