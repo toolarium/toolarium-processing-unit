@@ -98,6 +98,8 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     /**
      * Constructor for ParallelProcessingUnit
      * 
+     * @param id the unique id of the processing
+     * @param name the name of the processing
      * @param processingUnitClass the processing unit class
      */
     public ParallelProcessingUnit(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) {
@@ -126,11 +128,12 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     @Override
     public List<ParameterDefinition> getParameterDefinition() {
         // get parameters from the processing class
-        final String defName = name + "-#parameterDefinition";
-        IProcessingUnit processingUnit = ProcessingUnitUtil.getInstance().createProcessingUnitInstance(id, defName, processingUnitClass);
+        final String defName = createInstanceName("parameterDefinition");
+        IProcessingUnit processingUnit = ProcessingUnitUtil.getInstance().createSingleProcessingUnitInstance(id, defName, processingUnitClass);
         if (processingUnit != null && processingUnit.getParameterDefinition() != null) {
             for (ParameterDefinition parameterDefinition : processingUnit.getParameterDefinition()) {
                 getParameterRuntime().addParameterDefinition(parameterDefinition);
+                ThreadUtil.getInstance().sleep(1000L);
             }
         }
         ProcessingUnitUtil.getInstance().releaseResource(id, defName, processingUnit);
@@ -279,7 +282,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
         if (processingUnitList != null) {
             for (int i = 0; i < processingUnitList.size(); i++) {
                 try {
-                    ProcessingUnitUtil.getInstance().releaseResource(id, createInstanceName(i + 1), processingUnitList.get(i));
+                    ProcessingUnitUtil.getInstance().releaseResource(id, createInstanceName("" + (i + 1)), processingUnitList.get(i));
                 } catch (Exception t) {
                     throw new ValidationException("Could not release " + processingUnitClass.getName() + ": " + t.getMessage(), t);
                 }
@@ -575,7 +578,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
         List<IProcessingUnit> processingUnitList = new ArrayList<IProcessingUnit>(numberOfInstances);
         for (int i = 0; i < numberOfInstances; i++) {
             try {
-                processingUnitList.add(ProcessingUnitUtil.getInstance().createProcessingUnitInstance(id, createInstanceName(i + 1), processingUnitClass));
+                processingUnitList.add(ProcessingUnitUtil.getInstance().createSingleProcessingUnitInstance(id, createInstanceName("" + (i + 1)), processingUnitClass));
             } catch (Exception t) {
                 throw new ValidationException("Could not initialize " + processingUnitClass.getName() + ": " + t.getMessage(), t);
             }
@@ -591,8 +594,8 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      * @param idx the index
      * @return the prepared instance name
      */
-    private String createInstanceName(int idx) {
-        return new StringBuilder().append(name).append("-#").append(idx).toString();
+    private String createInstanceName(String instanceId) {
+        return new StringBuilder().append(name).append("-#").append(instanceId).toString();
     }
     
 

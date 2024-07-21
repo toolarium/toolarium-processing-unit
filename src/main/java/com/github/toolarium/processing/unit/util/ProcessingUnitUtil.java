@@ -161,12 +161,52 @@ public final class ProcessingUnitUtil {
             IProcessingUnit processingUnit;
             
             if (isParallelProcessingUnit(processingUnitClass)) {
-                processingUnit = processingUnitInstanceManager.createParallelProcessingUnitInstance(id, name, processingUnitClass);
+                processingUnit = createParallelProcessingUnitInstance(id, name, processingUnitClass);
             } else {
-                processingUnit = processingUnitInstanceManager.createProcessingUnitInstance(id, name, processingUnitClass);
+                processingUnit = createSingleProcessingUnitInstance(id, name, processingUnitClass);
             }
 
             return processingUnit;
+        } catch (Exception t) {
+            throw new ValidationException("Could not initialize " + processingUnitClass.getName() + ": " + t.getMessage(), t);
+        }
+    }
+
+    
+    /**
+     * Create the processing unit implementation
+     *
+     * @param id the unique id of the processing
+     * @param name the name of the processing
+     * @param processingUnitClass the class
+     * @return the instance
+     * @throws ValidationException If the instance of the processing unit cannot be initialized correctly 
+     */
+    public IProcessingUnit createSingleProcessingUnitInstance(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) throws ValidationException {
+        try {
+            return processingUnitInstanceManager.createProcessingUnitInstance(id, name, processingUnitClass);
+        } catch (Exception t) {
+            throw new ValidationException("Could not initialize " + processingUnitClass.getName() + ": " + t.getMessage(), t);
+        }
+    }
+
+    
+    /**
+     * Create the processing unit implementation
+     *
+     * @param id the unique id of the processing
+     * @param name the name of the processing
+     * @param processingUnitClass the class
+     * @return the instance
+     * @throws ValidationException If the instance of the processing unit cannot be initialized correctly 
+     */
+    public IProcessingUnit createParallelProcessingUnitInstance(String id, String name, Class<? extends IProcessingUnit> processingUnitClass) throws ValidationException {
+        try {
+            if (isParallelProcessingUnit(processingUnitClass)) {
+                return processingUnitInstanceManager.createParallelProcessingUnitInstance(id, name, processingUnitClass);
+            } else {
+                return createSingleProcessingUnitInstance(id, name, processingUnitClass);
+            }
         } catch (Exception t) {
             throw new ValidationException("Could not initialize " + processingUnitClass.getName() + ": " + t.getMessage(), t);
         }

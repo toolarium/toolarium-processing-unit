@@ -17,14 +17,19 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+
 /**
- * 
+ * Test the parallel processing unit
+ *  
  * @author patrick
  */
 public class ParallelProcessingUnitTest {
 
-    //@Test
-    public void singleThreadTest() {
+    /**
+     * Test single instance
+     */
+    @Test
+    public void singleInstanceTest() {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(ParallelProcessingUnitSample.NUMBER_OF_WORDS.getKey(), "128"));
         parameterList.add(new Parameter(ParallelProcessingUnit.AGGREGATE_STATUS_PAUSE_TIME.getKey(), "10"));

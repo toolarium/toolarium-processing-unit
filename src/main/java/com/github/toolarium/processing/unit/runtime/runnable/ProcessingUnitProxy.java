@@ -201,14 +201,14 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             id = resumeProcessingPersistence.getId();
             name = resumeProcessingPersistence.getName();
             
-            final String processing = ProcessingUnitUtil.getInstance().toString(resumeProcessingPersistence.getId(), resumeProcessingPersistence.getName(), resumeProcessingPersistence.getProcessingUnitClass());
+            final String processing = ProcessingUnitUtil.getInstance().toString(id, name, resumeProcessingPersistence.getProcessingUnitClass());
             processingUnitClass = resumeProcessingPersistence.getProcessingUnitClass();
 
             // create the process unit instance
             if (LOG.isDebugEnabled()) {
                 LOG.debug(processing + " Initialize processing unit class...");
             }
-            processingUnit = ProcessingUnitUtil.getInstance().createProcessingUnitInstance(resumeProcessingPersistence.getId(), resumeProcessingPersistence.getName(), processingUnitClass);
+            processingUnit = ProcessingUnitUtil.getInstance().createProcessingUnitInstance(id, name, processingUnitClass);
 
             // check consistency
             if (LOG.isDebugEnabled()) {
