@@ -89,6 +89,10 @@ public class ProcessingUnitProgress implements IProcessingUnitUpdateProgress, Se
             numberOfProcessedUnits += processedUnits;
         }
 
+        if (numberOfProcessedUnits > numberOfUnitsToProcess) {
+            numberOfUnitsToProcess = numberOfProcessedUnits;    
+        }
+
         final Long numberOfUnprocessedUnits = processingUnitStatus.getNumberOfUnprocessedUnits();
         if (numberOfUnprocessedUnits != null && numberOfUnprocessedUnits.longValue() > 0) {
             long currentNumberOfUnprocessedUnits = getNumberOfUnprocessedUnits();
@@ -354,12 +358,11 @@ public class ProcessingUnitProgress implements IProcessingUnitUpdateProgress, Se
      */
     @Override
     public int getProgress() {
-        long s = getNumberOfUnitsToProcess() * getNumberOfProcessedUnits();
-        if (s <= 0) {
+        if (getNumberOfUnitsToProcess() == 0) {
             return 0;
         }
         
-        return RoundUtil.getInstance().roundToInt(100.0 / s);
+        return RoundUtil.getInstance().roundToInt(100.0 / getNumberOfUnitsToProcess() * getNumberOfProcessedUnits());
     }
 
 

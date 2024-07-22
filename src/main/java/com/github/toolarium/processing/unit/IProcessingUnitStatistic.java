@@ -48,4 +48,12 @@ public interface IProcessingUnitStatistic {
      * @return true if it is empty
      */
     boolean isEmpty();
+    
+    
+    /**
+     * Get the size of the statistic elements
+     *
+     * @return the size
+     */
+    int size();
 }

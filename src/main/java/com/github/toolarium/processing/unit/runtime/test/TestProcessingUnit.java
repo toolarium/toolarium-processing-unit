@@ -133,18 +133,22 @@ public class TestProcessingUnit extends AbstractProcessingUnitPersistenceImpl<Te
                                                         && getProcessingPersistence().getToProcess() > 0 
                                                         && (getProcessingPersistence().getProcessed() % percentageNumbers) == 0);
 
-        // In case of successful processing
-        processingUnitStatusBuilder.processedSuccessful();
-        getProcessingPersistence().processed();
-        
         // randomly fail units
+        boolean failed = false;
         final int percentageToFail = getParameterRuntime().getParameterValueList(PERCENTAGE_NUMBER_OF_UNITS_TO_FAIL_PARAMTER).getValueAsInteger();
         if (getProcessingPersistence().getProcessed() > 0) {
             final long num = RoundUtil.getInstance().roundToInt(getProcessingPersistence().getProcessed() / 100.0 * percentageToFail);
             if (num < getProcessingPersistence().getFailed() && RandomGenerator.getInstance().getBooleanRandom()) {
-                processingUnitStatusBuilder.processingUnitFailed();
+                processingUnitStatusBuilder.increaseNumberOfFailedUnits();
                 getProcessingPersistence().failed();
+                failed = true;
             }
+        }
+        
+        if (!failed) {
+            // In case of successful processing
+            processingUnitStatusBuilder.increaseNumberOfSuccessfulUnits();
+            getProcessingPersistence().processed();
         }
         
         // add statistic

@@ -45,10 +45,10 @@ public class ProcessingUnitSample extends AbstractProcessingUnitImpl {
         // This is the main part where the processing takes place
 
         // In case of successful processing
-        processingUnitStatusBuilder.processedSuccessful();
+        processingUnitStatusBuilder.increaseNumberOfSuccessfulUnits();
         
         // other wise if it was failed
-        //processingUnitStatusBuilder.processingUnitFailed();
+        //processingUnitStatusBuilder.increaseNumberOfFailedUnits();
 
         // During a processing step status message can be returned, a status SUCCESSFUL, WARN or ERROR. Additional a message can be set
         //processingUnitStatusBuilder.warn("Warning sample");

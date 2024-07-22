@@ -20,6 +20,7 @@ public class ProcessingUnitStatusBuilder {
     private ProcessingUnitProgress processingUnitProgress;
     private ProcessingUnitStatus processingUnitStatus;
     
+    
     /**
      * Constructor for ProcessingUnitStatusBuilder
      */
@@ -51,7 +52,7 @@ public class ProcessingUnitStatusBuilder {
 
     
     /**
-     * Verify if there are unprocessed processing units
+     * Defines if there are more unit tor process.
      *
      * @param hasNext true if there are more units to process; otherwise false
      * @return this instance
@@ -63,7 +64,7 @@ public class ProcessingUnitStatusBuilder {
 
     
     /**
-     * Mark there are more units to process
+     * Mark there are more units in case there are still unprocessed units
      *
      * @return this instance
      */
@@ -96,22 +97,35 @@ public class ProcessingUnitStatusBuilder {
 
     
     /**
-     * Mark a successful processed processing unit. 
+     * Increase the number of successful processed units. 
      *
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder processedSuccessful() {
-        return numberOfSuccessfulUnits(1L);
+    public ProcessingUnitStatusBuilder increaseNumberOfSuccessfulUnits() {
+        processingUnitStatus.increaseNumberOfSuccessfulUnits();
+        return this;
     }
 
     
     /**
-     * Set the number of failed units. 
-     *
-     * @param numberOfSuccessfulUnits the number of successful units
+     * Increase the number of successful processed units. 
+     * 
+     * @param numberOfSuccessfulUnits the number of successful units to add
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder numberOfSuccessfulUnits(Long numberOfSuccessfulUnits) {
+    public ProcessingUnitStatusBuilder increaseNumberOfSuccessfulUnits(Long numberOfSuccessfulUnits) {
+        processingUnitStatus.increaseNumberOfSuccessfulUnits(numberOfSuccessfulUnits);
+        return this;
+    }
+
+    
+    /**
+     * Set the number of successful processed  units. 
+     *
+     * @param numberOfSuccessfulUnits the number of successful processed units to set
+     * @return this instance
+     */
+    public ProcessingUnitStatusBuilder setNumberOfSuccessfulUnits(Long numberOfSuccessfulUnits) {
         if (numberOfSuccessfulUnits != null && numberOfSuccessfulUnits > 0) {
             processingUnitStatus.setNumberOfSuccessfulUnits(numberOfSuccessfulUnits);
         }
@@ -121,25 +135,61 @@ public class ProcessingUnitStatusBuilder {
 
     
     /**
-     * Mark a failed processed processing unit. 
-     *
+     * Increase the number of failed processed units. 
+     * 
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder processingUnitFailed() {
-        return numberOfFailedUnits(1L);
+    public ProcessingUnitStatusBuilder increaseNumberOfFailedUnits() {
+        processingUnitStatus.increaseNumberOfFailedUnits();
+        return this;
     }
-    
+
     
     /**
-     * Set the number of failed units. 
-     *
-     * @param numberOfFailedUnits the number of failed units
+     * Increase the number of failed processed units. 
+     * 
+     * @param numberOfFailedUnits the number of failed units to add
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder numberOfFailedUnits(Long numberOfFailedUnits) {
+    public ProcessingUnitStatusBuilder increaseNumberOfFailedUnits(Long numberOfFailedUnits) {
+        processingUnitStatus.increaseNumberOfFailedUnits(numberOfFailedUnits);
+        return this;
+    }
+
+    
+    /**
+     * Set the number of failed processed units. 
+     *
+     * @param numberOfFailedUnits the number of failed processed units to set
+     * @return this instance
+     */
+    public ProcessingUnitStatusBuilder setNumberOfFailedUnits(Long numberOfFailedUnits) {
         if (numberOfFailedUnits != null && numberOfFailedUnits > 0) {
             processingUnitStatus.setNumberOfFailedUnits(numberOfFailedUnits);
         }
+        return this;
+    }
+
+    
+    /**
+     * Increase the number of unprocessed units. 
+     * 
+     * @return this instance
+     */
+    public ProcessingUnitStatusBuilder increaseNumberOfUnprocessedUnits() {
+        processingUnitStatus.increaseNumberOfUnprocessedUnits();
+        return this;
+    }
+
+    
+    /**
+     * Increase the number of unprocessed units. 
+     * 
+     * @param numberOfUnprocessedUnits the number of unprocessed units to add
+     * @return this instance
+     */
+    public ProcessingUnitStatusBuilder increaseNumberOfUnprocessedUnits(Long numberOfUnprocessedUnits) {
+        processingUnitStatus.increaseNumberOfUnprocessedUnits(numberOfUnprocessedUnits);
         return this;
     }
 
@@ -150,7 +200,7 @@ public class ProcessingUnitStatusBuilder {
      * @param numberOfUnprocessedUnits the number of unprocessed units
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder numberOfUnprocessedUnits(Long numberOfUnprocessedUnits) {
+    public ProcessingUnitStatusBuilder setNumberOfUnprocessedUnits(Long numberOfUnprocessedUnits) {
         if (numberOfUnprocessedUnits != null && numberOfUnprocessedUnits >= 0) {
             processingUnitStatus.setNumberOfUnprocessedUnits(numberOfUnprocessedUnits);
         }
@@ -270,6 +320,6 @@ public class ProcessingUnitStatusBuilder {
      */
     @Override
     public String toString() {
-        return processingUnitStatus.toString();
+        return processingUnitStatus.toString() + "\n" + processingUnitProgress.toString();
     }
 }

@@ -102,9 +102,9 @@ public final class MyDataProcessingUnit extends AbstractProcessingUnitImpl imple
         }
         
         if (result != null && result.isEmpty()) {
-            processingUnitStatusBuilder.warn("Warning sample").processingUnitFailed();
+            processingUnitStatusBuilder.warn("Warning sample").increaseNumberOfFailedUnits();
         } else {
-            processingUnitStatusBuilder.processedSuccessful();
+            processingUnitStatusBuilder.increaseNumberOfSuccessfulUnits();
         }
 
         if (!getProcessingUnitContext().isEmpty()) {

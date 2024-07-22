@@ -84,9 +84,9 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
     
     
     /**
-     * Set the number of successful units
+     * Set the number of successful processed units
      *
-     * @param numberOfSuccessfulUnits the number of successful units
+     * @param numberOfSuccessfulUnits the number of successful processed units
      * @return this instance
      */
     public ProcessingUnitStatus setNumberOfSuccessfulUnits(Long numberOfSuccessfulUnits) {
@@ -96,16 +96,31 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
 
     
     /**
-     * Increase the number of successful units
+     * Increase the number of successful processed units
      * 
      * @return this instance
      */
     public ProcessingUnitStatus increaseNumberOfSuccessfulUnits() {
+        return increaseNumberOfSuccessfulUnits(1L);
+    }
+
+    
+    /**
+     * Increase the number of successful processed units
+     * 
+     * @param numberOfSuccessfulUnits the number of successful units to add
+     * @return this instance
+     */
+    public ProcessingUnitStatus increaseNumberOfSuccessfulUnits(Long numberOfSuccessfulUnits) {
         if (numberOfSuccessfulUnits == null) {
-            numberOfSuccessfulUnits = 0L;
+            return this;
         } 
         
-        numberOfSuccessfulUnits++;
+        if (this.numberOfSuccessfulUnits == null) {
+            this.numberOfSuccessfulUnits = numberOfSuccessfulUnits;
+        } else {
+            this.numberOfSuccessfulUnits += numberOfSuccessfulUnits;
+        }
         return this;
     }
 
@@ -137,11 +152,26 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
      * @return this instance
      */
     public ProcessingUnitStatus increaseNumberOfFailedUnits() {
+        return increaseNumberOfFailedUnits(1L);
+    }
+
+    
+    /**
+     * Increase the number of failed units
+     * 
+     * @param numberOfFailedUnits the number of failed units to add
+     * @return this instance
+     */
+    public ProcessingUnitStatus increaseNumberOfFailedUnits(Long numberOfFailedUnits) {
         if (numberOfFailedUnits == null) {
-            numberOfFailedUnits = 0L;
-        }
+            return this;
+        } 
         
-        numberOfFailedUnits++;
+        if (this.numberOfFailedUnits == null) {
+            this.numberOfFailedUnits = numberOfFailedUnits;
+        } else {
+            this.numberOfFailedUnits += numberOfFailedUnits;
+        }
         return this;
     }
 
@@ -163,6 +193,36 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
      */
     public ProcessingUnitStatus setNumberOfUnprocessedUnits(Long numberOfUnprocessedUnits) {
         this.numberOfUnprocessedUnits = numberOfUnprocessedUnits;
+        return this;
+    }
+
+    
+    /**
+     * Increase the number of unprocessed units
+     * 
+     * @return this instance
+     */
+    public ProcessingUnitStatus increaseNumberOfUnprocessedUnits() {
+        return increaseNumberOfUnprocessedUnits(1L);
+    }
+
+    
+    /**
+     * Increase the number of unprocessed units
+     * 
+     * @param numberOfUnprocessedUnits the number of unprocessed units to add
+     * @return this instance
+     */
+    public ProcessingUnitStatus increaseNumberOfUnprocessedUnits(Long numberOfUnprocessedUnits) {
+        if (numberOfUnprocessedUnits == null) {
+            return this;
+        } 
+        
+        if (this.numberOfUnprocessedUnits == null) {
+            this.numberOfUnprocessedUnits = numberOfUnprocessedUnits;
+        } else {
+            this.numberOfUnprocessedUnits += numberOfUnprocessedUnits;
+        }
         return this;
     }
 
@@ -223,13 +283,16 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
      *
      * @param key the key / name of the statistic
      * @param value the value to add
+     * @return the statistic counter
      */
-    public void addStatistic(String key, Long value) {
+    public StatisticCounter addStatistic(String key, Long value) {
         if (key == null || key.isBlank() || value == null) {
-            return;
+            return null;
         }
         
-        getStatisticCounter(key).add(value);
+        StatisticCounter statisticCounter = getStatisticCounter(key);
+        statisticCounter.add(value);
+        return statisticCounter;
     }
 
     
@@ -238,13 +301,16 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
      *
      * @param key the key / name of the statistic
      * @param value the value to add
+     * @return the statistic counter
      */
-    public void addStatistic(String key, Double value) {
+    public StatisticCounter addStatistic(String key, Double value) {
         if (key == null || key.isBlank() || value == null) {
-            return;
+            return null;
         }
         
-        getStatisticCounter(key).add(value);
+        StatisticCounter statisticCounter = getStatisticCounter(key);
+        statisticCounter.add(value);
+        return statisticCounter;
     }
 
     
@@ -252,14 +318,17 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
      * Add statistic
      *
      * @param key the key / name of the statistic
-     * @param statisticCounter statistic counter
+     * @param inputStatisticCounter statistic counter
+     * @return the statistic counter
      */
-    public void addStatistic(String key, StatisticCounter statisticCounter) {
-        if (key == null || key.isBlank() || statisticCounter == null) {
-            return;
+    public StatisticCounter addStatistic(String key, StatisticCounter inputStatisticCounter) {
+        if (key == null || key.isBlank() || inputStatisticCounter == null) {
+            return null;
         }
-        
-        getStatisticCounter(key).add(statisticCounter);
+
+        StatisticCounter statisticCounter = getStatisticCounter(key);
+        statisticCounter.add(inputStatisticCounter);
+        return statisticCounter;
     }
 
     

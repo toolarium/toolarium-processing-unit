@@ -14,7 +14,6 @@ import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
-import com.github.toolarium.processing.unit.ParameterDefinitionBuilder;
 import com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitPersistenceImpl;
 import com.github.toolarium.processing.unit.dto.Parameter;
@@ -25,12 +24,12 @@ import com.github.toolarium.processing.unit.parallelization.IParallelProcessingU
 import com.github.toolarium.processing.unit.parallelization.IProcessingUnitObjectLockManagerSupport;
 import com.github.toolarium.processing.unit.runtime.runnable.EmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
+import com.github.toolarium.processing.unit.util.ProcessingUnitStatusUtil;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,35 +47,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author patrick
  */
-public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImpl<ParallelProcessingUnitPersistenceContainer> implements IParallelProcessingUnit, UncaughtExceptionHandler {
-    
-    /** NUMBER_OF_THREAD_PARAMETER */
-    public static final ParameterDefinition NUMBER_OF_THREAD_PARAMETER = 
-            new ParameterDefinitionBuilder().name("numberOfThreads").defaultValue(1).description("Defines the number of threads to process this processing unit (parallizable).").build();
-
-    /** LOCK_SIZE */
-    public static final ParameterDefinition LOCK_SIZE = new ParameterDefinitionBuilder().name("lockSize").emptyValueIsAllowed().description("Defines the object lock size.").build();
-    
-    /** UNLOCK_TIMEOUT */
-    public static final ParameterDefinition UNLOCK_TIMEOUT = 
-            new ParameterDefinitionBuilder().name("unlockTimeout").emptyValueIsAllowed().defaultValue(1000L).description("Defines the timeout in milliseconds after an unlock an object can be locked again.").build();
-
-    /** STARTUP_PHASED_SLEEP_TIME */
-    public static final ParameterDefinition STARTUP_PHASED_SLEEP_TIME = 
-            new ParameterDefinitionBuilder().name("startupPhasedSleepTime").defaultValue(100L).description("Defines the startup phased sleep time between threads (parallizable).").build();
-
-    /** AGGREGATE_STATUS_PAUSE_TIME */
-    public static final ParameterDefinition AGGREGATE_STATUS_PAUSE_TIME = 
-            new ParameterDefinitionBuilder().name("aggregateStatusPauseTime").defaultValue(50L).emptyValueIsNotAllowed().description("Defines the aggregate status pause time.").build();
-
-    /** NO_PROGRESS_PAUSE_TIME */
-    public static final ParameterDefinition NO_PROGRESS_PAUSE_TIME = 
-            new ParameterDefinitionBuilder().name("noProgressPauseTime").defaultValue(200L).emptyValueIsNotAllowed().description("Defines pause time in case a parallel processing unit could nothing process.").build();
-
-    /** MAX_NUMBER_OF_NO_PROGRESS_BEFORE_ABORT */
-    public static final ParameterDefinition MAX_NUMBER_OF_NO_PROGRESS_BEFORE_ABORT = 
-            new ParameterDefinitionBuilder().name("maxNumberOfNoProgressBeforeAbort").emptyValueIsAllowed().description("Defines pause time in case a parallel processing unit could nothing process.").build();
-
+public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImpl<ParallelProcessingUnitPersistenceContainer> implements ParallelProcessingUnitParameters, IParallelProcessingUnit, UncaughtExceptionHandler {
     
     private static final Logger LOG = LoggerFactory.getLogger(ParallelProcessingUnit.class);
     private String id;
@@ -411,13 +382,14 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      */
     protected ProcessingUnitStatusBuilder aggregateProcessingUnitStatus(ProcessingUnitStatusBuilder processingUnitStatusBuilder) {
         for (RunnerThreadProcessStatusQueue statusQueue : runnerThreadStatusQueueList) {
-            IProcessingUnitStatus processingUnitStatus = null;
-            while (processingUnitStatus != null) {
-                processingUnitStatus = statusQueue.getProcessingUnitStatus();
+            IProcessingUnitStatus processingUnitStatus = statusQueue.getProcessingUnitStatus();
+            while (processingUnitStatus != null && !isThreadPoolTerminated()) {
                 ProcessingUnitStatusUtil.getInstance().aggregateProcessingUnitStatus(processingUnitStatusBuilder, processingUnitStatus);
+                processingUnitStatus = statusQueue.getProcessingUnitStatus();
             }
         }
 
+        processingUnitStatusBuilder.hasNextIfHasUnprocessedUnits();
         processingUnitStatusBuilder.hasNext(processingUnitStatusBuilder.hasNext() || !isThreadPoolTerminated());
         return processingUnitStatusBuilder;
     }
@@ -623,7 +595,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     class ProcessingUnitRunnerThread implements Runnable {
         private static final Logger LOG = LoggerFactory.getLogger(ProcessingUnitRunnerThread.class);
         private IProcessingUnit processingUnit;
-        private Queue<IProcessingUnitStatus> processStatusQueue;
+        private BlockingQueue<IProcessingUnitStatus> processStatusQueue;
         private int number;
         private long noProgressPauseTime;
 
@@ -636,7 +608,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
          * @param processStatusQueue the process status queue
          * @param noProgressPauseTime the pause time on no progress
          */
-        ProcessingUnitRunnerThread(IProcessingUnit processingUnit, int number, Queue<IProcessingUnitStatus> processStatusQueue, long noProgressPauseTime) {
+        ProcessingUnitRunnerThread(IProcessingUnit processingUnit, int number, BlockingQueue<IProcessingUnitStatus> processStatusQueue, long noProgressPauseTime) {
             this.processingUnit = processingUnit;
             this.number = number;
             this.noProgressPauseTime = noProgressPauseTime;
@@ -651,26 +623,28 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
         public void run() {
             LOG.info(processInfo + " Start processing unit parallelization thread #" + number + "...");
 
-            IProcessingUnitStatus processStatus = processingUnit.processUnit();
-            processStatusQueue.offer(processStatus);
-
             long lastProgress = getProcessingUnitProgress().getProgress();
-            while (!isThreadInterrupted() && processStatus.hasNext()) {
+            boolean hasNext = false;
+            do {
 
-                processStatus = processingUnit.processUnit();
-                processStatusQueue.offer(processStatus);
+                IProcessingUnitStatus processStatus = processingUnit.processUnit();
+                try {
+                    processStatusQueue.put(processStatus);
+                    lastProgress = getProcessingUnitProgress().getProgress();
+                    hasNext = processStatus.hasNext();
 
-                if (getProcessingUnitProgress().getProgress() == lastProgress) {
-                    ThreadUtil.getInstance().sleep(noProgressPauseTime);
+                    if (getProcessingUnitProgress().getProgress() == lastProgress) {
+                        ThreadUtil.getInstance().sleep(noProgressPauseTime);
+                    }
+                } catch (InterruptedException e) {
+                    LOG.debug("Interrupt: " + e.getMessage(), e);
                 }
-                
-                lastProgress = getProcessingUnitProgress().getProgress();
-            }
+            } while (!isThreadInterrupted() && hasNext);
 
             if (isInterrupted()) {
-                LOG.info(processInfo + "Processing unit parallelization thread #" + number + "  interrupted!");
+                LOG.info(processInfo + " Processing unit parallelization thread #" + number + "  interrupted!");
             } else {
-                LOG.info(processInfo + "Processing unit parallelization thread #" + number + " ended.");
+                LOG.info(processInfo + " Processing unit parallelization thread #" + number + " ended.");
             }
         }
 
@@ -761,6 +735,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
         public IProcessingUnitStatus getProcessingUnitStatus() {
             try {
                 return processingUnitStatusQueue.poll(100L, TimeUnit.MILLISECONDS);
+                //return processingUnitStatusQueue.take();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

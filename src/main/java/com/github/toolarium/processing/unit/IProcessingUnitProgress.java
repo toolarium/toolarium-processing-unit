@@ -25,12 +25,13 @@ public interface IProcessingUnitProgress {
     
     /**
      * Get the number of unprocessed units.
+     * It's calculated by the number of units to process minus the number of processed units.
      *
      * @return the number of unprocessed units.
      */
     long getNumberOfUnprocessedUnits();
 
-
+    
     /**
      * Gets the number of processed units (failed units included).
      *
@@ -41,6 +42,7 @@ public interface IProcessingUnitProgress {
     
     /**
      * Gets the number of successful units.
+     * It's calculated by the number of units to process minus the failed units.
      *
      * @return the number of successful units.
      */

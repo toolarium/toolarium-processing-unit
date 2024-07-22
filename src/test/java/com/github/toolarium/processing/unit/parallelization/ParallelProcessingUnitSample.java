@@ -28,9 +28,9 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author patrick
  */
 public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersistenceImpl<ParallelProcessingPersistence> implements IParallelProcessingUnit, IProcessingUnitObjectLockManagerSupport {
+    
     /** NUMBER_OF_WORDS: the number of words. */
     public static final ParameterDefinition NUMBER_OF_WORDS = new ParameterDefinitionBuilder().name("numberOfWords").defaultValue(10000).description("The number of words.").build();
-    private Queue<String> wordBuffer;
     private List<String> wordResultList;
     
     
@@ -71,33 +71,23 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
     public IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) throws ProcessingException {
         int blockSize = 10;
         
-        if (wordBuffer == null || wordBuffer.isEmpty()) {
-            wordBuffer = new LinkedBlockingQueue<String>(getObjectLockManager().lock(TextSource.getInstance().getWords(blockSize)));
-            TextSource.getInstance().incrementPosition(wordBuffer.size()); // only mark
-        }
-
-        if (!wordBuffer.isEmpty()) {
-            String text = wordBuffer.poll();
+        final Queue<String> wordBuffer = new LinkedBlockingQueue<String>(getObjectLockManager().lock(TextSource.getInstance().getWords(blockSize)));
+        while (wordBuffer != null && !wordBuffer.isEmpty()) {
+            final String text = wordBuffer.poll();
             if (text != null && !text.isBlank()) {
                 wordResultList.add(text);
                 
                 // mark one as processed
                 TextSource.getInstance().incrementPosition();
-                processingUnitStatusBuilder.processedSuccessful();
+                processingUnitStatusBuilder.increaseNumberOfSuccessfulUnits();
                 processingUnitStatusBuilder.statistic("processedWord", 1L);
             } else {
                 processingUnitStatusBuilder.warn("Empty text dound!");
-                processingUnitStatusBuilder.processingUnitFailed();
+                processingUnitStatusBuilder.increaseNumberOfFailedUnits();
             }
-            
-            processingUnitStatusBuilder.hasNext(!wordBuffer.isEmpty() || TextSource.getInstance().hasMoreWords());            
-        } else {
-            processingUnitStatusBuilder.warn("Found no text!");
-            processingUnitStatusBuilder.processingUnitFailed();
-            processingUnitStatusBuilder.hasNext(false);
         }
-        
-        return processingUnitStatusBuilder.build();
+
+        return processingUnitStatusBuilder.hasNext(TextSource.getInstance().hasMoreWords()).build();
     }
     
     
@@ -106,10 +96,6 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
      */
     @Override
     public IProcessingUnitPersistence suspendProcessing() throws ProcessingException {
-        if (wordBuffer != null && !wordBuffer.isEmpty()) {
-            getProcessingPersistence().setQueue(wordBuffer);
-        }
-
         getProcessingPersistence().setWordResultList(wordResultList);
         return super.suspendProcessing();
     }
@@ -121,8 +107,6 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
     @Override
     public void resumeProcessing(IProcessingUnitProgress processingUnitProgress, IProcessingUnitPersistence processingPersistence) throws ProcessingException {
         super.resumeProcessing(processingUnitProgress, processingPersistence);
-        
-        wordBuffer = getProcessingPersistence().getBuffer();
         wordResultList = getProcessingPersistence().getWordResultList();
         removePersistenceInstance();
     }
@@ -133,7 +117,6 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
      */
     @Override
     public void releaseResource() throws ProcessingException {
-        wordBuffer = null;
     }
 
 

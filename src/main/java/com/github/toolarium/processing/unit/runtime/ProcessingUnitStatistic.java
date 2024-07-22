@@ -181,6 +181,15 @@ public class ProcessingUnitStatistic implements IProcessingUnitStatistic, Serial
 
 
     /**
+     * @see com.github.toolarium.processing.unit.IProcessingUnitStatistic#size()
+     */
+    @Override
+    public int size() {
+        return statisticData.size();
+    }
+
+    
+    /**
      * @see java.lang.Object#hashCode()
      */
     @Override

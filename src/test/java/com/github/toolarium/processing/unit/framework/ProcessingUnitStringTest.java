@@ -66,9 +66,9 @@ public class ProcessingUnitStringTest extends AbstractProcessingUnitImpl {
         
         if (val.isEmpty()) {
             processingUnitStatusBuilder.warn("Empty data");
-            processingUnitStatusBuilder.processingUnitFailed();
+            processingUnitStatusBuilder.increaseNumberOfFailedUnits();
         } else {
-            processingUnitStatusBuilder.processedSuccessful();
+            processingUnitStatusBuilder.increaseNumberOfSuccessfulUnits();
         }
 
         IProcessingUnitStatus processingUnitStatus = processingUnitStatusBuilder.build();

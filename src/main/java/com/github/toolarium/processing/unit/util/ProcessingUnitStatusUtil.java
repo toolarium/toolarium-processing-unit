@@ -3,7 +3,7 @@
  *
  * Copyright by toolarium, all rights reserved.
  */
-package com.github.toolarium.processing.unit.runtime.runnable.parallelization;
+package com.github.toolarium.processing.unit.util;
 
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder;
@@ -58,9 +58,9 @@ public final class ProcessingUnitStatusUtil {
         }
         
         // update figures
-        processingUnitStatusBuilder.numberOfFailedUnits(processingUnitStatus.getNumberOfFailedUnits());
-        processingUnitStatusBuilder.numberOfUnprocessedUnits(processingUnitStatus.getNumberOfUnprocessedUnits());
-        processingUnitStatusBuilder.numberOfSuccessfulUnits(processingUnitStatus.getNumberOfSuccessfulUnits());
+        processingUnitStatusBuilder.increaseNumberOfSuccessfulUnits(processingUnitStatus.getNumberOfSuccessfulUnits());
+        processingUnitStatusBuilder.increaseNumberOfFailedUnits(processingUnitStatus.getNumberOfFailedUnits());
+        processingUnitStatusBuilder.increaseNumberOfUnprocessedUnits(processingUnitStatus.getNumberOfUnprocessedUnits());
         
         // set status
         ProcessingRuntimeStatus processingRuntimeStatus = processingUnitStatus.getProcessingRuntimeStatus();

@@ -73,7 +73,7 @@ public class ProcessingUnitProgressFormatter {
         StringBuilder builder = new StringBuilder();
         builder.append(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass));
         if (processingActionStatus != null) {
-            builder.append(" Status ").append(processingActionStatus);
+            builder.append(" Status ").append(processingActionStatus).append(": ").append(processingProgress.getProgress()).append("%");
         }
         builder.append(prepareProgressNumbers(startTag, processingProgress, true));
         if (processingProgress != null) {
@@ -271,8 +271,13 @@ public class ProcessingUnitProgressFormatter {
             }
 
             builder.append(key);
-            builder.append("=");
+            builder.append(" = ");
+            builder.append("avg:");
             builder.append(RoundUtil.getInstance().round(processingStatistic.get(key).getAverage(), 2));
+            builder.append(", num:");
+            builder.append(RoundUtil.getInstance().round(processingStatistic.get(key).getCounter(), 2));
+            builder.append(", sum:");
+            builder.append(RoundUtil.getInstance().round(processingStatistic.get(key).getSum(), 2));
         }
         
         builder.append("]");
