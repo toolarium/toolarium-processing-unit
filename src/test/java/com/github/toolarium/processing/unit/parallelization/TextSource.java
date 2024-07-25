@@ -17,6 +17,7 @@ import java.util.List;
 public final class TextSource {
     private TextProducer.Text text;
 
+    
     /**
      * Private class, the only instance of the singelton which will be created by accessing the holder class.
      *

@@ -210,6 +210,12 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             }
             processingUnit = ProcessingUnitUtil.getInstance().createProcessingUnitInstance(id, name, processingUnitClass);
 
+            // get parameter definition
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(processing + " Get parameter definition of processing unit instance");
+            }
+            processingUnit.getParameterDefinition();
+            
             // check consistency
             if (LOG.isDebugEnabled()) {
                 LOG.debug(processing + " Validate parameter list of processing unit instance");

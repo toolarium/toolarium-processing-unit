@@ -27,7 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  *  
  * @author patrick
  */
-public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersistenceImpl<ParallelProcessingPersistence> implements IParallelProcessingUnit, IProcessingUnitObjectLockManagerSupport {
+public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersistenceImpl<ParallelProcessingUnitSample.ParallelProcessingPersistence> implements IParallelProcessingUnit, IProcessingUnitObjectLockManagerSupport {
     
     /** NUMBER_OF_WORDS: the number of words. */
     public static final ParameterDefinition NUMBER_OF_WORDS = new ParameterDefinitionBuilder().name("numberOfWords").defaultValue(10000).description("The number of words.").build();
@@ -126,5 +126,55 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
     @Override
     protected ParallelProcessingPersistence newPersistenceInstance() {
         return new ParallelProcessingPersistence();
+    }
+
+
+    /**
+     * Defines the parallel processing persistence 
+     */
+    static class ParallelProcessingPersistence implements IProcessingUnitPersistence {
+        private static final long serialVersionUID = -178680376384580300L;
+        private Queue<String> wordBuffer;
+        private List<String> wordResultList; 
+
+        
+        /**
+         * Get the buffer
+         *
+         * @return the buffer
+         */
+        public Queue<String> getBuffer() {
+            return wordBuffer;
+        }
+
+        
+        /**
+         * Set the buffer
+         *
+         * @param wordBuffer the buffer
+         */
+        public void setQueue(Queue<String> wordBuffer) {
+            this.wordBuffer = wordBuffer;
+        }
+
+        
+        /**
+         * Get the result word list
+         * 
+         * @return the result word list
+         */
+        public List<String> getWordResultList() {
+            return wordResultList;
+        }
+
+        
+        /**
+         * Set the result word list
+         * 
+         * @param wordResultList the word list
+         */
+        public void setWordResultList(List<String> wordResultList) {
+            this.wordResultList = wordResultList;
+        }
     }
 }
