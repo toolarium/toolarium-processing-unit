@@ -34,7 +34,7 @@ public class ParallelProcessingUnitTest {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(ParallelProcessingUnitSample.NUMBER_OF_WORDS.getKey(), "128"));
         parameterList.add(new Parameter(ParallelProcessingUnit.AGGREGATE_STATUS_PAUSE_TIME.getKey(), "10"));
-        //parameterList.add(new Parameter(ParallelProcessingUnitParameters.LOCK_SIZE.getKey(), "10"));
+        parameterList.add(new Parameter(ParallelProcessingUnitParameters.LOCK_SIZE.getKey(), "10"));
         //parameterList.add(new Parameter(ParallelProcessingUnitParameters.UNLOCK_TIMEOUT.getKey(), "100L"));
         //parameterList.add(new Parameter(ParallelProcessingUnitParameters.STARTUP_PHASED_SLEEP_TIME.getKey(), "10L"));
         //parameterList.add(new Parameter(ParallelProcessingUnitParameters.AGGREGATE_STATUS_PAUSE_TIME.getKey(), "50L"));
@@ -62,7 +62,7 @@ public class ParallelProcessingUnitTest {
         List<Parameter> parameterList = new ArrayList<Parameter>();
         parameterList.add(new Parameter(ParallelProcessingUnitSample.NUMBER_OF_WORDS.getKey(), "128"));
         parameterList.add(new Parameter(ParallelProcessingUnitParameters.NUMBER_OF_THREAD_PARAMETER.getKey(), "4"));
-        //parameterList.add(new Parameter(ParallelProcessingUnitParameters.LOCK_SIZE.getKey(), "10"));
+        parameterList.add(new Parameter(ParallelProcessingUnitParameters.LOCK_SIZE.getKey(), "4"));
         //parameterList.add(new Parameter(ParallelProcessingUnitParameters.UNLOCK_TIMEOUT.getKey(), "100L"));
         //parameterList.add(new Parameter(ParallelProcessingUnitParameters.STARTUP_PHASED_SLEEP_TIME.getKey(), "10L"));
         //parameterList.add(new Parameter(ParallelProcessingUnitParameters.AGGREGATE_STATUS_PAUSE_TIME.getKey(), "50L"));

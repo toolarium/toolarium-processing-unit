@@ -55,7 +55,7 @@ public interface IProcessingUnit {
      * Estimate the number of units to process. It will be called once after {@link #initialize(List, IProcessingUnitContext)}.
      * It set the the number of units to process in the object {@link IProcessingUnitProgress}. In case there are more elements
      * to process than estimated, the progress will adapted.
-     * In case of a {@link #resumeProcessing(IProcessingUnitPersistence, IProcessingUnitContext)}
+     * In case of a {@link #resumeProcessing(IProcessingUnitProgress, IProcessingUnitPersistence)}
      * it will not be called again.
      * 
      * @return returns the number of units to process

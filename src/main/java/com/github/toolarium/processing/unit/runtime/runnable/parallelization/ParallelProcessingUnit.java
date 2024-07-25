@@ -360,7 +360,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      */
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        LOG.error(processInfo + " Uncaught exception in thread (id=" + t.threadId() + ", name=" + t.getName() + "): " + e.getMessage(), e);
+        LOG.error(processInfo + " Uncaught exception in thread (id=" + t.getId() + ", name=" + t.getName() + "): " + e.getMessage(), e);
         runnerThreadExceptionQueue.offer(e);
     }
     
@@ -593,7 +593,6 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      * Defines the processing unit runner
      */
     class ProcessingUnitRunnerThread implements Runnable {
-        private static final Logger LOG = LoggerFactory.getLogger(ProcessingUnitRunnerThread.class);
         private IProcessingUnit processingUnit;
         private BlockingQueue<IProcessingUnitStatus> processStatusQueue;
         private int number;

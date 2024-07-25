@@ -213,9 +213,9 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
             // release
             if (getProcessingUnitProxy() != null) {
                 if (isInterrupted) {
-                    LOG.info(getProcessingUnitProxy().toString() + " Processing unit thread #" + Thread.currentThread().threadId() + " interrupted!");
+                    LOG.info(getProcessingUnitProxy().toString() + " Processing unit thread #" + Thread.currentThread().getId() + " interrupted!");
                 } else {
-                    LOG.debug(getProcessingUnitProxy().toString() + " Processing unit thread #" + Thread.currentThread().threadId() + " ended.");
+                    LOG.debug(getProcessingUnitProxy().toString() + " Processing unit thread #" + Thread.currentThread().getId() + " ended.");
                 }
                 
                 if (LOG.isDebugEnabled()) {
