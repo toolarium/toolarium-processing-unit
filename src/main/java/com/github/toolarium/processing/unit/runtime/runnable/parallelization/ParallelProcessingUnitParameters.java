@@ -25,11 +25,11 @@ public interface ParallelProcessingUnitParameters {
     
     /** UNLOCK_TIMEOUT */
     ParameterDefinition UNLOCK_TIMEOUT = 
-            new ParameterDefinitionBuilder().name("unlockTimeout").emptyValueIsAllowed().defaultValue(500L).description("Defines the timeout in milliseconds after an unlock an object can be locked again.").build();
+            new ParameterDefinitionBuilder().name("unlockTimeout").emptyValueIsAllowed().defaultValue(250L).description("Defines the timeout in milliseconds after an unlock an object can be locked again.").build();
 
     /** STARTUP_PHASED_SLEEP_TIME */
     ParameterDefinition STARTUP_PHASED_SLEEP_TIME = 
-            new ParameterDefinitionBuilder().name("startupPhasedSleepTime").defaultValue(100L).description("Defines the startup phased sleep time between threads (parallizable).").build();
+            new ParameterDefinitionBuilder().name("startupPhasedSleepTime").defaultValue(50L).description("Defines the startup phased sleep time between threads (parallizable).").build();
 
     /** AGGREGATE_STATUS_PAUSE_TIME */
     ParameterDefinition AGGREGATE_STATUS_PAUSE_TIME = 
@@ -37,9 +37,9 @@ public interface ParallelProcessingUnitParameters {
 
     /** NO_PROGRESS_PAUSE_TIME */
     ParameterDefinition NO_PROGRESS_PAUSE_TIME = 
-            new ParameterDefinitionBuilder().name("noProgressPauseTime").defaultValue(500L).emptyValueIsNotAllowed().description("Defines pause time in case a parallel processing unit could nothing process.").build();
+            new ParameterDefinitionBuilder().name("noProgressPauseTime").defaultValue(250L).emptyValueIsNotAllowed().description("Defines pause time in case a parallel processing unit could nothing process.").build();
 
     /** MAX_NUMBER_OF_NO_PROGRESS_BEFORE_ABORT */
     ParameterDefinition MAX_NUMBER_OF_NO_PROGRESS_BEFORE_ABORT = 
-            new ParameterDefinitionBuilder().name("maxNumberOfNoProgressBeforeAbort").emptyValueIsAllowed().description("Defines pause time in case a parallel processing unit could nothing process.").build();
+            new ParameterDefinitionBuilder().name("maxNumberOfNoProgressBeforeAbort").defaultValue(10L).emptyValueIsAllowed().description("Defines pause time in case a parallel processing unit could nothing process.").build();
 }

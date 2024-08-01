@@ -45,6 +45,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     private Long duration;
     private TimeDifferenceFormatter timeDifferenceFormatter; 
     private IEmptyProcessingUnitHandler emptyProcessingUnitHandler;
+    private Long maxNumberOfProcessingUnitCallsPerSecond;
 
     
     /**
@@ -78,6 +79,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.duration = null;
         this.timeDifferenceFormatter = new TimeDifferenceFormatter();
         this.emptyProcessingUnitHandler = null;
+        this.maxNumberOfProcessingUnitCallsPerSecond = null;
     }
 
     
@@ -287,7 +289,11 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      * @return the empty processing unit handler
      */
     public IEmptyProcessingUnitHandler getEmptyProcessingUnitHandler() {
-        return processingUnitProxy.getEmptyProcessingUnitHandler();
+        if (processingUnitProxy != null) {
+            return processingUnitProxy.getEmptyProcessingUnitHandler();
+        }
+        
+        return null;
     }
 
     
@@ -297,7 +303,33 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      * @param emptyProcessingUnitHandler the empty processing unit handler
      */
     public void setEmptyProcessingUnitHandler(IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
-        processingUnitProxy.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
+        if (processingUnitProxy != null) {
+            processingUnitProxy.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
+        }
+    }
+
+    
+    /**
+     * Defines the max calls per second to throttle the processing unit
+     *
+     * @param maxNumberOfProcessingUnitCallsPerSecond the max number of processing units per second
+     */
+    public void setMaxNumberOfProcessingUnitCallsPerSecond(Long maxNumberOfProcessingUnitCallsPerSecond) {
+        if (maxNumberOfProcessingUnitCallsPerSecond == null || maxNumberOfProcessingUnitCallsPerSecond.longValue() <= 0) {
+            this.maxNumberOfProcessingUnitCallsPerSecond = null;
+        } else {
+            this.maxNumberOfProcessingUnitCallsPerSecond = maxNumberOfProcessingUnitCallsPerSecond;
+        }
+    }
+
+    
+    /**
+     * Get the max calls per second to throttle the processing unit
+     *
+     * @return the max number of processing units per second
+     */
+    public Long getMaxNumberOfProcessingUnitCallsPerSecond() {
+        return maxNumberOfProcessingUnitCallsPerSecond;
     }
 
     
@@ -399,4 +431,14 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     protected TimeDifferenceFormatter getTimeDifferenceFormatter() {
         return timeDifferenceFormatter;
     }
+    
+    
+    /**
+     * Get the processing class
+     *
+     * @return the processing class
+     */
+    protected Class<? extends IProcessingUnit> getProcessingUnitClass() {
+        return processingUnitClass;
+    } 
 }

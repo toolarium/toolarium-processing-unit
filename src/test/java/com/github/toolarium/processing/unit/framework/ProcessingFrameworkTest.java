@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
  * @author patrick
  */
 public class ProcessingFrameworkTest {
-    private static final String PROCESSED_ONE_SUCCSESSFUL_UNIT = "[hasNext=true, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, "
+    private static final String PROCESSED_ONE_SUCCSESSFUL_UNIT = "[hasNext=true, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessageList=null, "
                                                                  + "processingUnitStatistic=null])] | ";
     private static final String HEADER = "ProcessingUnitStatus "; 
     private static final String VALUE1 = "value1";
@@ -63,7 +63,7 @@ public class ProcessingFrameworkTest {
                  "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[c(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
-               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, processingUnitStatistic=null])]");
+               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessageList=null, processingUnitStatistic=null])]");
                                             
         assertNotNull(processRunner.getId());
         assertNull(processRunner.getName());
@@ -93,7 +93,7 @@ public class ProcessingFrameworkTest {
                  "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[c(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
-               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, processingUnitStatistic=null])]");
+               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessageList=null, processingUnitStatistic=null])]");
     }
     
     
@@ -112,8 +112,8 @@ public class ProcessingFrameworkTest {
         assertEquals((((ProcessingUnitStringTest)processRunner.getProcesingUnit())).getResult(),
                  "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
-               + "[(" + HEADER + "[hasNext=true, numberOfSuccessfulUnits=null, numberOfFailedUnits=1, numberOfUnprocessedUnits=null, processingRuntimeStatus=WARN, statusMessage=Empty data, processingUnitStatistic=null])] | "
-               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, processingUnitStatistic=null])]");
+               + "[(" + HEADER + "[hasNext=true, numberOfSuccessfulUnits=null, numberOfFailedUnits=1, numberOfUnprocessedUnits=null, processingRuntimeStatus=WARN, statusMessageList=[Empty data], processingUnitStatistic=null])] | "
+               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessageList=null, processingUnitStatistic=null])]");
     }
 
     
@@ -134,8 +134,8 @@ public class ProcessingFrameworkTest {
         assertEquals((((ProcessingUnitStringTest)processRunner.getProcesingUnit())).getResult(),
                  "[a(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
                + "[b(" + HEADER + PROCESSED_ONE_SUCCSESSFUL_UNIT
-               + "[(" + HEADER + "[hasNext=true, numberOfSuccessfulUnits=null, numberOfFailedUnits=1, numberOfUnprocessedUnits=null, processingRuntimeStatus=WARN, statusMessage=Empty data, processingUnitStatistic=null])] | "
-               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessage=null, processingUnitStatistic=null])]");
+               + "[(" + HEADER + "[hasNext=true, numberOfSuccessfulUnits=null, numberOfFailedUnits=1, numberOfUnprocessedUnits=null, processingRuntimeStatus=WARN, statusMessageList=[Empty data], processingUnitStatistic=null])] | "
+               + "[d(" + HEADER + "[hasNext=false, numberOfSuccessfulUnits=1, numberOfFailedUnits=null, numberOfUnprocessedUnits=null, processingRuntimeStatus=SUCCESSFUL, statusMessageList=null, processingUnitStatistic=null])]");
     }
     
 

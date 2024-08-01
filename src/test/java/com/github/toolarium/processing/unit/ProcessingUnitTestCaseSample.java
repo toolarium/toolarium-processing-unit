@@ -141,10 +141,10 @@ public final class ProcessingUnitTestCaseSample {
 
 
     /**
-     * Simple test case with correct
+     * Simple test case with correct abort
      */
     @Test
-    public void testProcessingUnitOnStop() {
+    public void testProcessingUnitAbort() {
         List<Parameter> parameterList = new ArrayList<Parameter>();
 
         TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
@@ -202,6 +202,7 @@ public final class ProcessingUnitTestCaseSample {
         TestProcessingUnitRunner processRunner = TestProcessingUnitRunnerFactory.getInstance().getProcessingUnitRunner();
         assertEquals(processRunner.runWithSuspendAndResume(MyDataProcessingUnit.class, parameterList, randomSuspendIdx, 100L, 5, 10L), totalUnits);
         
+        assertNotNull(processRunner.getProcessingUnitThrottling());
         int avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter().getAverage());
         assertTrue(avg >= 12 && avg <= 25, "" + processRunner.getProcessingUnitThrottling().getBandwidthStatisticCounter());
         avg = RoundUtil.getInstance().roundToInt(processRunner.getProcessingUnitThrottling().getSleepStatisticCounter().getAverage());

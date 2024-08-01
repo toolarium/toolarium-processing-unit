@@ -172,7 +172,7 @@ public class TestProcessingUnit extends AbstractProcessingUnitPersistenceImpl<Te
             } else if (getParameterRuntime().getParameterValueList(END_AS_ERROR_PARAMTER).getValueAsBoolean()) {
                 processingUnitStatusBuilder.error("Test error message.");
             } else if (RandomGenerator.getInstance().getBooleanRandom()) {
-                processingUnitStatusBuilder.message("Test processing message.");
+                processingUnitStatusBuilder.addMessage("Test processing message.");
             }
         }
         

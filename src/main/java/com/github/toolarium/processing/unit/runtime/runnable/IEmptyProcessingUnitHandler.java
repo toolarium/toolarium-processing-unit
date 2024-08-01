@@ -19,7 +19,19 @@ import java.io.Serializable;
 public interface IEmptyProcessingUnitHandler extends Serializable {
     
     /**
-     * Handle empty processing unit
+     * Reset empty processing unit handler. It will be called after a non-empty processing occured. 
+     * 
+     * @param id the id 
+     * @param name the name
+     * @param processingUnitClass the processing unit class
+     * @param threadId the thread id
+     * @param processingUnitProgress the processing unit progress
+     */
+    void reset(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress);
+    
+    
+    /**
+     * Handle empty processing of a procesing unit
      *
      * @param id the id 
      * @param name the name
@@ -28,7 +40,7 @@ public interface IEmptyProcessingUnitHandler extends Serializable {
      * @param processingUnitProgress the processing unit progress
      * @return true to continue or false to abort processing
      */
-    boolean handle(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress);
+    boolean handleEmptyProcessing(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress);
     
     
     /**

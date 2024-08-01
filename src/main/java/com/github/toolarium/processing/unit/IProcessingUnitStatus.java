@@ -7,6 +7,7 @@ package com.github.toolarium.processing.unit;
 
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
+import java.util.List;
 
 
 /**
@@ -66,9 +67,9 @@ public interface IProcessingUnitStatus {
      * A return message can be passed back. In case it's null then no status message is available 
      * in the last run.
      *
-     * @return a status message or null
+     * @return the status message list or null
      */
-    String getStatusMessage();
+    List<String> getStatusMessageList();
     
     
     /**

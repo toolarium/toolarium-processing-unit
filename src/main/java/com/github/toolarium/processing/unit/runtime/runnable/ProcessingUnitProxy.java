@@ -87,9 +87,10 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
         this.startTimestamp = startTimestamp;
         this.lastStartTimestamp = startTimestamp;
         this.duration = duration;
-        this.maxNumberOfProcessingUnitCallsPerSecond = maxNumberOfProcessingUnitCallsPerSecond;
         this.emptyProcessingUnitHandler = emptyProcessingUnitHandler;
-        
+
+        setMaxNumberOfProcessingUnitCallsPerSecond(maxNumberOfProcessingUnitCallsPerSecond);
+
         if (this.duration < 0) {
             this.duration = 0;
         }
@@ -311,17 +312,21 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
             IProcessingUnitStatus processingUnitStatus = getProcessingUnit().processUnit();
             continueProcessing = processingUnitStatus.hasNext();
             long processedUnits = processingUnitProgress.addProcessingUnitStatus(processingUnitStatus);
-            if (processingUnitStatus != null && processingUnitStatus.getStatusMessage() != null && !processingUnitStatus.getStatusMessage().isBlank()) {
-                processStatusMessageList.add(processingUnitStatus.getStatusMessage().trim());
+            if (processingUnitStatus != null && processingUnitStatus.getStatusMessageList() != null && !processingUnitStatus.getStatusMessageList().isEmpty()) {
+                processStatusMessageList.addAll(processingUnitStatus.getStatusMessageList());
             }
 
             // in case there was an empty run...
             if (continueProcessing && processedUnits <= 0) {
                 if (emptyProcessingUnitHandler != null) {
-                    continueProcessing = emptyProcessingUnitHandler.handle(id, name, processingUnitClass, Thread.currentThread().getId(), processingUnitProgress);
+                    continueProcessing = emptyProcessingUnitHandler.handleEmptyProcessing(id, name, processingUnitClass, Thread.currentThread().getId(), processingUnitProgress);
                 } else {
                     continueProcessing = false;
                 }
+            } else {
+                if (emptyProcessingUnitHandler != null) {
+                    emptyProcessingUnitHandler.reset(id, name, processingUnitClass, Thread.currentThread().getId(), processingUnitProgress);
+                }                
             }
         } catch (ValidationException ve) {
             if (LOG.isDebugEnabled()) {
@@ -420,7 +425,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                                                            processStatusMessageList,
                                                            startTimestamp,
                                                            getDuration(),
-                                                           maxNumberOfProcessingUnitCallsPerSecond,
+                                                           getMaxNumberOfProcessingUnitCallsPerSecond(),
                                                            emptyProcessingUnitHandler);
     
             // persist...
@@ -510,11 +515,15 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
      * Set the max number of processing unit calls per seconds
      *
      * @param maxNumberOfProcessingUnitCallsPerSecond The max number of processing unit calls per seconds
+     * @return true if the underlining {@link IProcessingUnit} implements it own throttling mechanism; otherwise false
      */
-    public void setMaxNumberOfProcessingUnitCallsPerSecond(Long maxNumberOfProcessingUnitCallsPerSecond) {
+    public boolean setMaxNumberOfProcessingUnitCallsPerSecond(Long maxNumberOfProcessingUnitCallsPerSecond) {
         this.maxNumberOfProcessingUnitCallsPerSecond = maxNumberOfProcessingUnitCallsPerSecond;
-    }
 
+        // set throttling on processing if it's supported
+        return ProcessingUnitUtil.getInstance().setMaxNumberOfProcessingUnitCallsPerSecond(id, name, processingUnit, maxNumberOfProcessingUnitCallsPerSecond);
+    }
+    
     
     /**
      * Get the processing unit class.

@@ -91,4 +91,14 @@ public final class TextSource {
     public boolean hasMoreWords() {
         return text.hasMoreWords();
     }
+
+
+    /**
+     * Get the number of unprocessed words
+     *
+     * @return the number of unprocessed words
+     */
+    public long getNumberOfUnprocessedWords() {
+        return text.getNumberOfUnprocessedWords();
+    }
 }

@@ -36,7 +36,7 @@ public class TestProcessingUnitRunner implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(TestProcessingUnitRunner.class);
     private TestProcessingUnitRunnable processingUnitRunnable;
     private int suspendCounter = 0;
-    private IProcessingUnitContext processingContext;
+    private IProcessingUnitContext processingUnitContext;
 
     
     /**
@@ -44,7 +44,7 @@ public class TestProcessingUnitRunner implements Serializable {
      */
     protected TestProcessingUnitRunner() {
         processingUnitRunnable = null;
-        processingContext = new ProcessingUnitContext();
+        processingUnitContext = new ProcessingUnitContext();
     }
 
 
@@ -58,7 +58,7 @@ public class TestProcessingUnitRunner implements Serializable {
      * @throws ProcessingException In case of an error in a processing
      */
     public long run(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList) throws ValidationException, ProcessingException {
-        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
+        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingUnitContext);
         processingUnitRunnable.run();
         return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
     }
@@ -75,7 +75,7 @@ public class TestProcessingUnitRunner implements Serializable {
      * @throws ProcessingException In case of an error in a processing
      */
     public long runAndAbort(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, Integer numberOfCyclesBeforeStop) throws ValidationException, ProcessingException {
-        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
+        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingUnitContext);
         processingUnitRunnable.setNumberOfCyclesBeforeStop(numberOfCyclesBeforeStop);
         processingUnitRunnable.run();
         return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
@@ -93,8 +93,8 @@ public class TestProcessingUnitRunner implements Serializable {
      * @throws ProcessingException In case of an error in a processing
      */
     public long runWithThrottling(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList, Long maxNumberOfProcessingUnitCallsPerSecond) throws ValidationException, ProcessingException {
-        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
-        processingUnitRunnable.setProcessingUnitThrottling(maxNumberOfProcessingUnitCallsPerSecond);
+        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingUnitContext);
+        processingUnitRunnable.setMaxNumberOfProcessingUnitCallsPerSecond(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.run();
         return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
     }
@@ -140,8 +140,8 @@ public class TestProcessingUnitRunner implements Serializable {
                                         int maxNumberOfSuspends,
                                         Long maxNumberOfProcessingUnitCallsPerSecond) throws ValidationException, ProcessingException {
 
-        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingContext);
-        processingUnitRunnable.setProcessingUnitThrottling(maxNumberOfProcessingUnitCallsPerSecond);
+        processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingUnitContext);
+        processingUnitRunnable.setMaxNumberOfProcessingUnitCallsPerSecond(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.setSuspendAfterCycles(suspendAfterCycles);
 
         byte[] suspendedState = null;
@@ -178,11 +178,11 @@ public class TestProcessingUnitRunner implements Serializable {
     /**
      * Set the processing context
      *
-     * @param processingContext the processing context
+     * @param processingUnitContext the processing unit context
      * @return this instance
      */
-    public TestProcessingUnitRunner processingUnitContext(IProcessingUnitContext processingContext) {
-        this.processingContext = processingContext;
+    public TestProcessingUnitRunner processingUnitContext(IProcessingUnitContext processingUnitContext) {
+        this.processingUnitContext = processingUnitContext;
         return this;
     }
 
@@ -326,8 +326,18 @@ public class TestProcessingUnitRunner implements Serializable {
     public void setEmptyProcessingUnitHandler(IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
         this.processingUnitRunnable.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
     }
+    
+    
+    /**
+     * Get the processing unit context
+     *
+     * @return the processing unit context
+     */
+    public IProcessingUnitContext getProcessingUnitContext() {
+        return processingUnitContext;
+    }
 
-
+    
     /**
      * @see java.lang.Object#toString()
      */

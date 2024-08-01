@@ -16,6 +16,7 @@ import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.exception.ValidationException;
+import com.github.toolarium.processing.unit.framework.TextProducer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -28,17 +29,24 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author patrick
  */
 public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersistenceImpl<ParallelProcessingUnitSample.ParallelProcessingPersistence> implements IParallelProcessingUnit, IProcessingUnitObjectLockManagerSupport {
+    /** RESULT context */
+    public static final String RESULT = "RESULT";
     
     /** NUMBER_OF_WORDS: the number of words. */
     public static final ParameterDefinition NUMBER_OF_WORDS = new ParameterDefinitionBuilder().name("numberOfWords").defaultValue(10000).description("The number of words.").build();
-    private List<String> wordResultList;
     
+    /** NUMBER_OF_WORDS: the number of words. */
+    public static final ParameterDefinition ADD_RESULT_TO_CONTEXT = new ParameterDefinitionBuilder().name("addResultToContext").defaultValue(false).description("Add the result to the context.").build();
+
+    private List<String> wordResultList;
+
     
     /**
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitImpl#initializeParameterDefinition()
      */
     public void initializeParameterDefinition() {
         getParameterRuntime().addParameterDefinition(NUMBER_OF_WORDS); // register parameters
+        getParameterRuntime().addParameterDefinition(ADD_RESULT_TO_CONTEXT);
     }
 
     
@@ -59,7 +67,6 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
     public long estimateNumberOfUnitsToProcess() {
         // simulate data source: it's in a static way so multiple threads see the same -> this method is only called ones fron the first thread
         TextSource.getInstance().createText(getParameterRuntime().getParameterValueList(NUMBER_OF_WORDS).getValueAsLong());
-        
         return getProcessingUnitProgress().setNumberOfUnitsToProcess(getParameterRuntime().getParameterValueList(NUMBER_OF_WORDS).getValueAsLong());
     }
     
@@ -71,23 +78,36 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
     public IProcessingUnitStatus processUnit(ProcessingUnitStatusBuilder processingUnitStatusBuilder) throws ProcessingException {
         int blockSize = 10;
         
-        final Queue<String> wordBuffer = new LinkedBlockingQueue<String>(getObjectLockManager().lock(TextSource.getInstance().getWords(blockSize)));
-        while (wordBuffer != null && !wordBuffer.isEmpty()) {
-            final String text = wordBuffer.poll();
-            if (text != null && !text.isBlank()) {
-                wordResultList.add(text);
-                
-                // mark one as processed
-                TextSource.getInstance().incrementPosition();
-                processingUnitStatusBuilder.increaseNumberOfSuccessfulUnits();
-                processingUnitStatusBuilder.statistic("processedWord", 1L);
-            } else {
-                processingUnitStatusBuilder.warn("Empty text dound!");
-                processingUnitStatusBuilder.increaseNumberOfFailedUnits();
+        List<String> lockList = getObjectLockManager().lock(TextSource.getInstance().getWords(blockSize));
+        try {
+            final Queue<String> wordBuffer = new LinkedBlockingQueue<String>(lockList);
+            if (wordBuffer != null && !wordBuffer.isEmpty()) {
+                while (wordBuffer != null && !wordBuffer.isEmpty()) {
+                    final String text = wordBuffer.poll();
+                    if (text != null && !text.isBlank()) {
+                        wordResultList.add(text);
+           
+                        if (getParameterRuntime().getParameterValueList(ADD_RESULT_TO_CONTEXT).getValueAsBoolean()) {
+                            getProcessingUnitContext().set(RESULT, TextProducer.getInstance().toStringList(wordResultList).toString());
+                        }
+        
+                        // mark one as processed
+                        TextSource.getInstance().incrementPosition();
+                        processingUnitStatusBuilder.increaseNumberOfSuccessfulUnits();
+                        processingUnitStatusBuilder.statistic("processedWord", 1L);
+                    } else {
+                        processingUnitStatusBuilder.warn("Empty text dound!");
+                        processingUnitStatusBuilder.increaseNumberOfFailedUnits();
+                    }                    
+                }
+            }
+        } finally {
+            if (lockList != null && !lockList.isEmpty()) {
+                getObjectLockManager().unlock(lockList);
             }
         }
-
-        return processingUnitStatusBuilder.hasNext(TextSource.getInstance().hasMoreWords()).build();
+       
+        return processingUnitStatusBuilder.hasNextIfHasUnprocessedUnits().build();
     }
     
     
@@ -119,7 +139,7 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
     public void releaseResource() throws ProcessingException {
     }
 
-
+    
     /**
      * @see com.github.toolarium.processing.unit.base.AbstractProcessingUnitPersistenceImpl#newPersistenceInstance()
      */
@@ -134,28 +154,7 @@ public class ParallelProcessingUnitSample extends AbstractProcessingUnitPersiste
      */
     static class ParallelProcessingPersistence implements IProcessingUnitPersistence {
         private static final long serialVersionUID = -178680376384580300L;
-        private Queue<String> wordBuffer;
         private List<String> wordResultList; 
-
-        
-        /**
-         * Get the buffer
-         *
-         * @return the buffer
-         */
-        public Queue<String> getBuffer() {
-            return wordBuffer;
-        }
-
-        
-        /**
-         * Set the buffer
-         *
-         * @param wordBuffer the buffer
-         */
-        public void setQueue(Queue<String> wordBuffer) {
-            this.wordBuffer = wordBuffer;
-        }
 
         
         /**

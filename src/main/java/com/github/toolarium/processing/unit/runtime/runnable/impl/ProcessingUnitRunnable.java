@@ -5,7 +5,6 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable.impl;
 
-import com.github.toolarium.common.bandwidth.BandwidthThrottling;
 import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
@@ -16,6 +15,7 @@ import com.github.toolarium.processing.unit.exception.ValidationException;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitProxy;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
+import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitThrottling;
 import com.github.toolarium.processing.unit.runtime.runnable.ProcessingUnitProxy;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.util.List;
@@ -32,8 +32,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingUnitRunnable.class);
     private volatile boolean suspend = false;
     private byte[] suspendedState = null;
-    private IBandwidthThrottling processingUnitThrottling;
-    private volatile boolean processingUnitThrottlingInitLogged;
+    private IProcessingUnitThrottling processingUnitThrottling;
     private volatile boolean isInterrupted;
 
     
@@ -57,7 +56,6 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                                   IProcessingUnitRunnableListener processingUnitRunnableListener) {
         super(id, name, processingUnitClass, parameterList, processingUnitContext);
         this.processingUnitThrottling = null;
-        this.processingUnitThrottlingInitLogged = false;
         this.isInterrupted = false;
         
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
@@ -75,8 +73,8 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      */
     public ProcessingUnitRunnable(byte[] suspendedState, IProcessingUnitRunnableListener processingUnitRunnableListener) {
         super(suspendedState, processingUnitRunnableListener);
-        processingUnitThrottlingInitLogged = false;
-        setProcessingUnitThrottling(getProcessingUnitProxy().getMaxNumberOfProcessingUnitCallsPerSecond());
+
+        setMaxNumberOfProcessingUnitCallsPerSecond(getProcessingUnitProxy().getMaxNumberOfProcessingUnitCallsPerSecond());
     }
 
     
@@ -85,15 +83,38 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      *
      * @param maxNumberOfProcessingUnitCallsPerSecond the max number of processing units per second
      */
-    public void setProcessingUnitThrottling(Long maxNumberOfProcessingUnitCallsPerSecond) {
-        if (getProcessingUnitProxy() != null) {
-            getProcessingUnitProxy().setMaxNumberOfProcessingUnitCallsPerSecond(maxNumberOfProcessingUnitCallsPerSecond);
-        }
+    public void setMaxNumberOfProcessingUnitCallsPerSecond(Long maxNumberOfProcessingUnitCallsPerSecond) {
+        super.setMaxNumberOfProcessingUnitCallsPerSecond(maxNumberOfProcessingUnitCallsPerSecond);
         
-        if (maxNumberOfProcessingUnitCallsPerSecond == null || maxNumberOfProcessingUnitCallsPerSecond.longValue() == BandwidthThrottling.NO_BANDWIDTH) {
+        if (maxNumberOfProcessingUnitCallsPerSecond == null || maxNumberOfProcessingUnitCallsPerSecond.longValue() <= 0) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitClass()) + " Disable throttling (max number of processing unit calls per second).");
+            }
             processingUnitThrottling = null;
         } else {
-            processingUnitThrottling = new BandwidthThrottling(maxNumberOfProcessingUnitCallsPerSecond, 10 /* update interval*/);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitClass()) + " Enable throttling (max number of processing unit calls per second): " + maxNumberOfProcessingUnitCallsPerSecond);
+            }
+            processingUnitThrottling = new ProcessingUnitThrottling(getId(), getName(), getProcessingUnitClass(), maxNumberOfProcessingUnitCallsPerSecond);
+        }
+        
+        if (getProcessingUnitProxy() != null) {
+            if ((maxNumberOfProcessingUnitCallsPerSecond == null && getProcessingUnitProxy().getMaxNumberOfProcessingUnitCallsPerSecond() == null)
+                    || (maxNumberOfProcessingUnitCallsPerSecond != null && maxNumberOfProcessingUnitCallsPerSecond.equals(getProcessingUnitProxy().getMaxNumberOfProcessingUnitCallsPerSecond()))) {
+                // they are equal, no change
+            } else {
+                // in case the set value are different set max number of calls per second
+                boolean processingHasOwnThrottlingImplementation = getProcessingUnitProxy().setMaxNumberOfProcessingUnitCallsPerSecond(maxNumberOfProcessingUnitCallsPerSecond);
+                if (processingHasOwnThrottlingImplementation) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitClass())
+                                  + " Processing unit has own throttling implementation, propagted value of max number of processing unit calls per second: "
+                                  + maxNumberOfProcessingUnitCallsPerSecond);
+                    }
+
+                    processingUnitThrottling = null; 
+                }
+            }
         }
     }
 
@@ -159,13 +180,6 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                 }
             
                 if (LOG.isDebugEnabled()) {
-                    /*
-                    long processedUnits = 1;
-                    if (getProcessingProgress() != null) {
-                        processedUnits = getProcessingProgress().getNumberOfProcessedUnits() + 1;
-                    }
-                    LOG.debug(ProcessingUnitUtil.getInstance().preapre(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " call #" + processedUnits + ": " + getProcessingActionStatus());
-                    */
                     LOG.debug(toString());
                 }
 
@@ -259,10 +273,9 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      */
     protected ProcessingUnitProxy createProcessingUnitProxy() {
         ProcessingUnitProxy processingUnitProxy = super.createProcessingUnitProxy();
-        if (processingUnitThrottling != null) {
-            processingUnitProxy.setMaxNumberOfProcessingUnitCallsPerSecond(processingUnitThrottling.getBandwidth());
-        }
         
+        // set the throttling
+        setMaxNumberOfProcessingUnitCallsPerSecond(getMaxNumberOfProcessingUnitCallsPerSecond());
         return processingUnitProxy;
     }
 
@@ -271,35 +284,8 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      * Throttling the processing if its defined and needed
      */
     protected void throttlingProcessing() {
-        try {
-            if (processingUnitThrottling == null) {
-                if (!processingUnitThrottlingInitLogged) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " Has no throttling delay.");
-                    }
-                }
-                return;
-            }
-    
-            if (!processingUnitThrottlingInitLogged) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " Has throttling update interval: " + processingUnitThrottling.getUpdateInterval() + ".");
-                }
-            }
-    
-            long start = System.currentTimeMillis();
-            processingUnitThrottling.bandwidthCheck();
-    
-            long time = System.currentTimeMillis() - start;
-            if (time > processingUnitThrottling.getUpdateInterval()) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(ProcessingUnitUtil.getInstance().toString(getId(), getName(), getProcessingUnitProxy().getProcessingUnitClass()) + " Waited for " + getTimeDifferenceFormatter().formatAsString(time));
-                }
-            }
-        } finally {
-            if (!processingUnitThrottlingInitLogged) {
-                processingUnitThrottlingInitLogged = true;
-            }
+        if (processingUnitThrottling != null) {
+            processingUnitThrottling.throttlingProcessing();
         }
     }
 
@@ -310,7 +296,19 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
      * @return the processing unit throttling
      */
     protected IBandwidthThrottling getProcessingUnitThrottling() {
-        return processingUnitThrottling;
+        if (getMaxNumberOfProcessingUnitCallsPerSecond() == null) {
+            return null;
+        }
+
+        if (processingUnitThrottling != null) {
+            return processingUnitThrottling.getBandwidth();
+        }
+
+        if (getProcessingUnitProxy() != null) {
+            return ProcessingUnitUtil.getInstance().getBandwidthProcessingUnitThrottling(getProcessingUnitProxy().getProcessingUnit());
+        }
+        
+        return null;
     }
 
     

@@ -71,9 +71,7 @@ public final class ProcessingUnitStatusUtil {
         }
 
         // add message
-        if (processingUnitStatus.getStatusMessage() != null && !processingUnitStatus.getStatusMessage().isBlank()) {
-            processingUnitStatusBuilder.message(processingUnitStatus.getStatusMessage());
-        }
+        processingUnitStatusBuilder.addMessageList(processingUnitStatus.getStatusMessageList());
 
         // add statistic
         if (processingUnitStatus.getProcessingUnitStatistic() != null && !processingUnitStatus.getProcessingUnitStatistic().isEmpty()) {

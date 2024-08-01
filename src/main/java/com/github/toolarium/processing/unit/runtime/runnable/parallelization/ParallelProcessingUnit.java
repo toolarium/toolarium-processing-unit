@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable.parallelization;
 
+import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
 import com.github.toolarium.common.object.IObjectLockManager;
 import com.github.toolarium.common.object.ObjectLockManager;
 import com.github.toolarium.common.statistic.StatisticCounter;
@@ -16,6 +17,7 @@ import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.ProcessingUnitStatusBuilder;
 import com.github.toolarium.processing.unit.base.AbstractProcessingUnitPersistenceImpl;
+import com.github.toolarium.processing.unit.base.IProcessingUnitThrottlingSupport;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ParameterDefinition;
 import com.github.toolarium.processing.unit.exception.ProcessingException;
@@ -24,6 +26,8 @@ import com.github.toolarium.processing.unit.parallelization.IParallelProcessingU
 import com.github.toolarium.processing.unit.parallelization.IProcessingUnitObjectLockManagerSupport;
 import com.github.toolarium.processing.unit.runtime.runnable.EmptyProcessingUnitHandler;
 import com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler;
+import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitThrottling;
+import com.github.toolarium.processing.unit.runtime.runnable.impl.ProcessingUnitThrottling;
 import com.github.toolarium.processing.unit.util.ProcessingUnitStatusUtil;
 import com.github.toolarium.processing.unit.util.ProcessingUnitUtil;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -47,7 +51,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @author patrick
  */
-public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImpl<ParallelProcessingUnitPersistenceContainer> implements ParallelProcessingUnitParameters, IParallelProcessingUnit, UncaughtExceptionHandler {
+public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImpl<ParallelProcessingUnitPersistenceContainer> 
+    implements ParallelProcessingUnitParameters, IParallelProcessingUnit, IProcessingUnitThrottlingSupport, UncaughtExceptionHandler {
     
     private static final Logger LOG = LoggerFactory.getLogger(ParallelProcessingUnit.class);
     private String id;
@@ -62,10 +67,10 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     private int lastPercentage;
     private BlockingQueue<Throwable> runnerThreadExceptionQueue;
     private List<RunnerThreadProcessStatusQueue> runnerThreadStatusQueueList;
-    private IObjectLockManager objectKockManager;
     private EmptyProcessingUnitHandler emptyProcessingUnitHandler;
     private IProcessingUnitStatus suspendProcessingUnitStatus;
-    
+    private volatile IProcessingUnitThrottling processingUnitThrottling;
+   
 
     /**
      * Constructor for ParallelProcessingUnit
@@ -89,9 +94,9 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
         this.lastPercentage = 0;
         this.runnerThreadExceptionQueue = new LinkedBlockingQueue<Throwable>();
         this.runnerThreadStatusQueueList = null;
-        this.objectKockManager = null;      
         this.emptyProcessingUnitHandler = new EmptyProcessingUnitHandler();
         this.suspendProcessingUnitStatus = null;
+        this.processingUnitThrottling = null;
     }
 
     
@@ -262,9 +267,9 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
             }
         }
 
-        if (objectKockManager != null) {
+        if (getObjectLockManager() != null) {
             try {
-                objectKockManager.releaseResource();
+                getObjectLockManager().releaseResource();
             } catch (RuntimeException e) {
                 LOG.warn(processInfo + " Could not release resource object lock manager: " + e.getMessage(), e);
             }
@@ -287,7 +292,8 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
         // get status from runner threads and aggregate it
         getProcessingPersistence().setSuspendProcessingUnitStatus(aggregateProcessingUnitStatus(new ProcessingUnitStatusBuilder()).build());
         
-        getProcessingPersistence().setObjectLockManager(objectKockManager);
+        // get the object manager
+        getProcessingPersistence().setObjectLockManager(getObjectLockManager());
         return getProcessingPersistence();
     }
 
@@ -308,15 +314,16 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
                                             + getProcessingPersistence().getProcessingUnitPersistenceList().size(), true);
         }
 
-        // restore the lock manager
-        this.objectKockManager = getProcessingPersistence().getObjectLockManager();
+        // restore the lock manager: 
+        // TODO: known issue ParallelProcessingUnitTest#testMultithreadedProcessingUnitWithSuspendAndResume
+        //setObjectLockManager(getProcessingPersistence().getObjectLockManager());
 
         // set the suspend processing status
         suspendProcessingUnitStatus = getProcessingPersistence().getSuspendProcessingUnitStatus();
 
         int i = 0;
         for (IProcessingUnitPersistence processingUnitPersistence : getProcessingPersistence().getProcessingUnitPersistenceList()) {
-            LOG.info(processInfo + " Resume processing unit parallelization thread #" + i + "...");
+            LOG.info(processInfo + " Resume processing unit parallelization thread #" + (i + 1) + "...");
             processingUnitList.get(i++).resumeProcessing(processingUnitProgress, processingUnitPersistence);
         }
         
@@ -340,18 +347,44 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      */
     @Override
     public void setObjectLockManager(IObjectLockManager objectLockManager) {
-        this.objectKockManager = objectLockManager;
-        this.objectKockManager.setObjectLockSize(getParameterRuntime().getParameterValueList(LOCK_SIZE).getValueAsInteger());
-        this.objectKockManager.setUnlockTimeout(getParameterRuntime().getParameterValueList(UNLOCK_TIMEOUT).getValueAsLong());
+        super.setObjectLockManager(objectLockManager);
+        this.getObjectLockManager().setObjectLockSize(getParameterRuntime().getParameterValueList(LOCK_SIZE).getValueAsInteger());
+        this.getObjectLockManager().setUnlockTimeout(getParameterRuntime().getParameterValueList(UNLOCK_TIMEOUT).getValueAsLong());
 
         // initialize all parallel processing unit's
         if (processingUnitList != null) {
             for (IProcessingUnit processingUnit : processingUnitList) {
                 if (IProcessingUnitObjectLockManagerSupport.class.isAssignableFrom(processingUnit.getClass())) {
-                    ((IProcessingUnitObjectLockManagerSupport) processingUnit).setObjectLockManager(objectKockManager);
+                    ((IProcessingUnitObjectLockManagerSupport) processingUnit).setObjectLockManager(getObjectLockManager());
                 }
             }
         }
+    }
+
+
+    /**
+     * @see com.github.toolarium.processing.unit.base.IProcessingUnitThrottlingSupport#setMaxNumberOfProcessingUnitCallsPerSecond(java.lang.String, java.lang.String, java.lang.Long)
+     */
+    @Override
+    public void setMaxNumberOfProcessingUnitCallsPerSecond(String id, String name, Long maxNumberOfProcessingUnitCallsPerSecond) {
+        if (maxNumberOfProcessingUnitCallsPerSecond == null || maxNumberOfProcessingUnitCallsPerSecond.longValue() <= 0) {
+            processingUnitThrottling = null;
+        } else {
+            processingUnitThrottling = new ProcessingUnitThrottling(id, name, processingUnitClass, maxNumberOfProcessingUnitCallsPerSecond); 
+        }
+    }
+
+    
+    /**
+     * @see com.github.toolarium.processing.unit.base.IProcessingUnitThrottlingSupport#getBandwidthProcessingUnitThrottling()
+     */
+    @Override
+    public IBandwidthThrottling getBandwidthProcessingUnitThrottling() {
+        if (processingUnitThrottling == null) {
+            return null;
+        }
+        
+        return processingUnitThrottling.getBandwidth();
     }
 
     
@@ -387,10 +420,11 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
                 ProcessingUnitStatusUtil.getInstance().aggregateProcessingUnitStatus(processingUnitStatusBuilder, processingUnitStatus);
                 processingUnitStatus = statusQueue.getProcessingUnitStatus();
             }
+            ProcessingUnitStatusUtil.getInstance().aggregateProcessingUnitStatus(processingUnitStatusBuilder, processingUnitStatus);
         }
 
         processingUnitStatusBuilder.hasNextIfHasUnprocessedUnits();
-        processingUnitStatusBuilder.hasNext(processingUnitStatusBuilder.hasNext() || !isThreadPoolTerminated());
+        processingUnitStatusBuilder.hasNext(processingUnitStatusBuilder.hasNext() && !isThreadPoolTerminated());
         return processingUnitStatusBuilder;
     }
 
@@ -429,19 +463,13 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
         executorService = Executors.newFixedThreadPool(processingUnitList.size(), new ProcessingUnintRunnerThreadFactory(Executors.defaultThreadFactory(), threadName, this));
         runnerThreadStatusQueueList = new ArrayList<RunnerThreadProcessStatusQueue>();
 
-        if (this.objectKockManager == null) {
-            this.objectKockManager = new ObjectLockManager();
+        if (this.getObjectLockManager() == null) {
+            setObjectLockManager(new ObjectLockManager());
         }
-        this.objectKockManager.setObjectLockSize(getParameterRuntime().getParameterValueList(LOCK_SIZE).getValueAsInteger());
-        this.objectKockManager.setUnlockTimeout(getParameterRuntime().getParameterValueList(UNLOCK_TIMEOUT).getValueAsLong());
-
+        
         int number = 0;
         long noProgressPauseTime = getParameterRuntime().getParameterValueList(NO_PROGRESS_PAUSE_TIME).getValueAsLong();
         for (IProcessingUnit processingUnit : processingUnitList) {
-            if (IProcessingUnitObjectLockManagerSupport.class.isAssignableFrom(processingUnit.getClass())) {
-                ((IProcessingUnitObjectLockManagerSupport) processingUnit).setObjectLockManager(objectKockManager);
-            }
-            
             BlockingQueue<IProcessingUnitStatus> processStatusQueue = new LinkedBlockingQueue<IProcessingUnitStatus>();
             executorService.execute(new ProcessingUnitRunnerThread(processingUnit, ++number, processStatusQueue, noProgressPauseTime));
             runnerThreadStatusQueueList.add(new RunnerThreadProcessStatusQueue(number, processStatusQueue));
@@ -478,13 +506,13 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
             return;
         }
 
-        if (objectKockManager != null) {
+        if (getObjectLockManager() != null) {
             lastPercentage = percentage;
             LOG.info(processInfo + " Object lock statistic (progress " + percentage + "%):\n"
-                     + "   lock size average                    : " + prepareAverage(objectKockManager.getLockStatistic()) + "\n"
-                     + "   already locked hit size average      : " + prepareAverage(objectKockManager.getIgnoreLockStatistic()) + "\n"
-                     + "   blocked to unlocked hit size average : " + prepareAverage(objectKockManager.getUnlockStatistic()) + "\n"
-                     + "   count of object lock size reached    : " + objectKockManager.getNumberOfLockSizeReached());
+                     + "   lock size average                    : " + prepareAverage(getObjectLockManager().getLockStatistic()) + "\n"
+                     + "   already locked hit size average      : " + prepareAverage(getObjectLockManager().getIgnoreLockStatistic()) + "\n"
+                     + "   blocked to unlocked hit size average : " + prepareAverage(getObjectLockManager().getUnlockStatistic()) + "\n"
+                     + "   count of object lock size reached    : " + getObjectLockManager().getNumberOfLockSizeReached());
         }
     }
 
@@ -625,12 +653,15 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
             long lastProgress = getProcessingUnitProgress().getProgress();
             boolean hasNext = false;
             do {
-
-                IProcessingUnitStatus processStatus = processingUnit.processUnit();
                 try {
+                    IProcessingUnitStatus processStatus = processingUnit.processUnit();
                     processStatusQueue.put(processStatus);
                     lastProgress = getProcessingUnitProgress().getProgress();
                     hasNext = processStatus.hasNext();
+
+                    if (processingUnitThrottling != null && !isThreadInterrupted() && hasNext) {
+                        processingUnitThrottling.throttlingProcessing();
+                    }
 
                     if (getProcessingUnitProgress().getProgress() == lastProgress) {
                         ThreadUtil.getInstance().sleep(noProgressPauseTime);
@@ -641,7 +672,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
             } while (!isThreadInterrupted() && hasNext);
 
             if (isInterrupted()) {
-                LOG.info(processInfo + " Processing unit parallelization thread #" + number + "  interrupted!");
+                LOG.info(processInfo + " Processing unit parallelization thread #" + number + " interrupted!");
             } else {
                 LOG.info(processInfo + " Processing unit parallelization thread #" + number + " ended.");
             }
@@ -734,7 +765,6 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
         public IProcessingUnitStatus getProcessingUnitStatus() {
             try {
                 return processingUnitStatusQueue.poll(100L, TimeUnit.MILLISECONDS);
-                //return processingUnitStatusQueue.take();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

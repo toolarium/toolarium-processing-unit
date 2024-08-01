@@ -83,10 +83,20 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
 
 
     /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler#reset(java.lang.String, java.lang.String, java.lang.Class, long, com.github.toolarium.processing.unit.IProcessingUnitProgress)
+     */
+    @Override
+    public void reset(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress) {
+        numberOfEmptyProcessingUnitRuns = 0L;
+        duration = 0L;
+    }
+
+
+    /**
      * @see com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler#handle(java.lang.String, java.lang.String, java.lang.Class, long, com.github.toolarium.processing.unit.IProcessingUnitProgress)
      */
     @Override
-    public boolean handle(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress) {
+    public boolean handleEmptyProcessing(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress) {
         if (LOG.isDebugEnabled()) {
             LOG.debug(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass) + " Detected empty processing unit run (no progress)");
         }

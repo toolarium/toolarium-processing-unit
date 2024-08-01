@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -60,6 +61,43 @@ public final class TextProducer {
         return new Text(getRandomText(numberOfWords));
     }
 
+    
+    /**
+     * Get a text
+     *
+     * @param text the text to add to the {@link StringList}.
+     * @return the size of the text
+     */
+    public StringList toStringList(List<String> text) {
+        return new StringList(text);
+    }
+
+    
+    /**
+     * Parse string to string list
+     *
+     * @param inputContent the string list as string
+     * @return the string list
+     */
+    public StringList toStringList(String inputContent) {
+        List<String> stringList = new ArrayList<String>();
+        String content = inputContent;
+        if (content != null && content.length() > 2) {
+            content = content.substring(1, content.length() - 2);
+            
+            String[] parseResult = content.split("\\}, ");
+            for (int i = 0; i < parseResult.length; i++) {
+                String[] contentSplit = parseResult[i].split("\\{");
+                
+                if (contentSplit != null) {
+                    stringList.add(contentSplit[1]);
+                }
+            }
+        }
+        
+        return new StringList(stringList);
+    }
+
 
     /**
      * Get random text
@@ -67,7 +105,7 @@ public final class TextProducer {
      * @param numberOfWords the number of words
      * @return the text as list
      */
-    private List<String> getRandomText(long numberOfWords) {
+    private StringList getRandomText(long numberOfWords) {
         List<String> result = new ArrayList<String>();
         
         for (int i = 0; i < numberOfWords; i++) {
@@ -85,7 +123,93 @@ public final class TextProducer {
             result.add(text.toString());            
         }
         
-        return result;
+        return new StringList(result);
+    }
+
+    
+    /**
+     * The string list
+     */
+    public class StringList implements Serializable {
+        private static final long serialVersionUID = 3660407008816423978L;
+        private List<String> stringList;
+        
+        
+        /**
+         * Constructor for StringList
+         *
+         * @param stringList the string list
+         */
+        public StringList(List<String> stringList) {
+            this.stringList = stringList; 
+        }
+
+        
+        /**
+         * List
+         *
+         * @return the list
+         */
+        public List<String> list() {
+            return stringList;
+        }
+
+        
+        /**
+         * Get the size
+         *
+         * @return the size
+         */
+        public int size() {
+            return stringList.size();
+        }
+
+        
+        /**
+         * @see java.lang.Object#hashCode()
+         */
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + Objects.hash(stringList);
+            return result;
+        }
+
+
+        /**
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) { 
+                return true;
+            }
+            
+            if (obj == null) {
+                return false;
+            }
+            
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            
+            StringList other = (StringList) obj;
+            return Objects.equals(stringList, other.stringList);
+        }
+
+
+        /**
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            if (stringList == null) {
+                return null;
+            }
+            
+            return stringList.toString();
+        }
     }
 
     
@@ -103,14 +227,14 @@ public final class TextProducer {
         /**
          * Constructor for SamplePersistence
          * 
-         * @param text the text
+         * @param stringList the string list
          */
-        Text(List<String> text) {
+        Text(StringList stringList) {
             this.text = new ConcurrentHashMap<Long, String>();
             this.currentPosition = 0;
             
             long counter = 0;
-            for (String t : text) {
+            for (String t : stringList.list()) {
                 this.text.put(Long.valueOf(counter++), t);
             }
         }
@@ -131,7 +255,7 @@ public final class TextProducer {
          * 
          * @return the word
          */
-        public String getWord() {
+        public synchronized String getWord() {
             List<String> result = getWords(1);
             if (result.size() > 0) {
                 return result.get(0);
@@ -162,6 +286,7 @@ public final class TextProducer {
             for (long i = currentPosition; i < max; i++) {
                 textBlock.add(text.get(i));
             }
+            
             
             return textBlock;
         }
@@ -195,7 +320,7 @@ public final class TextProducer {
         /**
          * Close the data producer
          */
-        public void close() {
+        public synchronized void close() {
             this.text = null;
         }
 
@@ -205,14 +330,24 @@ public final class TextProducer {
          *
          * @return the size
          */
-        public long size() {
+        public synchronized long size() {
             return text.size();
         }
         
+        
+        /**
+         * Get the number of unprocessed words
+         *
+         * @return the number of unprocessed words
+         */
+        public synchronized long getNumberOfUnprocessedWords() {
+            return size() - currentPosition;
+        }
 
+        
         @Override
         public String toString() {
-            return "Text [text=" + getWords(size() - currentPosition) + "]";
+            return "Text [text=" + getWords(getNumberOfUnprocessedWords()) + "]";
         }
     }
 }

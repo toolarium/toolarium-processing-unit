@@ -9,6 +9,7 @@ import com.github.toolarium.common.statistic.StatisticCounter;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.runtime.ProcessingUnitProgress;
 import com.github.toolarium.processing.unit.runtime.ProcessingUnitStatus;
+import java.util.List;
 
 
 /**
@@ -221,18 +222,18 @@ public class ProcessingUnitStatusBuilder {
 
     
     /**
-     * Processing has warning. 
+     * Processing has a warning. 
      *
      * @param message the message
      * @return this instance
      */
     public ProcessingUnitStatusBuilder warn(String message) {
-        return hasWarning().message(message);
+        return hasWarning().addMessage(message);
     }
 
     
     /**
-     * Processing has warning. 
+     * Processing has a warning. 
      *
      * @return this instance
      */
@@ -243,24 +244,40 @@ public class ProcessingUnitStatusBuilder {
 
     
     /**
-     * Processing has warning. 
+     * Processing has an error. 
      *
      * @param message the message
      * @return this instance
      */
     public ProcessingUnitStatusBuilder error(String message) {
-        return hasError().message(message);
+        return hasError().addMessage(message);
     }
 
     
     /**
-     * Processing has warning. 
+     * Processing add a message 
      *
-     * @param message the message
+     * @param message the message to add
      * @return this instance
      */
-    public ProcessingUnitStatusBuilder message(String message) {
-        processingUnitStatus.setStatusMessage(message);
+    public ProcessingUnitStatusBuilder addMessage(String message) {
+        processingUnitStatus.addStatusMessage(message);
+        return this;
+    }
+
+    
+    /**
+     * Processing add messages 
+     *
+     * @param messageList the messages to add
+     * @return this instance
+     */
+    public ProcessingUnitStatusBuilder addMessageList(List<String> messageList) {
+        if (messageList != null && !messageList.isEmpty()) {
+            for (String message : messageList) {
+                addMessage(message);
+            }
+        }
         return this;
     }
 

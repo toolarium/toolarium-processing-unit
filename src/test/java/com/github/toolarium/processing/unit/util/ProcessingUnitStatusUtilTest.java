@@ -129,10 +129,10 @@ public class ProcessingUnitStatusUtilTest {
         assertEquals(status, processingUnitStatus.getProcessingRuntimeStatus());
         
         if (msg == null) {
-            assertNull(processingUnitStatus.getStatusMessage());
+            assertNull(processingUnitStatus.getStatusMessageList());
         } else {
-            assertNotNull(processingUnitStatus.getStatusMessage());
-            assertEquals(msg, processingUnitStatus.getStatusMessage());
+            assertNotNull(processingUnitStatus.getStatusMessageList());
+            assertEquals(msg, processingUnitStatus.getStatusMessageList());
         }
         
         assertProcessingUnitStatistic(processingUnitStatus.getProcessingUnitStatistic(), statisticData);

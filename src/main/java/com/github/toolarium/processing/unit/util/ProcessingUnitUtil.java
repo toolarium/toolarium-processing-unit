@@ -11,6 +11,7 @@ import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
+import com.github.toolarium.processing.unit.base.IProcessingUnitThrottlingSupport;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
@@ -133,6 +134,40 @@ public final class ProcessingUnitUtil {
      */
     public boolean isParallelProcessingUnit(IProcessingUnit processingUnit) {
         return processingUnit instanceof ParallelProcessingUnit;
+    }
+
+    
+    /**
+     * Set the max number of processing unit calls per seconds
+     *
+     * @param id the unique id of the processing
+     * @param name the name of the processing
+     * @param processingUnit the processing unit
+     * @param maxNumberOfProcessingUnitCallsPerSecond The max number of processing unit calls per seconds
+     * @return true if the processing unit has an own implementation of throttling
+     */
+    public boolean setMaxNumberOfProcessingUnitCallsPerSecond(final String id, final String name, IProcessingUnit processingUnit, Long maxNumberOfProcessingUnitCallsPerSecond) {
+        if (processingUnit instanceof IProcessingUnitThrottlingSupport) {
+            ((IProcessingUnitThrottlingSupport)processingUnit).setMaxNumberOfProcessingUnitCallsPerSecond(id, name, maxNumberOfProcessingUnitCallsPerSecond);
+            return true;
+        }
+
+        return false;
+    }
+
+    
+    /**
+     * Get the bandwidth processing unit throttling
+     *
+     * @param processingUnit the processing unit
+     * @return the bandwidth processing unit throttling
+     */
+    public IBandwidthThrottling getBandwidthProcessingUnitThrottling(IProcessingUnit processingUnit) {
+        if (processingUnit instanceof IProcessingUnitThrottlingSupport) {
+            return ((IProcessingUnitThrottlingSupport)processingUnit).getBandwidthProcessingUnitThrottling();
+        }
+
+        return null;
     }
 
     

@@ -10,6 +10,8 @@ import com.github.toolarium.common.statistic.StatisticCounter;
 import com.github.toolarium.processing.unit.IProcessingUnitStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -25,7 +27,7 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
     private Long numberOfFailedUnits;
     private Long numberOfUnprocessedUnits;
     private ProcessingRuntimeStatus processingRuntimeStatus;
-    private String statusMessage;
+    private List<String> statusMessageList;
     private ProcessingUnitStatistic processingUnitStatistic;
 
 
@@ -38,7 +40,7 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
         numberOfFailedUnits = null;
         numberOfUnprocessedUnits = null;
         processingRuntimeStatus = ProcessingRuntimeStatus.SUCCESSFUL;
-        statusMessage = null;
+        statusMessageList = null;
         processingUnitStatistic = null;
     }
 
@@ -249,25 +251,43 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
 
 
     /**
-     * @see com.github.toolarium.processing.unit.IProcessingUnitStatus#getStatusMessage()
+     * @see com.github.toolarium.processing.unit.IProcessingUnitStatus#getStatusMessageList()
      */
     @Override
-    public String getStatusMessage() {
-        return statusMessage;
+    public List<String> getStatusMessageList() {
+        return statusMessageList;
     }
     
     
     /**
-     * Sets the status message
+     * Sets the status message list
+     *
+     * @param statusMessageList the status message list
+     * @return this instance
+     */
+    public ProcessingUnitStatus setStatusMessageList(List<String> statusMessageList) {
+        this.statusMessageList = statusMessageList;
+        return this;
+    }
+
+    
+    /**
+     * Sets the status message list
      *
      * @param statusMessage the status message
      * @return this instance
      */
-    public ProcessingUnitStatus setStatusMessage(String statusMessage) {
-        this.statusMessage = statusMessage;
+    public ProcessingUnitStatus addStatusMessage(String statusMessage) {
+        if (statusMessage != null && !statusMessage.isBlank()) {
+            if (statusMessageList == null) {
+                statusMessageList = new ArrayList<String>();
+            }
+            this.statusMessageList.add(statusMessage.trim());
+        }
+        
         return this;
     }
-    
+
     
     /**
      * @see com.github.toolarium.processing.unit.IProcessingUnitStatus#getProcessingUnitStatistic()
@@ -357,7 +377,7 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
     @Override
     public int hashCode() {
         return Objects.hash(hasNext, numberOfFailedUnits, numberOfSuccessfulUnits, numberOfUnprocessedUnits,
-                processingRuntimeStatus, processingUnitStatistic, statusMessage);
+                processingRuntimeStatus, processingUnitStatistic, statusMessageList);
     }
 
 
@@ -384,7 +404,7 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
                 && Objects.equals(numberOfUnprocessedUnits, other.numberOfUnprocessedUnits)
                 && processingRuntimeStatus == other.processingRuntimeStatus
                 && Objects.equals(processingUnitStatistic, other.processingUnitStatistic)
-                && Objects.equals(statusMessage, other.statusMessage);
+                && Objects.equals(statusMessageList, other.statusMessageList);
     }
 
 
@@ -395,7 +415,7 @@ public class ProcessingUnitStatus implements IProcessingUnitStatus, Serializable
     public String toString() {
         return "ProcessingUnitStatus [hasNext=" + hasNext + ", numberOfSuccessfulUnits=" + numberOfSuccessfulUnits
                 + ", numberOfFailedUnits=" + numberOfFailedUnits + ", numberOfUnprocessedUnits="
-                + numberOfUnprocessedUnits + ", processingRuntimeStatus=" + processingRuntimeStatus + ", statusMessage="
-                + statusMessage + ", processingUnitStatistic=" + processingUnitStatistic + "]";
+                + numberOfUnprocessedUnits + ", processingRuntimeStatus=" + processingRuntimeStatus + ", statusMessageList="
+                + statusMessageList + ", processingUnitStatistic=" + processingUnitStatistic + "]";
     }
 }
