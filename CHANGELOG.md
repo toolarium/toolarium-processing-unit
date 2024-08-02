@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [ 1.3.1 ] - 2024-08-02
+### Added
+- IProcessingUnitRunnableListener.notifyProcessingUnitProgress for simple progress measurement.
+- Improved ProcessingUnitProgressFormatter.
 
 ## [ 1.3.0 ] - 2024-07-25
 ### Changed
@@ -16,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Parallel processing support.
 - Possibility of handling empty runs (no progress) by the IEmptyProcessingUnitHandler.
-- Added previous ProcessingActionStatus if exsit in IProcessingUnitRunnableListener.notifyProcessingUnitState.
+- Added previous ProcessingActionStatus if exist in IProcessingUnitRunnableListener.notifyProcessingUnitState.
 
 ## [ 1.2.1 ] - 2024-07-01
 ### Fixed

@@ -73,10 +73,15 @@ public class ProcessingUnitProgressFormatter {
         StringBuilder builder = new StringBuilder();
         builder.append(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass));
         if (processingActionStatus != null) {
-            builder.append(" Status ").append(processingActionStatus).append(": ").append(processingProgress.getProgress()).append("%");
+            builder.append(" Status ").append(processingActionStatus);
         }
-        builder.append(prepareProgressNumbers(startTag, processingProgress, true));
+
         if (processingProgress != null) {
+            builder.append(": ").append(processingProgress.getProgress()).append("%");
+        }
+        
+        builder.append(prepareProgressNumbers(startTag, processingProgress, true));
+        if (processingProgress != null && processingRuntimeStatus != null) {
             builder.append(" -> ").append(processingRuntimeStatus);
         }
         
@@ -85,7 +90,7 @@ public class ProcessingUnitProgressFormatter {
         builder.append(prepareTimeMeasurement(startTag, timeMeasurement));
         builder.append(prepareMessages(startTag, messages));
         
-        if (processingProgress.getProcessingUnitStatistic() != null) {
+        if (processingProgress != null && processingProgress.getProcessingUnitStatistic() != null) {
             builder.append(prepareStatistic(startTag, processingProgress.getProcessingUnitStatistic()));
         }
         
@@ -215,7 +220,13 @@ public class ProcessingUnitProgressFormatter {
             builder.append("Current duration ");
         }
         
-        builder.append(timeMeasurement.getDurationAsString()).append(" (started: ").append(timeMeasurement.getStartTimestamp());
+        builder.append(timeMeasurement.getDurationAsString());
+        if (timeMeasurement.getStartTimestamp() != null) {
+            builder.append(" (started: ").append(timeMeasurement.getStartTimestamp());
+        } else {
+            builder.append(" (not yet started)");
+        }
+        
         if (hasEnded) {
             builder.append(", ended: ").append(timeMeasurement.getStopTimestamp());
         }

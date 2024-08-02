@@ -11,6 +11,7 @@ import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
+import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable;
 import com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener;
@@ -148,6 +149,28 @@ public class TestProcessingUnitRunnable extends ProcessingUnitRunnable {
                 
                 LOG.debug(ProcessingUnitUtil.getInstance().toString(id, name, processingUnitClass) + " Status changed " + message);
             }
+        }
+
+
+        /**
+         * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnableListener#notifyProcessingUnitProgress(java.lang.String, java.lang.String, java.lang.String, 
+         *      java.util.List, com.github.toolarium.processing.unit.IProcessingUnitContext, com.github.toolarium.processing.unit.IProcessingUnitProgress, com.github.toolarium.processing.unit.dto.ProcessingActionStatus, 
+         *      com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus, java.util.List, com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement, com.github.toolarium.common.bandwidth.IBandwidthThrottling, int)
+         */
+        @Override
+        public void notifyProcessingUnitProgress(String id, // CHECKSTYLE IGNORE THIS LINE
+                                                 String name, 
+                                                 String processingUnitClass,
+                                                 List<Parameter> parameters, 
+                                                 IProcessingUnitContext processingUnitContext,
+                                                 IProcessingUnitProgress processingProgress, 
+                                                 ProcessingActionStatus processingActionStatus,
+                                                 ProcessingRuntimeStatus processingRuntimeStatus, 
+                                                 List<String> messages,
+                                                 IProcessingUnitRuntimeTimeMeasurement timeMeasurement, 
+                                                 IBandwidthThrottling processingUnitThrottling, 
+                                                 int lastProgressInPercentage) {
+            
         }
     }
 }

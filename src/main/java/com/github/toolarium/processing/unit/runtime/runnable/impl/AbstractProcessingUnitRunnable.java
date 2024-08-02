@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable.impl;
 
+import com.github.toolarium.common.bandwidth.IBandwidthThrottling;
 import com.github.toolarium.common.formatter.TimeDifferenceFormatter;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
@@ -46,6 +47,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     private TimeDifferenceFormatter timeDifferenceFormatter; 
     private IEmptyProcessingUnitHandler emptyProcessingUnitHandler;
     private Long maxNumberOfProcessingUnitCallsPerSecond;
+    private volatile int lastProgressInPercentage;
 
     
     /**
@@ -80,6 +82,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.timeDifferenceFormatter = new TimeDifferenceFormatter();
         this.emptyProcessingUnitHandler = null;
         this.maxNumberOfProcessingUnitCallsPerSecond = null;
+        this.lastProgressInPercentage = 0;
     }
 
     
@@ -105,6 +108,11 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
         this.duration = null;
         this.timeDifferenceFormatter = new TimeDifferenceFormatter();
         this.emptyProcessingUnitHandler = processingUnitProxy.getEmptyProcessingUnitHandler();
+        this.lastProgressInPercentage = 0;
+        
+        if (processingUnitProxy.getProcessingUnitProgress() != null) {
+            this.lastProgressInPercentage = processingUnitProxy.getProcessingUnitProgress().getProgress();
+        }
 
         // resume
         setProcessingUnitRunnableListener(processingUnitRunnableListener);
@@ -414,6 +422,40 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
      */
     protected void setProcessingUnitRunnableListener(final IProcessingUnitRunnableListener processingUnitRunnableListener) {
         this.processingUnitRunnableListener = processingUnitRunnableListener;
+    }
+
+    
+    /**
+     * Notify processing unit action status
+     *
+     * @param bandwidthThrottling the bandwidth throttling 
+     */
+    protected void notifyProcessingUnitProgress(IBandwidthThrottling bandwidthThrottling) {
+        if (getProcessingUnitProgress() == null || lastProgressInPercentage == getProcessingUnitProgress().getProgress()) {
+            return;
+        }
+        
+        try {
+            String className = "";
+            if (processingUnitClass != null) {
+                className = processingUnitClass.getName();
+            }
+            processingUnitRunnableListener.notifyProcessingUnitProgress(getId(), 
+                                                                        getName(), 
+                                                                        className, 
+                                                                        getParameterList(), 
+                                                                        getProcessingUnitContext(),
+                                                                        getProcessingUnitProgress(),
+                                                                        getProcessingActionStatus(),
+                                                                        getProcessingRuntimeStatus(),
+                                                                        getStatusMessageList(),
+                                                                        getTimeMeasurement(),
+                                                                        bandwidthThrottling,
+                                                                        lastProgressInPercentage);
+            lastProgressInPercentage = getProcessingUnitProgress().getProgress();
+        } catch (RuntimeException e) {
+            LOG.warn("Could not notify the processing unit progress to the processing unit runnable listener: " + e.getMessage(), e);
+        }
     }
 
     

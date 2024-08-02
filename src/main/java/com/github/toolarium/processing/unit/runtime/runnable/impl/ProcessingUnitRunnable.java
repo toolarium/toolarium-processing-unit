@@ -179,6 +179,7 @@ public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable imple
                     exceptionOccured = true;
                 }
             
+                notifyProcessingUnitProgress(getProcessingUnitThrottling());
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(toString());
                 }
