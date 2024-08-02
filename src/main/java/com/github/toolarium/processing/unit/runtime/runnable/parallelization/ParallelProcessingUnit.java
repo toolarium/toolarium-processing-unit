@@ -265,6 +265,8 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
                     throw new ValidationException("Could not release " + processingUnitClass.getName() + ": " + t.getMessage(), t);
                 }
             }
+            
+            processingUnitList = null;
         }
 
         if (getObjectLockManager() != null) {
@@ -274,6 +276,15 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
                 LOG.warn(processInfo + " Could not release resource object lock manager: " + e.getMessage(), e);
             }
         }
+        
+        if (!isThreadPoolTerminated()) {
+            executorService.shutdownNow();
+            executorService = null;
+        }
+        
+        checkExceptionInThreads();
+        runnerThreadExceptionQueue = null;
+        runnerThreadStatusQueueList = null;
     }
 
     
@@ -394,7 +405,10 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
     @Override
     public void uncaughtException(Thread t, Throwable e) {
         LOG.error(processInfo + " Uncaught exception in thread (id=" + t.getId() + ", name=" + t.getName() + "): " + e.getMessage(), e);
-        runnerThreadExceptionQueue.offer(e);
+        
+        if (runnerThreadExceptionQueue != null) {
+            runnerThreadExceptionQueue.offer(e);
+        }
     }
     
        
@@ -414,15 +428,17 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      * @return the processing status builder
      */
     protected ProcessingUnitStatusBuilder aggregateProcessingUnitStatus(ProcessingUnitStatusBuilder processingUnitStatusBuilder) {
-        for (RunnerThreadProcessStatusQueue statusQueue : runnerThreadStatusQueueList) {
-            IProcessingUnitStatus processingUnitStatus = statusQueue.getProcessingUnitStatus();
-            while (processingUnitStatus != null && !isThreadPoolTerminated()) {
+        if (runnerThreadStatusQueueList != null) {
+            for (RunnerThreadProcessStatusQueue statusQueue : runnerThreadStatusQueueList) {
+                IProcessingUnitStatus processingUnitStatus = statusQueue.getProcessingUnitStatus();
+                while (processingUnitStatus != null && !isThreadPoolTerminated()) {
+                    ProcessingUnitStatusUtil.getInstance().aggregateProcessingUnitStatus(processingUnitStatusBuilder, processingUnitStatus);
+                    processingUnitStatus = statusQueue.getProcessingUnitStatus();
+                }
                 ProcessingUnitStatusUtil.getInstance().aggregateProcessingUnitStatus(processingUnitStatusBuilder, processingUnitStatus);
-                processingUnitStatus = statusQueue.getProcessingUnitStatus();
             }
-            ProcessingUnitStatusUtil.getInstance().aggregateProcessingUnitStatus(processingUnitStatusBuilder, processingUnitStatus);
         }
-
+        
         processingUnitStatusBuilder.hasNextIfHasUnprocessedUnits();
         processingUnitStatusBuilder.hasNext(processingUnitStatusBuilder.hasNext() && !isThreadPoolTerminated());
         return processingUnitStatusBuilder;
@@ -435,7 +451,7 @@ public class ParallelProcessingUnit extends AbstractProcessingUnitPersistenceImp
      * @throws ProcessingException in case of an error
      */
     protected void checkExceptionInThreads() throws ProcessingException {
-        if (runnerThreadExceptionQueue.size() > 0) {
+        if (runnerThreadExceptionQueue != null && runnerThreadExceptionQueue.size() > 0) {
             waitForThreadPoolTerminated();
 
             ArrayList<Throwable> exceptionList = new ArrayList<Throwable>();

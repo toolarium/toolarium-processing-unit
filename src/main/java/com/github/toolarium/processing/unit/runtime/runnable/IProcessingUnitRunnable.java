@@ -9,6 +9,7 @@ import com.github.toolarium.processing.unit.IProcessingUnitProgress;
 import com.github.toolarium.processing.unit.dto.Parameter;
 import com.github.toolarium.processing.unit.dto.ProcessingActionStatus;
 import com.github.toolarium.processing.unit.dto.ProcessingRuntimeStatus;
+import com.github.toolarium.processing.unit.exception.ProcessingException;
 import com.github.toolarium.processing.unit.runtime.IProcessingUnitRuntimeTimeMeasurement;
 import java.util.List;
 
@@ -82,4 +83,13 @@ public interface IProcessingUnitRunnable {
      * @return the time measurement
      */
     IProcessingUnitRuntimeTimeMeasurement getTimeMeasurement();
+
+
+    /**
+     * Release resources will be called to release all internal referenced resources after a processing success, warn or error.
+     *
+     * @throws ProcessingException Throws this exception in case of releasing failure.
+     */
+    void releaseResource() 
+        throws ProcessingException;
 }

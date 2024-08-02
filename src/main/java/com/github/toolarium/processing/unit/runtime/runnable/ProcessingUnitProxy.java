@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.processing.unit.runtime.runnable;
 
+import com.github.toolarium.common.stacktrace.StackTrace;
 import com.github.toolarium.processing.unit.IProcessingUnit;
 import com.github.toolarium.processing.unit.IProcessingUnitContext;
 import com.github.toolarium.processing.unit.IProcessingUnitPersistence;
@@ -329,6 +330,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                 }                
             }
         } catch (ValidationException ve) {
+            ve.setStackTrace(StackTrace.filterStackTrace(ve.getStackTrace()));
             if (LOG.isDebugEnabled()) {
                 LOG.debug("ValidationException occured: " + ve.getMessage(), ve);
             }
@@ -344,6 +346,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                 throw ve;
             }
         } catch (ProcessingException pe) {
+            pe.setStackTrace(StackTrace.filterStackTrace(pe.getStackTrace()));
             if (LOG.isDebugEnabled()) {
                 LOG.debug("ProcessingException occured: " + pe.getMessage(), pe);
             }
@@ -365,6 +368,7 @@ public final class ProcessingUnitProxy implements IProcessingUnitProxy {
                 throw pe;
             }
         } catch (RuntimeException e) {            
+            e.setStackTrace(StackTrace.filterStackTrace(e.getStackTrace()));
             continueProcessing = false;
             processStatusMessageList.add(prepare(e.getMessage(), "Exception occured " + e.getClass()  + "!"));
             processingUnitProgress.setProcessingRuntimeStatus(ProcessingRuntimeStatus.ERROR);

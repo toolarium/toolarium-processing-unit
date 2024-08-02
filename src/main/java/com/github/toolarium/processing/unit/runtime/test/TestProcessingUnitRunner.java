@@ -60,7 +60,9 @@ public class TestProcessingUnitRunner implements Serializable {
     public long run(Class<? extends IProcessingUnit> processingUnitClass, List<Parameter> parameterList) throws ValidationException, ProcessingException {
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingUnitContext);
         processingUnitRunnable.run();
-        return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
+        long result =  processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
+        processingUnitRunnable.releaseResource();
+        return result;
     }
 
     
@@ -78,7 +80,9 @@ public class TestProcessingUnitRunner implements Serializable {
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingUnitContext);
         processingUnitRunnable.setNumberOfCyclesBeforeStop(numberOfCyclesBeforeStop);
         processingUnitRunnable.run();
-        return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
+        long result = processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
+        processingUnitRunnable.releaseResource();
+        return result;
     }
 
     
@@ -96,7 +100,9 @@ public class TestProcessingUnitRunner implements Serializable {
         processingUnitRunnable = new TestProcessingUnitRunnable(processingUnitClass, parameterList, processingUnitContext);
         processingUnitRunnable.setMaxNumberOfProcessingUnitCallsPerSecond(maxNumberOfProcessingUnitCallsPerSecond);
         processingUnitRunnable.run();
-        return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
+        long result = processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
+        processingUnitRunnable.releaseResource();
+        return result;
     }
 
     
@@ -117,7 +123,9 @@ public class TestProcessingUnitRunner implements Serializable {
                                         long suspendAfterCycles,
                                         long suspendSleepTime,
                                         int maxNumberOfSuspends) throws ValidationException, ProcessingException {
-        return runWithSuspendAndResume(processingUnitClass, parameterList, suspendAfterCycles, suspendSleepTime, maxNumberOfSuspends, null);
+        long result = runWithSuspendAndResume(processingUnitClass, parameterList, suspendAfterCycles, suspendSleepTime, maxNumberOfSuspends, null);
+        processingUnitRunnable.releaseResource();
+        return result;
     }
 
     /**
@@ -171,7 +179,9 @@ public class TestProcessingUnitRunner implements Serializable {
             }
         }
         
-        return processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
+        long result = processingUnitRunnable.getProcessingUnitProgress().getNumberOfProcessedUnits();
+        processingUnitRunnable.releaseResource();
+        return result;
     }
 
 

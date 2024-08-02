@@ -89,8 +89,8 @@ public interface IProcessingUnit {
 
     /**
      * Release resources will be called to release all internal referenced resources after a processing success, error 
-     * or by a <code>suspendProcessing</code> (see method below). It will be called after <code>onSuccess</code> 
-     * or <code>onStop</code>.
+     * or by a <code>suspendProcessing</code> (see method below). It will be called after {@link #onEnding()} 
+     * or {@link #onAborting()}.
      *
      * @throws ProcessingException Throws this exception in case of releasing failure.
      */

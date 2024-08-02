@@ -37,7 +37,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     private final String name;
     private final Class<? extends IProcessingUnit> processingUnitClass;
     private final List<Parameter> parameterList;
-    private final IProcessingUnitContext processingUnitContext;
+    private IProcessingUnitContext processingUnitContext;
     private ProcessingUnitProxy processingUnitProxy;
     private ProcessingActionStatus processingActionStatus;
     private IProcessingUnitRunnableListener processingUnitRunnableListener;
@@ -140,6 +140,21 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     
     
     /**
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IProcessingUnitRunnable#releaseResource()
+     */
+    @Override
+    public void releaseResource() throws ProcessingException {
+        if (getProcessingUnitProxy() != null) {
+            getProcessingUnitProxy().releaseResource();
+        }
+
+        processingUnitContext = null;
+        processingUnitRunnableListener = null;
+        emptyProcessingUnitHandler = null;
+    }
+
+    
+    /**
      * Sets the processing action status
      *
      * @param processingActionStatus the processing action status
@@ -152,8 +167,8 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
             duration = getTimeMeasurement().getDuration();
             stopTimestamp = Instant.now();
             
-            if (getProcessingUnitProxy().getEmptyProcessingUnitHandler() != null) {
-                long emptyProcessingUnitHandlerDuration = getProcessingUnitProxy().getEmptyProcessingUnitHandler().getDuration();
+            if (getEmptyProcessingUnitHandler() != null) {
+                long emptyProcessingUnitHandlerDuration = getEmptyProcessingUnitHandler().getDuration();
                 if (emptyProcessingUnitHandlerDuration > 0) {
                     duration -= emptyProcessingUnitHandlerDuration;
                 }
@@ -293,7 +308,7 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
             return processingUnitProxy.getEmptyProcessingUnitHandler();
         }
         
-        return null;
+        return emptyProcessingUnitHandler;
     }
 
     
@@ -305,6 +320,8 @@ public abstract class AbstractProcessingUnitRunnable implements IProcessingUnitR
     public void setEmptyProcessingUnitHandler(IEmptyProcessingUnitHandler emptyProcessingUnitHandler) {
         if (processingUnitProxy != null) {
             processingUnitProxy.setEmptyProcessingUnitHandler(emptyProcessingUnitHandler);
+        } else {
+            this.emptyProcessingUnitHandler = emptyProcessingUnitHandler;
         }
     }
 

@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class ProcessingUnitRunnable extends AbstractProcessingUnitRunnable implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingUnitRunnable.class);
     private volatile boolean suspend = false;
-    private byte[] suspendedState = null;
+    private transient byte[] suspendedState = null;
     private IProcessingUnitThrottling processingUnitThrottling;
     private volatile boolean isInterrupted;
 
