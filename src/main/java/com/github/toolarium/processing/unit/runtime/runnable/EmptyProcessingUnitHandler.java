@@ -93,7 +93,7 @@ public class EmptyProcessingUnitHandler implements IEmptyProcessingUnitHandler {
 
 
     /**
-     * @see com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler#handle(java.lang.String, java.lang.String, java.lang.Class, long, com.github.toolarium.processing.unit.IProcessingUnitProgress)
+     * @see com.github.toolarium.processing.unit.runtime.runnable.IEmptyProcessingUnitHandler#handleEmptyProcessing(java.lang.String, java.lang.String, java.lang.Class, long, com.github.toolarium.processing.unit.IProcessingUnitProgress)
      */
     @Override
     public boolean handleEmptyProcessing(String id, String name, Class<? extends IProcessingUnit> processingUnitClass, long threadId, IProcessingUnitProgress processingUnitProgress) {

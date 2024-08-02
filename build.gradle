@@ -12,7 +12,7 @@ apply from: "https://raw.githubusercontent.com/toolarium/common-gradle-build/mas
 dependencies {
 
     // toolarium common
-    implementation "com.github.toolarium:toolarium-common:0.8.1"
+    implementation "com.github.toolarium:toolarium-common:0.8.2"
 
     // logging
     implementation "org.slf4j:slf4j-api:${commonGradleSlf4jApiVersion}"
